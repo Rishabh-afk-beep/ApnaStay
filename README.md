@@ -1,4 +1,4 @@
-# CollegePG Monorepo Starter
+# ApnaStay Monorepo Starter
 
 This repository now includes:
 - backend (FastAPI + Firebase Auth verification + Firestore-ready repositories)

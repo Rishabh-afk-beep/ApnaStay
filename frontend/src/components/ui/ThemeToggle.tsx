@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const THEME_KEY = "collegepg-theme";
+const THEME_KEY = "apnastay-theme";
 
 function applyTheme(theme: "light" | "dark") {
   document.documentElement.classList.toggle("dark", theme === "dark");

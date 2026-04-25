@@ -20,7 +20,7 @@ import { Colors, FontSize, Spacing, BorderRadius } from "../../theme/colors";
 type Step = "role" | "credentials";
 
 export function LoginScreen({ navigation }: any) {
-  const { login, signUp } = useAuth();
+  const { login, signUp, resetPassword } = useAuth();
   const [step, setStep] = useState<Step>("role");
   const [selectedRole, setSelectedRole] = useState<"student" | "owner">("student");
   const [email, setEmail] = useState("");
@@ -57,6 +57,29 @@ export function LoginScreen({ navigation }: any) {
     }
   };
 
+  const handleResetPassword = async () => {
+    if (!email.trim()) {
+      Alert.alert("Error", "Please enter your email above to reset your password");
+      return;
+    }
+    setLoading(true);
+    try {
+      await resetPassword(email.trim());
+      Alert.alert("Success", "Password reset email sent. Please check your inbox.");
+    } catch (err: any) {
+      const msg = err?.message || "";
+      if (msg.includes("user-not-found")) {
+        Alert.alert("Error", "No account found for this email");
+      } else if (msg.includes("invalid-email")) {
+        Alert.alert("Error", "Invalid email format");
+      } else {
+        Alert.alert("Error", "Failed to send reset email");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (step === "role") {
     return (
       <LinearGradient colors={["#FEF3C7", "#FAFAF5"]} style={styles.container}>
@@ -65,7 +88,7 @@ export function LoginScreen({ navigation }: any) {
             <View style={styles.logoBadge}>
               <Text style={styles.logoText}>C</Text>
             </View>
-            <Text style={styles.brandName}>CollegePG</Text>
+            <Text style={styles.brandName}>ApnaStay</Text>
           </View>
 
           <Text style={styles.heading}>Find your perfect stay</Text>
@@ -153,7 +176,7 @@ export function LoginScreen({ navigation }: any) {
           <View style={styles.logoBadge}>
             <Text style={styles.logoText}>C</Text>
           </View>
-          <Text style={styles.brandName}>CollegePG</Text>
+          <Text style={styles.brandName}>ApnaStay</Text>
         </View>
 
         <Text style={styles.heading}>
@@ -190,6 +213,12 @@ export function LoginScreen({ navigation }: any) {
               onChangeText={setPassword}
             />
           </View>
+
+          {!isSignUp && (
+            <TouchableOpacity onPress={handleResetPassword} disabled={loading} style={styles.forgotBtn}>
+              <Text style={styles.forgotText}>Forgot password?</Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             style={[styles.primaryBtn, loading && { opacity: 0.6 }]}
@@ -315,6 +344,8 @@ const styles = StyleSheet.create({
     fontSize: FontSize.base,
     color: Colors.onSurface,
   },
+  forgotBtn: { alignSelf: "flex-end", marginTop: -8 },
+  forgotText: { color: Colors.primary, fontSize: FontSize.sm, fontWeight: "600" },
   switchBtn: { alignItems: "center", paddingVertical: Spacing.md },
   switchText: { color: Colors.primary, fontSize: FontSize.sm, fontWeight: "600" },
 });

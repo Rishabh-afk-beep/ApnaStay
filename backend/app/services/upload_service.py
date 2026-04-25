@@ -19,7 +19,7 @@ def _configure_cloudinary() -> bool:
     return True
 
 
-async def upload_image(file: UploadFile, folder: str = "collegepg") -> ImageUploadResponse:
+async def upload_image(file: UploadFile, folder: str = "apnastay") -> ImageUploadResponse:
     if not _configure_cloudinary():
         # Return a placeholder when Cloudinary is not configured
         return ImageUploadResponse(

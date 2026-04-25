@@ -106,7 +106,7 @@ export function ProfileScreen() {
         <Text style={styles.logoutText}>Log Out</Text>
       </TouchableOpacity>
 
-      <Text style={styles.version}>CollegePG v1.0.0</Text>
+      <Text style={styles.version}>ApnaStay v1.0.0</Text>
     </ScrollView>
   );
 }

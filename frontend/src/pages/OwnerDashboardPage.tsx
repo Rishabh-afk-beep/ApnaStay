@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Reveal } from "../components/ui/Reveal";
 import { AnimatedNumber } from "../components/ui/AnimatedNumber";
-import { createOwnerProperty, listOwnerProperties, setApiToken, updateOwnerProperty, deleteOwnerProperty, listOwnerInquiries, uploadImage } from "../lib/api";
+import { createOwnerProperty, listOwnerProperties, setApiToken, updateOwnerProperty, deleteOwnerProperty, listOwnerInquiries, uploadImage, listColleges } from "../lib/api";
 import { useAuth } from "../lib/AuthContext";
 import type { InquiryOut } from "../types";
 
@@ -11,9 +11,19 @@ export function OwnerDashboardPage() {
   const queryClient = useQueryClient();
   const { profile } = useAuth();
 
-  // Dev token fallback for non-auth mode
-  const [devToken, setDevToken] = useState(localStorage.getItem("ownerToken") ?? "");
-  const [useDevAuth, setUseDevAuth] = useState(!profile);
+  if (!profile || profile.role !== "owner") {
+    return (
+      <main className="mx-auto max-w-xl px-6 py-20 text-center">
+        <div className="rounded-3xl p-16" style={{ background: "var(--surface-container-low)" }}>
+          <p className="text-5xl">🔒</p>
+          <h1 className="mt-6 text-2xl font-black" style={{ color: "var(--on-surface)" }}>Owner Access Required</h1>
+          <p className="mt-4 text-sm" style={{ color: "var(--on-surface-variant)" }}>
+            Please log in with an Owner account to manage property listings.
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   const [form, setForm] = useState({
     title: "",
@@ -36,24 +46,36 @@ export function OwnerDashboardPage() {
   const [uploadingImages, setUploadingImages] = useState(false);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [selectedPropertyInquiries, setSelectedPropertyInquiries] = useState<string | null>(null);
+  const [editingPropertyId, setEditingPropertyId] = useState<string | null>(null);
   const [inquiries, setInquiries] = useState<InquiryOut[]>([]);
 
-  useEffect(() => {
-    if (useDevAuth && devToken) {
-      setApiToken(devToken);
-    }
-  }, [devToken, useDevAuth]);
 
   const propertiesQuery = useQuery({
     queryKey: ["owner-properties"],
     queryFn: () => listOwnerProperties(),
-    enabled: Boolean(profile || devToken),
+    enabled: Boolean(profile),
+  });
+
+  const collegesQuery = useQuery({
+    queryKey: ["colleges"],
+    queryFn: () => listColleges(),
   });
 
   const createMutation = useMutation({
     mutationFn: createOwnerProperty,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["owner-properties"] });
+      setForm({ ...form, title: "", description: "", address_text: "" });
+      setImageUrls([]);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ propertyId, data }: { propertyId: string; data: any }) =>
+      updateOwnerProperty(propertyId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["owner-properties"] });
+      setEditingPropertyId(null);
       setForm({ ...form, title: "", description: "", address_text: "" });
       setImageUrls([]);
     },
@@ -95,7 +117,7 @@ export function OwnerDashboardPage() {
 
   const submitCreate = (event: FormEvent) => {
     event.preventDefault();
-    createMutation.mutate({
+    const payload = {
       title: form.title,
       property_type: form.property_type,
       primary_college_id: form.primary_college_id,
@@ -113,14 +135,14 @@ export function OwnerDashboardPage() {
       rules: form.rules || undefined,
       image_urls: imageUrls,
       cover_image_url: imageUrls[0] || undefined,
-    });
+    };
+    if (editingPropertyId) {
+      updateMutation.mutate({ propertyId: editingPropertyId, data: payload });
+    } else {
+      createMutation.mutate(payload);
+    }
   };
 
-  const saveDevToken = () => {
-    localStorage.setItem("ownerToken", devToken);
-    setApiToken(devToken);
-    queryClient.invalidateQueries({ queryKey: ["owner-properties"] });
-  };
 
   const totalListings = propertiesQuery.data?.length ?? 0;
   const approvedListings = propertiesQuery.data?.filter((item) => item.approval_status === "approved").length ?? 0;
@@ -174,58 +196,102 @@ export function OwnerDashboardPage() {
         </section>
       </Reveal>
 
-      {/* Dev token section */}
-      {!profile && (
-        <Reveal className="mt-6" delayMs={110}>
-          <section className="glass-card-static p-6">
-            <h2 className="font-black" style={{ color: "var(--on-surface)" }}>Owner Access Token</h2>
-            <p className="mt-1 text-sm" style={{ color: "var(--outline)" }}>
-              Paste owner token generated from backend/scripts/generate_dev_tokens.py.
-            </p>
-            <div className="mt-3 flex gap-2">
-              <input
-                value={devToken}
-                onChange={(e) => setDevToken(e.target.value)}
-                className="input-field"
-                placeholder="Bearer token value"
-              />
-              <button onClick={saveDevToken} className="btn-primary flex-shrink-0">
-                Use Token
-              </button>
-            </div>
-          </section>
-        </Reveal>
-      )}
+
 
       {/* Create listing form */}
       <Reveal className="mt-6" delayMs={160}>
-        <section className="glass-card-static p-7">
-          <h2 className="text-lg font-black" style={{ color: "var(--on-surface)" }}>Create Listing</h2>
-          <form className="mt-5 grid gap-3 md:grid-cols-2" onSubmit={submitCreate}>
-            <input className="input-field" placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
-            <select className="input-field" value={form.property_type} onChange={(e) => setForm({ ...form, property_type: e.target.value })}>
-              <option value="pg">PG</option><option value="hostel">Hostel</option><option value="single_room">Single Room</option><option value="flat">Flat</option><option value="co_living">Co-living</option>
-            </select>
-            <input className="input-field" placeholder="College ID" value={form.primary_college_id} onChange={(e) => setForm({ ...form, primary_college_id: e.target.value })} />
-            <input className="input-field" placeholder="Address" value={form.address_text} onChange={(e) => setForm({ ...form, address_text: e.target.value })} />
-            <textarea className="input-field md:col-span-2" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} />
-            <input className="input-field" placeholder="Latitude" value={form.latitude} onChange={(e) => setForm({ ...form, latitude: e.target.value })} />
-            <input className="input-field" placeholder="Longitude" value={form.longitude} onChange={(e) => setForm({ ...form, longitude: e.target.value })} />
-            <input className="input-field" placeholder="Rent Min" value={form.rent_min} onChange={(e) => setForm({ ...form, rent_min: e.target.value })} />
-            <input className="input-field" placeholder="Rent Max" value={form.rent_max} onChange={(e) => setForm({ ...form, rent_max: e.target.value })} />
-            <input className="input-field" placeholder="Security Deposit" value={form.security_deposit} onChange={(e) => setForm({ ...form, security_deposit: e.target.value })} />
-            <input className="input-field" placeholder="Amenities comma-separated" value={form.amenities} onChange={(e) => setForm({ ...form, amenities: e.target.value })} />
-            <select className="input-field" value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}>
-              <option value="any">Any Gender</option><option value="male">Male Only</option><option value="female">Female Only</option>
-            </select>
-            <label className="flex items-center gap-2 text-sm font-semibold" style={{ color: "var(--on-surface-variant)" }}>
-              <input type="checkbox" checked={form.food_available} onChange={(e) => setForm({ ...form, food_available: e.target.checked })} className="accent-amber-500" />
-              Food Available
-            </label>
+        <section className="glass-card-static p-7" id="listing-form">
+          <h2 className="text-lg font-black" style={{ color: "var(--on-surface)" }}>
+            {editingPropertyId ? "Edit Listing" : "Create Listing"}
+          </h2>
+          <form className="mt-5 grid gap-4 md:grid-cols-2" onSubmit={submitCreate}>
+            <div className="flex flex-col gap-1 md:col-span-2">
+              <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Property Title*</label>
+              <input className="input-field" placeholder="e.g., Sunrise Luxury PG for Men" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Property Type*</label>
+              <select className="input-field" value={form.property_type} onChange={(e) => setForm({ ...form, property_type: e.target.value })}>
+                <option value="pg">PG</option><option value="hostel">Hostel</option><option value="single_room">Single Room</option><option value="flat">Flat</option><option value="co_living">Co-living</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Nearest College (Optional)</label>
+              <select className="input-field" value={form.primary_college_id} onChange={(e) => setForm({ ...form, primary_college_id: e.target.value })}>
+                <option value="">No specific college</option>
+                {collegesQuery.data?.map(c => (
+                  <option key={c.college_id} value={c.college_id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1 md:col-span-2">
+              <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Full Address*</label>
+              <input className="input-field" placeholder="e.g., Plot 45, Gachibowli Road, Hyderabad" value={form.address_text} onChange={(e) => setForm({ ...form, address_text: e.target.value })} required />
+            </div>
+
+            <div className="flex flex-col gap-1 md:col-span-2">
+              <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Description*</label>
+              <textarea className="input-field" placeholder="Describe the property, nearby landmarks, etc." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} required />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Latitude (for Map)</label>
+              <input className="input-field" placeholder="e.g., 17.39" value={form.latitude} onChange={(e) => setForm({ ...form, latitude: e.target.value })} />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Longitude (for Map)</label>
+              <input className="input-field" placeholder="e.g., 78.48" value={form.longitude} onChange={(e) => setForm({ ...form, longitude: e.target.value })} />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Min Rent (₹/month)*</label>
+              <input type="number" className="input-field" placeholder="e.g., 7000" value={form.rent_min} onChange={(e) => setForm({ ...form, rent_min: e.target.value })} required />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Max Rent (₹/month)*</label>
+              <input type="number" className="input-field" placeholder="e.g., 9000" value={form.rent_max} onChange={(e) => setForm({ ...form, rent_max: e.target.value })} required />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Security Deposit (₹)*</label>
+              <input type="number" className="input-field" placeholder="e.g., 5000" value={form.security_deposit} onChange={(e) => setForm({ ...form, security_deposit: e.target.value })} required />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Amenities (Comma-separated)</label>
+              <input className="input-field" placeholder="e.g., wifi, ac, laundry, gym" value={form.amenities} onChange={(e) => setForm({ ...form, amenities: e.target.value })} />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Allowed Gender*</label>
+              <select className="input-field" value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}>
+                <option value="any">Any Gender</option><option value="male">Male Only</option><option value="female">Female Only</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col justify-center gap-1">
+              <label className="flex items-center gap-2 text-sm font-semibold" style={{ color: "var(--on-surface-variant)" }}>
+                <input type="checkbox" checked={form.food_available} onChange={(e) => setForm({ ...form, food_available: e.target.checked })} className="accent-amber-500 h-4 w-4" />
+                Food Provided
+              </label>
+            </div>
+
             {form.food_available && (
-              <input className="input-field md:col-span-2" placeholder="Food Menu Description" value={form.food_menu} onChange={(e) => setForm({ ...form, food_menu: e.target.value })} />
+              <div className="flex flex-col gap-1 md:col-span-2">
+                <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Food Menu Details</label>
+                <input className="input-field md:col-span-2" placeholder="e.g., Breakfast & Dinner (Veg/Non-Veg)" value={form.food_menu} onChange={(e) => setForm({ ...form, food_menu: e.target.value })} />
+              </div>
             )}
-            <input className="input-field md:col-span-2" placeholder="House Rules" value={form.rules} onChange={(e) => setForm({ ...form, rules: e.target.value })} />
+
+            <div className="flex flex-col gap-1 md:col-span-2">
+              <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>House Rules</label>
+              <input className="input-field md:col-span-2" placeholder="e.g., Curfew at 10 PM. No smoking." value={form.rules} onChange={(e) => setForm({ ...form, rules: e.target.value })} />
+            </div>
 
             {/* Image upload */}
             <div className="md:col-span-2">
@@ -250,9 +316,25 @@ export function OwnerDashboardPage() {
               )}
             </div>
 
-            <button type="submit" disabled={createMutation.isPending} className="btn-primary disabled:opacity-50">
-              {createMutation.isPending ? "Creating..." : "Create Property"}
-            </button>
+            <div className="flex gap-3 md:col-span-2">
+              <button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="btn-primary flex-1 disabled:opacity-50">
+                {editingPropertyId ? (updateMutation.isPending ? "Updating..." : "Update Property") : (createMutation.isPending ? "Creating..." : "Create Property")}
+              </button>
+              {editingPropertyId && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingPropertyId(null);
+                    setForm({ ...form, title: "", description: "", address_text: "" });
+                    setImageUrls([]);
+                  }}
+                  className="rounded-full px-6 py-2 text-sm font-bold transition-all"
+                  style={{ background: "var(--surface-container-high)", color: "var(--on-surface)" }}
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
           </form>
         </section>
       </Reveal>
@@ -304,6 +386,34 @@ export function OwnerDashboardPage() {
                     style={{ background: "var(--primary-fixed)", color: "var(--on-primary-container)" }}
                   >
                     Occupied
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingPropertyId(item.property_id);
+                      setForm({
+                        title: item.title,
+                        property_type: item.property_type,
+                        primary_college_id: item.primary_college_id || "",
+                        description: item.description || "",
+                        address_text: item.address_text || "",
+                        latitude: String(item.latitude),
+                        longitude: String(item.longitude),
+                        rent_min: String(item.rent_min),
+                        rent_max: String(item.rent_max),
+                        security_deposit: String(item.security_deposit),
+                        amenities: item.amenities.join(", "),
+                        gender: item.gender || "any",
+                        food_available: item.food_available,
+                        food_menu: item.food_menu || "",
+                        rules: item.rules || "",
+                      });
+                      setImageUrls(item.image_urls);
+                      document.getElementById("listing-form")?.scrollIntoView({ behavior: "smooth" });
+                    }}
+                    className="rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors"
+                    style={{ background: "var(--surface-container-low)", color: "var(--on-surface)" }}
+                  >
+                    Edit
                   </button>
                   <button
                     onClick={() => loadInquiries(item.property_id)}

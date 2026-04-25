@@ -1,13 +1,13 @@
 services:
   - type: web
-    name: collegepg-api
+    name: apnastay-api
     runtime: docker
     rootDir: backend
     dockerfilePath: ./Dockerfile
     plan: free
     envVars:
       - key: APP_NAME
-        value: CollegePG API
+        value: ApnaStay API
       - key: APP_ENV
         value: production
       - key: ALLOWED_ORIGINS

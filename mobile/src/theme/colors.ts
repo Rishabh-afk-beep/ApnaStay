@@ -1,4 +1,4 @@
-/** CollegePG Aureate Living design tokens for React Native */
+/** ApnaStay Aureate Living design tokens for React Native */
 
 export const Colors = {
   // Primary — Amber/Gold

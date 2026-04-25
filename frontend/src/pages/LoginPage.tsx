@@ -58,7 +58,7 @@ const ROLE_BRANDING: Record<RoleType, {
 };
 
 export function LoginPage({ forceRole }: LoginPageProps) {
-  const { firebaseUser, profile, loading, loginWithEmail, signUpWithEmail, loginWithGoogle, register } = useAuth();
+  const { firebaseUser, profile, loading, loginWithEmail, signUpWithEmail, resetPassword, loginWithGoogle, register, logout } = useAuth();
   const role: RoleType = forceRole ?? "student";
   const [mode, setMode] = useState<AuthMode>("signin");
   const [step, setStep] = useState<"auth" | "register">("auth");
@@ -127,10 +127,37 @@ export function LoginPage({ forceRole }: LoginPageProps) {
     finally { setBusy(false); }
   };
 
+  const handleResetPassword = async () => {
+    setError("");
+    if (!email) {
+      setError("Please enter your email above to reset your password.");
+      return;
+    }
+    setBusy(true);
+    try {
+      await resetPassword(email);
+      setError("Password reset email sent. Please check your inbox.");
+    } catch (err: any) {
+      const msg = err?.message || "";
+      if (msg.includes("auth/user-not-found")) setError("No account found for this email.");
+      else if (msg.includes("auth/invalid-email")) setError("Invalid email address format.");
+      else setError("Failed to send reset email.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleBackToSignIn = async () => {
+    if (firebaseUser) {
+      await logout();
+    }
+    setStep("auth");
+    setError("");
+  };
+
   const handleRegistration = async () => {
     setError("");
     if (!name.trim()) { setError("Name is required"); return; }
-    if (role === "student" && !collegeId) { setError("Please select your college"); return; }
     setBusy(true);
     try {
       await register(role, name, { phone, email, college_id: role === "student" ? collegeId : undefined });
@@ -152,10 +179,10 @@ export function LoginPage({ forceRole }: LoginPageProps) {
           <Reveal>
             <p className="text-xs font-bold uppercase tracking-widest"
               style={{ color: "var(--primary)", letterSpacing: "0.15em" }}>
-              Welcome to CollegePG
+              Welcome to ApnaStay
             </p>
             <h1 className="mt-3 text-4xl font-black" style={{ color: "var(--on-surface)" }}>
-              How would you like to use CollegePG?
+              How would you like to use ApnaStay?
             </h1>
             <p className="mt-3 text-sm" style={{ color: "var(--outline)" }}>
               Choose your account type to get started
@@ -335,7 +362,14 @@ export function LoginPage({ forceRole }: LoginPageProps) {
                       onChange={(e) => setEmail(e.target.value)} className="input-field mt-2" />
                   </label>
                   <label className="block">
-                    <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)", letterSpacing: "0.05em" }}>Password</span>
+                    <div className="flex items-end justify-between">
+                      <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)", letterSpacing: "0.05em" }}>Password</span>
+                      {mode === "signin" && (
+                        <button type="button" onClick={handleResetPassword} disabled={busy} className="text-xs font-bold transition-all hover:opacity-80 disabled:opacity-50" style={{ color: role === "owner" ? "#10b981" : "var(--primary)" }}>
+                          Forgot password?
+                        </button>
+                      )}
+                    </div>
                     <input type="password" placeholder="••••••••" value={password}
                       onChange={(e) => setPassword(e.target.value)} className="input-field mt-2" />
                   </label>
@@ -388,12 +422,11 @@ export function LoginPage({ forceRole }: LoginPageProps) {
                     <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 98765 43210" className="input-field mt-2" />
                   </label>
 
-                  {/* Student-only: College selector */}
                   {role === "student" && (
                     <label className="block">
-                      <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)", letterSpacing: "0.05em" }}>Select Your College *</span>
+                      <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)", letterSpacing: "0.05em" }}>Select Your College (Optional)</span>
                       <select value={collegeId} onChange={(e) => setCollegeId(e.target.value)} className="input-field mt-2">
-                        <option value="">— Select college —</option>
+                        <option value="">— I'll select later —</option>
                         {(collegesQuery.data ?? []).map((c) => (
                           <option key={c.college_id} value={c.college_id}>
                             {c.short_name ? `${c.short_name} — ` : ""}{c.name}
@@ -431,7 +464,7 @@ export function LoginPage({ forceRole }: LoginPageProps) {
                     {busy ? "Registering..." : `Register as ${branding.label}`}
                   </button>
 
-                  <button onClick={() => { setStep("auth"); setError(""); }}
+                  <button onClick={handleBackToSignIn}
                     className="w-full text-center text-sm font-semibold" style={{ color: "var(--outline)" }}>
                     ← Back to sign in
                   </button>

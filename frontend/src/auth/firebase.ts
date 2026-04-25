@@ -19,7 +19,7 @@ try {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
 } catch (err) {
-  console.warn("[CollegePG] Firebase init failed — running in offline mode:", err);
+  console.warn("[ApnaStay] Firebase init failed — running in offline mode:", err);
   app = initializeApp(firebaseConfig, "fallback");
   auth = getAuth(app);
 }

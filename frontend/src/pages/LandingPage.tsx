@@ -1,6 +1,9 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 
+import { useAuth } from "../lib/AuthContext";
 import { Reveal } from "../components/ui/Reveal";
+import { getPublicStats } from "../lib/api";
 
 const featureCards = [
   {
@@ -20,14 +23,20 @@ const featureCards = [
   },
 ];
 
-const quickStats = [
-  { label: "Verified Listings", value: "500+", icon: "🏠" },
-  { label: "Colleges Covered", value: "50+", icon: "🎓" },
-  { label: "Students Trust Us", value: "10K+", icon: "💛" },
-  { label: "Cities Active", value: "12+", icon: "📍" },
-];
-
 export function LandingPage() {
+  const { profile } = useAuth();
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ["public-stats"],
+    queryFn: getPublicStats,
+  });
+
+  const liveStats = [
+    { label: "Verified Listings", value: isLoading ? "..." : `${stats?.verified_listings ?? 500}+`, icon: "🏠" },
+    { label: "Colleges Covered", value: isLoading ? "..." : `${stats?.colleges_covered ?? 50}+`, icon: "🎓" },
+    { label: "Students Trust Us", value: isLoading ? "..." : `${(stats?.students_active ?? 10000).toLocaleString()}+`, icon: "💛" },
+    { label: "Cities Active", value: isLoading ? "..." : `${stats?.cities_active ?? 12}+`, icon: "📍" },
+  ];
+
   return (
     <main>
       {/* ── Hero Section ── */}
@@ -58,16 +67,33 @@ export function LandingPage() {
               <span style={{ color: "var(--primary-container)" }}>without the broker chaos.</span>
             </h1>
             <p className="mt-5 max-w-xl text-lg leading-8" style={{ color: "var(--on-surface-variant)" }}>
-              CollegePG helps students discover nearby PGs, flats, hostels, single rooms, and co-living options with
+              ApnaStay helps students discover nearby PGs, flats, hostels, single rooms, and co-living options with
               real filters and direct owner contact.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <Link to="/discover" className="btn-primary">
                 Start Discovering
               </Link>
-              <Link to="/login" className="btn-ghost">
-                List as Owner →
-              </Link>
+              {!profile && (
+                <>
+                  <Link to="/login/student" className="btn-ghost" style={{ background: "var(--surface-container)" }}>
+                    Join as Student
+                  </Link>
+                  <Link to="/login/owner" className="btn-ghost">
+                    List as Owner →
+                  </Link>
+                </>
+              )}
+              {profile?.role === "owner" && (
+                <Link to="/owner" className="btn-ghost">
+                  Owner Dashboard →
+                </Link>
+              )}
+              {profile?.role === "admin" && (
+                <Link to="/admin" className="btn-ghost">
+                  Admin Dashboard →
+                </Link>
+              )}
             </div>
           </div>
 
@@ -80,7 +106,7 @@ export function LandingPage() {
               At a glance
             </p>
             <div className="grid grid-cols-2 gap-4">
-              {quickStats.map((item) => (
+              {liveStats.map((item) => (
                 <article
                   key={item.label}
                   className="rounded-2xl p-5 transition-all duration-200 hover:scale-[1.02]"

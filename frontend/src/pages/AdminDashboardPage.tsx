@@ -19,30 +19,36 @@ import { useAuth } from "../lib/AuthContext";
 export function AdminDashboardPage() {
   const queryClient = useQueryClient();
   const { profile } = useAuth();
-  const [devToken, setDevToken] = useState(localStorage.getItem("adminToken") ?? "");
-
-  useEffect(() => {
-    if (!profile && devToken) {
-      setApiToken(devToken);
-    }
-  }, [devToken, profile]);
+  if (!profile || profile.role !== "admin") {
+    return (
+      <main className="mx-auto max-w-xl px-6 py-20 text-center">
+        <div className="rounded-3xl p-16" style={{ background: "var(--surface-container-low)" }}>
+          <p className="text-5xl">🔒</p>
+          <h1 className="mt-6 text-2xl font-black" style={{ color: "var(--on-surface)" }}>Admin Access Required</h1>
+          <p className="mt-4 text-sm" style={{ color: "var(--on-surface-variant)" }}>
+            Please log in with an Admin account to view the moderation queue.
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   const pendingQuery = useQuery({
     queryKey: ["admin-pending"],
     queryFn: listAdminPending,
-    enabled: Boolean(profile || devToken),
+    enabled: Boolean(profile),
   });
 
   const analyticsQuery = useQuery({
     queryKey: ["admin-analytics"],
     queryFn: getAdminAnalytics,
-    enabled: Boolean(profile || devToken),
+    enabled: Boolean(profile),
   });
 
   const logsQuery = useQuery({
     queryKey: ["admin-logs"],
     queryFn: getAdminLogs,
-    enabled: Boolean(profile || devToken),
+    enabled: Boolean(profile),
   });
 
   const moderationMutation = useMutation({
@@ -59,13 +65,7 @@ export function AdminDashboardPage() {
     },
   });
 
-  const saveDevToken = () => {
-    localStorage.setItem("adminToken", devToken);
-    setApiToken(devToken);
-    queryClient.invalidateQueries({ queryKey: ["admin-pending"] });
-    queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
-    queryClient.invalidateQueries({ queryKey: ["admin-logs"] });
-  };
+
 
   const totalProperties = analyticsQuery.data?.total_properties ?? 0;
   const liveProperties = analyticsQuery.data?.live_properties ?? 0;
@@ -99,29 +99,6 @@ export function AdminDashboardPage() {
           </div>
         </section>
       </Reveal>
-
-      {/* Dev token */}
-      {!profile && (
-        <Reveal className="mt-6" delayMs={60}>
-          <section className="glass-card-static p-6">
-            <h2 className="font-black" style={{ color: "var(--on-surface)" }}>Admin Access Token</h2>
-            <p className="mt-1 text-sm" style={{ color: "var(--outline)" }}>
-              Paste admin token generated from backend/scripts/generate_dev_tokens.py.
-            </p>
-            <div className="mt-3 flex gap-2">
-              <input
-                value={devToken}
-                onChange={(e) => setDevToken(e.target.value)}
-                className="input-field"
-                placeholder="Bearer token value"
-              />
-              <button onClick={saveDevToken} className="btn-primary flex-shrink-0">
-                Use Token
-              </button>
-            </div>
-          </section>
-        </Reveal>
-      )}
 
       {/* Analytics cards */}
       <Reveal className="mt-6" delayMs={110}>

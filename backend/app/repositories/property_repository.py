@@ -274,15 +274,15 @@ class PropertyRepository:
             return None
         return self._to_detail(doc.to_dict())
 
-    def list_by_owner(self, owner_uid: str) -> List[PropertyCard]:
+    def list_by_owner(self, owner_uid: str) -> List[PropertyDetail]:
         client = get_firestore_client()
         if client is None:
-            return [self._to_card(dict(item)) for item in _FALLBACK_PROPERTIES.values() if item.get("owner_uid") == owner_uid]
+            return [self._to_detail(dict(item)) for item in _FALLBACK_PROPERTIES.values() if item.get("owner_uid") == owner_uid]
 
         docs = client.collection("properties").where("owner_uid", "==", owner_uid).stream()
-        return [self._to_card(doc.to_dict()) for doc in docs]
+        return [self._to_detail(doc.to_dict()) for doc in docs]
 
-    def create_for_owner(self, owner_uid: str, payload: OwnerPropertyCreate) -> PropertyCard:
+    def create_for_owner(self, owner_uid: str, payload: OwnerPropertyCreate) -> PropertyDetail:
         now = self._now_iso()
         property_id = f"property_{owner_uid}_{int(datetime.now(timezone.utc).timestamp())}"
         data: Dict[str, Any] = {
@@ -327,9 +327,9 @@ class PropertyRepository:
         else:
             _FALLBACK_PROPERTIES[property_id] = self._to_firestore_dict(data)
 
-        return self._to_card(data)
+        return self._to_detail(data)
 
-    def update_for_owner(self, owner_uid: str, property_id: str, payload: OwnerPropertyUpdate) -> Optional[PropertyCard]:
+    def update_for_owner(self, owner_uid: str, property_id: str, payload: OwnerPropertyUpdate) -> Optional[PropertyDetail]:
         item = self.get_by_id(property_id)
         if item is None:
             return None
@@ -351,7 +351,7 @@ class PropertyRepository:
             patch["updated_at"] = self._now_iso()
             client.collection("properties").document(property_id).update(patch)
             current.update(patch)
-            return self._to_card(current)
+            return self._to_detail(current)
 
         current = _FALLBACK_PROPERTIES.get(property_id)
         if current is None:
@@ -366,7 +366,7 @@ class PropertyRepository:
         patch["updated_at"] = self._now_iso()
         current.update(patch)
         _FALLBACK_PROPERTIES[property_id] = current
-        return self._to_card(current)
+        return self._to_detail(current)
 
     def delete_for_owner(self, owner_uid: str, property_id: str) -> bool:
         client = get_firestore_client()

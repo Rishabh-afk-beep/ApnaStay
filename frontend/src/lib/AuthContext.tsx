@@ -8,6 +8,7 @@ import {
   signInWithPhoneNumber,
   signInWithPopup,
   signOut,
+  sendPasswordResetEmail,
   type ConfirmationResult,
   type User,
 } from "firebase/auth";
@@ -26,6 +27,7 @@ interface AuthContextValue {
   loginWithGoogle: () => Promise<void>;
   loginWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   register: (role: string, name: string, extra?: { phone?: string; email?: string; college_id?: string }) => Promise<void>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -47,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isFirebaseConfigured) {
-      console.info("[CollegePG] Firebase not configured — running in guest mode");
+      console.info("[ApnaStay] Firebase not configured — running in guest mode");
       setLoading(false);
       return;
     }
@@ -73,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       return unsubscribe;
     } catch (err) {
-      console.warn("[CollegePG] Auth listener failed:", err);
+      console.warn("[ApnaStay] Auth listener failed:", err);
       setLoading(false);
     }
   }, []);
@@ -138,6 +140,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setFirebaseUser(null);
   };
 
+  const resetPassword = async (email: string) => {
+    await sendPasswordResetEmail(auth, email);
+  };
+
   const refreshProfile = async () => {
     if (firebaseUser) {
       const token = await firebaseUser.getIdToken(true);
@@ -163,6 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loginWithGoogle,
         loginWithEmail,
         signUpWithEmail,
+        resetPassword,
         register,
         logout,
         refreshProfile,

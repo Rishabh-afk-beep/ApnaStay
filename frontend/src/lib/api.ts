@@ -48,6 +48,20 @@ export async function completeProfile(data: { name: string; phone: string; email
   return res.data;
 }
 
+// ── Health & Stats ──────────────────────────────────────────────────
+
+export interface PublicStatsOut {
+  verified_listings: number;
+  colleges_covered: number;
+  students_active: number;
+  cities_active: number;
+}
+
+export async function getPublicStats(): Promise<PublicStatsOut> {
+  const res = await api.get<PublicStatsOut>("/health/stats");
+  return res.data;
+}
+
 // ── Colleges ──────────────────────────────────────────────────────
 
 export async function listColleges(): Promise<CollegeOut[]> {
@@ -147,18 +161,18 @@ export async function deleteAlert(alertId: string): Promise<void> {
 
 // ── Owner ─────────────────────────────────────────────────────────
 
-export async function listOwnerProperties(): Promise<PropertyCard[]> {
-  const res = await api.get<PropertyCard[]>("/owner/properties");
+export async function listOwnerProperties(): Promise<PropertyDetail[]> {
+  const res = await api.get<PropertyDetail[]>("/owner/properties");
   return res.data;
 }
 
-export async function createOwnerProperty(data: any): Promise<PropertyCard> {
-  const res = await api.post<PropertyCard>("/owner/properties", data);
+export async function createOwnerProperty(data: any): Promise<PropertyDetail> {
+  const res = await api.post<PropertyDetail>("/owner/properties", data);
   return res.data;
 }
 
-export async function updateOwnerProperty(propertyId: string, data: any): Promise<PropertyCard> {
-  const res = await api.patch<PropertyCard>(`/owner/properties/${propertyId}`, data);
+export async function updateOwnerProperty(propertyId: string, data: any): Promise<PropertyDetail> {
+  const res = await api.patch<PropertyDetail>(`/owner/properties/${propertyId}`, data);
   return res.data;
 }
 

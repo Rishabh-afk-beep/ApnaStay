@@ -3,18 +3,18 @@
     "uid": "admin_demo",
     "role": "admin",
     "name": "Demo Admin",
-    "email": "admin@collegepg.dev"
+    "email": "admin@apnastay.dev"
   },
   {
     "uid": "owner_demo",
     "role": "owner",
     "name": "Demo Owner",
-    "email": "owner@collegepg.dev"
+    "email": "owner@apnastay.dev"
   },
   {
     "uid": "student_demo",
     "role": "student",
     "name": "Demo Student",
-    "email": "student@collegepg.dev"
+    "email": "student@apnastay.dev"
   }
 ]

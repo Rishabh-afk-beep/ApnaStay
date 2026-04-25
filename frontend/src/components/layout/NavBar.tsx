@@ -68,7 +68,7 @@ export function NavBar() {
             className="text-lg font-black tracking-tight"
             style={{ color: "var(--on-surface)" }}
           >
-            CollegePG
+            ApnaStay
           </span>
         </Link>
 

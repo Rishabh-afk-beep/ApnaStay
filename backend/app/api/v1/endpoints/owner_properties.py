@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.deps import require_owner
 from app.models.schemas.engagement import InquiryOut
-from app.models.schemas.property import OwnerPropertyCreate, OwnerPropertyUpdate, PropertyCard
+from app.models.schemas.property import OwnerPropertyCreate, OwnerPropertyUpdate, PropertyDetail
 from app.models.schemas.user import UserProfile
 from app.repositories.engagement_repository import EngagementRepository
 from app.repositories.property_repository import PropertyRepository
@@ -15,7 +15,7 @@ engagement_repo = EngagementRepository()
 
 
 @router.get("")
-def list_my_properties(user: Annotated[UserProfile, Depends(require_owner)]) -> list[PropertyCard]:
+def list_my_properties(user: Annotated[UserProfile, Depends(require_owner)]) -> list[PropertyDetail]:
     return repo.list_by_owner(user.uid)
 
 
@@ -23,7 +23,7 @@ def list_my_properties(user: Annotated[UserProfile, Depends(require_owner)]) -> 
 def create_property(
     payload: OwnerPropertyCreate,
     user: Annotated[UserProfile, Depends(require_owner)],
-) -> PropertyCard:
+) -> PropertyDetail:
     return repo.create_for_owner(user.uid, payload)
 
 
@@ -32,7 +32,7 @@ def update_property(
     property_id: str,
     payload: OwnerPropertyUpdate,
     user: Annotated[UserProfile, Depends(require_owner)],
-) -> PropertyCard:
+) -> PropertyDetail:
     if not property_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

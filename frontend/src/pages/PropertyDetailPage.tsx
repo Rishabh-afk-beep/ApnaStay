@@ -4,6 +4,18 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
+// Fix Leaflet marker icon issues in Vite
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+
+const DefaultIcon = L.icon({
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+});
+L.Marker.prototype.options.icon = DefaultIcon;
 import { getPropertyDetail, getPropertyReviews, submitInquiry, submitReview, addShortlist, recordView } from "../lib/api";
 import { Reveal } from "../components/ui/Reveal";
 
@@ -24,6 +36,7 @@ export function PropertyDetailPage() {
     queryKey: ["property-detail", propertyId],
     queryFn: () => getPropertyDetail(propertyId!),
     enabled: Boolean(propertyId),
+    retry: false, // Do not retry on 404
   });
 
   const reviewsQuery = useQuery({
@@ -89,16 +102,19 @@ export function PropertyDetailPage() {
     );
   }
 
-  if (!property) {
+  if (propertyQuery.isError) {
     return (
-      <main className="mx-auto max-w-5xl px-6 py-10 text-center">
-        <div className="rounded-3xl p-16" style={{ background: "var(--surface-container-low)" }}>
-          <p className="text-5xl">😕</p>
-          <h1 className="mt-4 text-2xl font-black" style={{ color: "var(--on-surface)" }}>Property not found</h1>
+      <main className="mx-auto max-w-5xl px-6 py-20 text-center">
+        <div className="rounded-3xl p-32" style={{ background: "var(--surface-container-low)" }}>
+          <p className="text-6xl">😕</p>
+          <h1 className="mt-6 text-3xl font-black" style={{ color: "var(--on-surface)" }}>Property Not Found</h1>
+          <p className="mt-4 text-slate-500">This property may have been removed or the link is invalid.</p>
         </div>
       </main>
     );
   }
+
+  if (!property) return null;
 
   const images = property.image_urls?.length ? property.image_urls : (property.cover_image_url ? [property.cover_image_url] : []);
 
@@ -372,18 +388,7 @@ export function PropertyDetailPage() {
                 {shortlistMutation.isSuccess ? "✓ Shortlisted" : "♥ Save to Shortlist"}
               </button>
               <a
-                href={`tel:+919000000000`}
-                className="block w-full rounded-full py-3.5 text-center text-sm font-bold transition"
-                style={{
-                  background: "rgba(16, 185, 129, 0.08)",
-                  color: "var(--success)",
-                  border: "1px solid rgba(16, 185, 129, 0.2)",
-                }}
-              >
-                📞 Call Owner
-              </a>
-              <a
-                href={`https://wa.me/919000000000?text=${encodeURIComponent(`Hi, I saw "${property.title}" on CollegePG and I'm interested.`)}`}
+                href={`https://wa.me/918088892671?text=${encodeURIComponent(`Hi, I saw "${property.title}" on ApnaStay and I'm interested.`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block w-full rounded-full py-3.5 text-center text-sm font-bold transition"
@@ -393,7 +398,7 @@ export function PropertyDetailPage() {
                   border: "1px solid rgba(34, 197, 94, 0.2)",
                 }}
               >
-                💬 WhatsApp Owner
+                💬 WhatsApp
               </a>
             </div>
           </Reveal>

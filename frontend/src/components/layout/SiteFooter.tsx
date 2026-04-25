@@ -21,7 +21,7 @@ export function SiteFooter() {
                 C
               </span>
               <span className="text-lg font-black tracking-tight" style={{ color: "var(--on-surface)" }}>
-                CollegePG
+                ApnaStay
               </span>
             </div>
             <p className="mt-4 text-sm leading-6" style={{ color: "var(--outline)" }}>
@@ -115,7 +115,7 @@ export function SiteFooter() {
             color: "var(--outline)",
           }}
         >
-          © {new Date().getFullYear()} CollegePG. Curated student living. All rights reserved.
+          © {new Date().getFullYear()} ApnaStay. Curated student living. All rights reserved.
         </div>
       </div>
     </footer>

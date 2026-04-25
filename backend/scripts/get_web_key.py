@@ -32,7 +32,7 @@ def get_web_api_key():
     if not apps:
         print("No Web Apps found. Creating one...")
         create_url = f"https://firebase.googleapis.com/v1beta1/projects/{project_id}/webApps"
-        create_res = requests.post(create_url, headers=headers, json={"displayName": "CollegePG Web"})
+        create_res = requests.post(create_url, headers=headers, json={"displayName": "ApnaStay Web"})
         if create_res.status_code != 200:
             print("Failed to create Web App:", create_res.text)
             return

@@ -1,4 +1,4 @@
-Write-Host "Starting CollegePG locally (without Docker)..."
+Write-Host "Starting ApnaStay locally (without Docker)..."
 
 if (!(Test-Path "backend/.env")) { Copy-Item "backend/.env.example" "backend/.env" }
 if (!(Test-Path "frontend/.env")) { Copy-Item "frontend/.env.example" "frontend/.env" }

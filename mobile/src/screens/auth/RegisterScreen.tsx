@@ -65,7 +65,7 @@ export function RegisterScreen({ route }: any) {
 
         <Text style={styles.heading}>Complete Your Profile</Text>
         <Text style={styles.subheading}>
-          Just a few details to get you started on CollegePG.
+          Just a few details to get you started on ApnaStay.
         </Text>
 
         <View style={styles.form}>

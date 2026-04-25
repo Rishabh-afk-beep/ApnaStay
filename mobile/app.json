@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "CollegePG",
-    "slug": "collegepg",
+    "name": "ApnaStay",
+    "slug": "apnastay",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -13,7 +13,7 @@
       "**/*"
     ],
     "android": {
-      "package": "com.collegepg.app",
+      "package": "com.apnastay.app",
       "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#D97706"

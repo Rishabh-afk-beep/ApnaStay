@@ -4,6 +4,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
+  sendPasswordResetEmail,
   type User,
 } from "firebase/auth";
 
@@ -28,6 +29,7 @@ interface AuthState {
     name: string,
     extras?: { phone?: string; email?: string; college_id?: string }
   ) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -38,6 +40,7 @@ const AuthContext = createContext<AuthState>({
   login: async () => {},
   signUp: async () => null as any,
   register: async () => {},
+  resetPassword: async () => {},
   logout: async () => {},
 });
 
@@ -124,9 +127,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await clearToken();
   };
 
+  const resetPassword = async (email: string) => {
+    await sendPasswordResetEmail(auth, email);
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, profile, loading, login, signUp, register, logout }}
+      value={{ user, profile, loading, login, signUp, register, resetPassword, logout }}
     >
       {children}
     </AuthContext.Provider>

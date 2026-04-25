@@ -1,32 +1,87 @@
-# Python
-__pycache__/
-*.pyc
-.venv/
-*.egg-info/
+# =========================================================================
+# ApnaStay Comprehensive Monorepo .gitignore
+# =========================================================================
 
-# Environment
+# -------------------------------------------------------------------------
+# 1. Environment & Sensitive Credentials (CRITICAL)
+# -------------------------------------------------------------------------
 .env
-backend/.env
-mobile/.env
+.env.*
+!.env.example
+*.local
+firebase-service-account*.json
+firebase-credentials.json
+backend/*-service-account*.json
+RENDER_SECRETS*.txt
+render_env*.txt
 
-# Firebase service account (sensitive!)
-firebase-service-account.json
-backend/firebase-service-account.json
+# -------------------------------------------------------------------------
+# 2. Frontend (React + Vite)
+# -------------------------------------------------------------------------
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.eslintcache
+frontend/coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Node
-node_modules/
-.expo/
-dist/
+# -------------------------------------------------------------------------
+# 3. Backend (Python + FastAPI)
+# -------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+backend/env/
+backend/.venv/
+.venv/
+backend/venv/
+venv/
+ENV/
+env.bak/
+venv.bak/
+backend/.pytest_cache/
+backend/htmlcov/
+backend/.coverage
+backend/.tox/
 
-# IDE
-.vscode/
-.idea/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Build
+# -------------------------------------------------------------------------
+# 4. Mobile (React Native + Expo)
+# -------------------------------------------------------------------------
+mobile/node_modules/
+mobile/.expo/
+mobile/web-build/
+mobile/dist/
+# Native builds (if ejected or prebuild)
+mobile/android/
+mobile/ios/
 *.apk
 *.aab
 *.ipa
+mobile/coverage/
+
+# -------------------------------------------------------------------------
+# 5. OS & Editor Configuration
+# -------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# -------------------------------------------------------------------------
+# 6. Database & Miscellaneous
+# -------------------------------------------------------------------------
+*.sqlite
+*.sqlite3
+backend/app.db
+frontend/.vercel/
