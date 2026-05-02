@@ -43,29 +43,36 @@ class AnalyticsRepository:
     def get_public_stats(self) -> PublicStatsOut:
         client = get_firestore_client()
         if client is None:
+            # Fallback only when Firebase is completely unavailable (local dev without credentials)
             return PublicStatsOut(
-                verified_listings=43,
-                colleges_covered=12,
-                students_active=4500,
-                cities_active=3,
+                verified_listings=0,
+                colleges_covered=0,
+                students_active=0,
+                cities_active=0,
             )
 
-        properties = list(client.collection("properties").where("visibility_status", "==", "live").stream())
-        colleges = list(client.collection("colleges").where("status", "==", "active").stream())
-        
-        # Approximate students by counting all Users with role student
-        # If no Users collection is indexed, this will require permission or simple count
-        users = list(client.collection("users").where("role", "==", "student").stream())
-        
-        cities = set()
-        for doc in colleges:
-            data = doc.to_dict()
-            if "city" in data:
-                cities.add(data["city"])
+        try:
+            properties = list(client.collection("properties").where("visibility_status", "==", "live").stream())
+            colleges = list(client.collection("colleges").where("status", "==", "active").stream())
+            users = list(client.collection("users").where("role", "==", "student").stream())
 
-        return PublicStatsOut(
-            verified_listings=len(properties),
-            colleges_covered=len(colleges),
-            students_active=len(users) + 5000, # Fake baseline for marketing scale if low DB entries
-            cities_active=len(cities) if len(cities) > 0 else 1,
-        )
+            cities: set = set()
+            for doc in colleges:
+                data = doc.to_dict()
+                city = data.get("city", "").strip()
+                if city:
+                    cities.add(city.lower())
+
+            return PublicStatsOut(
+                verified_listings=len(properties),
+                colleges_covered=len(colleges),
+                students_active=len(users),
+                cities_active=len(cities) if cities else 1,
+            )
+        except Exception:
+            return PublicStatsOut(
+                verified_listings=0,
+                colleges_covered=0,
+                students_active=0,
+                cities_active=0,
+            )
