@@ -42,7 +42,6 @@ const ROLE_BRANDING: Record<RoleType, {
     gradient: "linear-gradient(135deg, #065f46, #10b981)",
     stats: [
       { value: "3x", label: "Faster Occupancy" },
-      { value: "Free", label: "Listing" },
       { value: "Direct", label: "Student Contact" },
     ],
   },
