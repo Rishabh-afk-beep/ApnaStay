@@ -274,7 +274,12 @@ h1, h2, h3, h4, h5, h6 {
 
 .badge-amber {
   background: var(--primary-fixed);
-  color: var(--on-primary-container);
+  color: #613b00;
+}
+
+.dark .badge-amber {
+  background: rgba(255, 185, 95, 0.18);
+  color: #ffb95f;
 }
 
 .badge-violet {
@@ -290,6 +295,11 @@ h1, h2, h3, h4, h5, h6 {
 .badge-emerald {
   background: var(--success-container);
   color: #065f46;
+}
+
+.dark .badge-emerald {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
 }
 
 .dark .badge-emerald {

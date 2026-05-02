@@ -79,7 +79,7 @@ export function AdminUsersPage() {
                 <div className="flex items-center gap-4">
                   <div
                     className="flex h-11 w-11 items-center justify-center rounded-full text-sm font-black"
-                    style={{ background: "var(--primary-fixed)", color: "var(--on-primary-container)" }}
+                    style={{ background: "var(--primary-container)", color: "#fff" }}
                   >
                     {(user.name || "U")[0].toUpperCase()}
                   </div>
