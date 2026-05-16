@@ -161,9 +161,9 @@ export function LoginPage({ forceRole }: LoginPageProps) {
     try {
       await register(role, name, { phone, email, college_id: role === "student" ? collegeId : undefined });
     } catch (err: any) {
-      const msg = err?.message || "Registration failed";
-      if (msg.includes("ADMIN_NOT_ALLOWED") || msg.includes("not authorized")) setError("Your email is not authorized for admin access.");
-      else setError(msg);
+      const detail = err?.response?.data?.detail;
+      const msg = typeof detail === "object" ? detail.message : (err?.message || "Registration failed");
+      setError(msg);
     } finally { setBusy(false); }
   };
 
