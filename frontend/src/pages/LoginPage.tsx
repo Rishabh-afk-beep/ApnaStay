@@ -83,15 +83,40 @@ export function LoginPage({ forceRole }: LoginPageProps) {
     }
   }, [loading, firebaseUser, profile, step]);
 
-  // If user has a profile but wants a different role (e.g. student → admin), show registration
+  // If user has a profile but wants a different role (e.g. student → admin),
+  // auto-attempt the role upgrade for admin, or show registration form for others
+  const [autoUpgradeAttempted, setAutoUpgradeAttempted] = useState(false);
   useEffect(() => {
     if (!loading && firebaseUser && profile && forceRole && profile.role !== forceRole && step === "auth") {
-      setStep("register");
+      const userEmail = profile.email || firebaseUser.email || "";
       setName(profile.name || firebaseUser.displayName || "");
-      setEmail(profile.email || firebaseUser.email || "");
+      setEmail(userEmail);
       setPhone(profile.phone || "");
+
+      // For admin, auto-attempt the upgrade without showing the form
+      if (forceRole === "admin" && !autoUpgradeAttempted) {
+        setAutoUpgradeAttempted(true);
+        setBusy(true);
+        setError("");
+        register("admin", profile.name || firebaseUser.displayName || "Unnamed", {
+          phone: profile.phone || "",
+          email: userEmail,
+        })
+          .then(() => {
+            // Success — refreshProfile in register() will update profile, triggering redirect
+          })
+          .catch((err: any) => {
+            const detail = err?.response?.data?.detail;
+            const msg = typeof detail === "object" ? detail.message : (err?.message || "Admin upgrade failed");
+            setError(msg);
+            setStep("register"); // Show form so user can see the error
+          })
+          .finally(() => setBusy(false));
+      } else {
+        setStep("register");
+      }
     }
-  }, [loading, firebaseUser, profile, forceRole, step]);
+  }, [loading, firebaseUser, profile, forceRole, step, autoUpgradeAttempted]);
 
   // Redirect if already authenticated WITH THE CORRECT ROLE
   if (!loading && firebaseUser && profile) {

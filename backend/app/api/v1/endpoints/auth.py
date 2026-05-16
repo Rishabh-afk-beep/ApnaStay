@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import Optional
 
@@ -8,6 +9,8 @@ from app.api.deps import get_current_user
 from app.core.config import get_settings
 from app.models.schemas.user import UserProfile, UserRole, UserStatus, VerificationState
 from app.repositories.user_repository import UserRepository
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 user_repo = UserRepository()
@@ -64,14 +67,20 @@ def register_user(
     # Only emails explicitly listed in ADMIN_ALLOWED_EMAILS can register as admin.
     # Everyone else is rejected outright.
     if payload.role == UserRole.admin:
-        user_email = (payload.email or user.email or "").strip().lower()
+        # Collect email from all possible sources
+        existing_email = existing.email if existing else None
+        user_email = (payload.email or user.email or existing_email or "").strip().lower()
         allowed = get_settings().admin_emails()
+        logger.info("[Admin Register] Email being checked: '%s'", user_email)
+        logger.info("[Admin Register] Allowed emails: %s", allowed)
+        logger.info("[Admin Register] payload.email='%s', user.email='%s', existing_email='%s'",
+                     payload.email, user.email, existing_email)
         if not user_email or user_email not in allowed:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail={
                     "code": "ADMIN_NOT_ALLOWED",
-                    "message": f"Admin registration is restricted. Email '{user_email}' is not authorized.",
+                    "message": f"Admin registration is restricted. Email '{user_email}' is not authorized. Allowed: {', '.join(allowed) if allowed else 'NONE (env var not set)'}",
                 },
             )
 
