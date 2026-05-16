@@ -95,14 +95,28 @@ export function AdminCollegesPage() {
       <Reveal className="mt-8" delayMs={60}>
         <section className="glass-card-static p-7">
           <h2 className="font-black" style={{ color: "var(--on-surface)" }}>Add New College</h2>
+          {createMutation.isError && (
+            <div className="mt-3 rounded-xl p-3 text-sm"
+              style={{ background: "rgba(186,26,26,0.08)", color: "var(--error)" }}>
+              {(createMutation.error as any)?.response?.data?.detail?.message
+                || (createMutation.error as any)?.message
+                || "Failed to create college"}
+            </div>
+          )}
+          {createMutation.isSuccess && (
+            <div className="mt-3 rounded-xl p-3 text-sm"
+              style={{ background: "var(--success-container)", color: "#065f46" }}>
+              ✅ College added successfully!
+            </div>
+          )}
           <form onSubmit={handleCreate} className="mt-5 grid gap-3 md:grid-cols-2">
             <input required className="input-field" placeholder="College Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             <input className="input-field" placeholder="Short Name (e.g. IIT-H)" value={form.short_name} onChange={(e) => setForm({ ...form, short_name: e.target.value })} />
             <input className="input-field md:col-span-2" placeholder="Address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
             <input required className="input-field" placeholder="City" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
             <input required className="input-field" placeholder="State" value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} />
-            <input required className="input-field" placeholder="Latitude" value={form.latitude} onChange={(e) => setForm({ ...form, latitude: e.target.value })} />
-            <input required className="input-field" placeholder="Longitude" value={form.longitude} onChange={(e) => setForm({ ...form, longitude: e.target.value })} />
+            <input required type="number" step="any" className="input-field" placeholder="Latitude (e.g. 13.0836)" value={form.latitude} onChange={(e) => setForm({ ...form, latitude: e.target.value })} />
+            <input required type="number" step="any" className="input-field" placeholder="Longitude (e.g. 77.4827)" value={form.longitude} onChange={(e) => setForm({ ...form, longitude: e.target.value })} />
             <button type="submit" disabled={createMutation.isPending} className="btn-primary disabled:opacity-50">
               {createMutation.isPending ? "Adding..." : "Add College"}
             </button>
