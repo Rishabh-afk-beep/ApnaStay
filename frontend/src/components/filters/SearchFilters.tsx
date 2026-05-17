@@ -21,6 +21,7 @@ const AMENITY_OPTIONS = ["wifi", "food", "ac", "parking", "laundry", "gym", "cct
 
 export function SearchFilters({ onApply }: SearchFiltersProps) {
   const location = useLocation();
+  const [selectedCity, setSelectedCity] = useState(location.state?.city || "");
   const [collegeId, setCollegeId] = useState(location.state?.collegeId || "sample-college-1");
   const [radius, setRadius] = useState(2);
   const [propertyType, setPropertyType] = useState("");
@@ -32,6 +33,9 @@ export function SearchFilters({ onApply }: SearchFiltersProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const collegesQuery = useQuery({ queryKey: ["colleges"], queryFn: listColleges });
+  
+  const uniqueCities = Array.from(new Set((collegesQuery.data ?? []).map((c) => c.city))).sort();
+  const filteredColleges = (collegesQuery.data ?? []).filter((c) => !selectedCity || c.city === selectedCity);
 
   const toggleAmenity = (a: string) => {
     setSelectedAmenities((prev) =>
@@ -76,13 +80,25 @@ export function SearchFilters({ onApply }: SearchFiltersProps) {
       </div>
 
       {/* Row 1: Main filters */}
-      <div className="grid gap-3 md:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-5">
+        <label className="block">
+          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)", letterSpacing: "0.05em" }}>
+            City
+          </span>
+          <select value={selectedCity} onChange={(e) => { setSelectedCity(e.target.value); setCollegeId(""); }} className="input-field mt-2">
+            <option value="">Any City</option>
+            {uniqueCities.map((city) => (
+              <option key={city} value={city}>{city}</option>
+            ))}
+          </select>
+        </label>
         <label className="block">
           <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)", letterSpacing: "0.05em" }}>
             College
           </span>
           <select value={collegeId} onChange={(e) => setCollegeId(e.target.value)} className="input-field mt-2">
-            {(collegesQuery.data ?? []).map((c) => (
+            <option value="">{selectedCity ? "Select a campus..." : "Select city first"}</option>
+            {filteredColleges.map((c) => (
               <option key={c.college_id} value={c.college_id}>
                 {c.short_name ? `${c.short_name} — ${c.name}` : c.name}
               </option>

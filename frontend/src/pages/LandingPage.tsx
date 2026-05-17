@@ -27,6 +27,7 @@ const featureCards = [
 export function LandingPage() {
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const [selectedCity, setSelectedCity] = useState("");
   const [selectedCollege, setSelectedCollege] = useState("");
 
   const { data: stats, isLoading } = useQuery({
@@ -39,13 +40,12 @@ export function LandingPage() {
     queryFn: listColleges,
   });
 
+  const uniqueCities = Array.from(new Set((colleges || []).map((c) => c.city))).sort();
+  const filteredColleges = (colleges || []).filter((c) => !selectedCity || c.city === selectedCity);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedCollege) {
-      navigate("/discover", { state: { collegeId: selectedCollege } });
-    } else {
-      navigate("/discover");
-    }
+    navigate("/discover", { state: { city: selectedCity, collegeId: selectedCollege } });
   };
 
   const liveStats = [
@@ -90,16 +90,30 @@ export function LandingPage() {
             </p>
             <div className="mt-8 max-w-lg">
               <form onSubmit={handleSearch} className="flex flex-col gap-3 rounded-[2rem] p-3 shadow-xl md:flex-row md:items-center" style={{ background: "var(--surface-container-lowest)", border: "1px solid var(--glass-border)" }}>
+                <div className="flex-1 px-4 py-2 border-b md:border-b-0 md:border-r" style={{ borderColor: "var(--glass-border)" }}>
+                  <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>1. Select City</label>
+                  <select 
+                    value={selectedCity} 
+                    onChange={(e) => { setSelectedCity(e.target.value); setSelectedCollege(""); }} 
+                    className="w-full appearance-none bg-transparent pt-1 text-base font-bold outline-none cursor-pointer"
+                    style={{ color: "var(--on-surface)" }}
+                  >
+                    <option value="">Any City</option>
+                    {uniqueCities.map((city) => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </select>
+                </div>
                 <div className="flex-1 px-4 py-2">
-                  <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>Select Campus / City</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>2. Select Campus</label>
                   <select 
                     value={selectedCollege} 
                     onChange={(e) => setSelectedCollege(e.target.value)} 
                     className="w-full appearance-none bg-transparent pt-1 text-base font-bold outline-none cursor-pointer"
                     style={{ color: "var(--on-surface)" }}
                   >
-                    <option value="">Where do you want to live?</option>
-                    {(colleges || []).map((c) => (
+                    <option value="">{selectedCity ? "Select a campus..." : "Select city first"}</option>
+                    {filteredColleges.map((c) => (
                       <option key={c.college_id} value={c.college_id}>
                         {c.short_name ? `${c.short_name} — ${c.name}` : c.name}
                       </option>
