@@ -30,6 +30,31 @@ def list_pending(user: Annotated[UserProfile, Depends(require_admin)]) -> list[P
     return repo.list_pending()
 
 
+@router.get("/properties")
+def list_properties(user: Annotated[UserProfile, Depends(require_admin)]) -> list[PropertyCard]:
+    _ = user
+    return repo.list_all()
+
+
+@router.delete("/properties/{property_id}")
+def delete_property(property_id: str, user: Annotated[UserProfile, Depends(require_admin)]):
+    success = repo.delete_property(property_id)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "PROPERTY_NOT_FOUND", "message": "Property not found"},
+        )
+    admin_log_repo.create(
+        admin_uid=user.uid,
+        action_type="delete_property",
+        target_type="property",
+        target_id=property_id,
+        metadata={},
+    )
+    return {"success": True}
+
+
+
 def _require_updated(item: PropertyCard | None) -> PropertyCard:
     if item is None:
         raise HTTPException(

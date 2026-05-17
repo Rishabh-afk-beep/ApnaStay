@@ -33,10 +33,20 @@ export function AdminDashboardPage() {
     );
   }
 
+  const [activeTab, setActiveTab] = useState<"pending" | "all">("pending");
+  const [filterStatus, setFilterStatus] = useState<string>("");
+  const [filterSearch, setFilterSearch] = useState<string>("");
+
   const pendingQuery = useQuery({
     queryKey: ["admin-pending"],
     queryFn: listAdminPending,
     enabled: Boolean(profile),
+  });
+
+  const allPropertiesQuery = useQuery({
+    queryKey: ["admin-properties"],
+    queryFn: adminListProperties,
+    enabled: Boolean(profile) && activeTab === "all",
   });
 
   const analyticsQuery = useQuery({
@@ -52,24 +62,35 @@ export function AdminDashboardPage() {
   });
 
   const moderationMutation = useMutation({
-    mutationFn: ({ action, propertyId }: { action: "approve" | "reject" | "hide" | "feature"; propertyId: string }) => {
+    mutationFn: ({ action, propertyId }: { action: "approve" | "reject" | "hide" | "feature" | "delete"; propertyId: string }) => {
       if (action === "approve") return adminApprove(propertyId);
       if (action === "reject") return adminReject(propertyId);
       if (action === "hide") return adminHide(propertyId);
+      if (action === "delete") return adminDeleteProperty(propertyId);
       return adminFeature(propertyId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-pending"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-properties"] });
       queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
       queryClient.invalidateQueries({ queryKey: ["admin-logs"] });
     },
   });
 
-
-
   const totalProperties = analyticsQuery.data?.total_properties ?? 0;
   const liveProperties = analyticsQuery.data?.live_properties ?? 0;
   const liveRatio = totalProperties > 0 ? Math.round((liveProperties / totalProperties) * 100) : 0;
+
+  const filteredProperties = (allPropertiesQuery.data || []).filter(p => {
+    if (filterStatus && p.approval_status !== filterStatus && p.visibility_status !== filterStatus) {
+      if (filterStatus === "live" && p.visibility_status !== "live") return false;
+      if (filterStatus === "pending" && p.approval_status !== "pending") return false;
+      if (filterStatus === "rejected" && p.approval_status !== "rejected") return false;
+      if (filterStatus === "hidden" && p.visibility_status !== "hidden") return false;
+    }
+    if (filterSearch && !p.title.toLowerCase().includes(filterSearch.toLowerCase()) && !p.property_id.includes(filterSearch)) return false;
+    return true;
+  });
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
@@ -156,66 +177,169 @@ export function AdminDashboardPage() {
         </section>
       </Reveal>
 
-      {/* Moderation queue */}
+      {/* Properties Management */}
       <Reveal className="mt-8" delayMs={160}>
         <section>
-          <h2 className="text-xl font-black" style={{ color: "var(--on-surface)" }}>Moderation Queue</h2>
-          {pendingQuery.isLoading && (
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              {[1, 2].map((i) => <div key={i} className="h-32 skeleton-shimmer" />)}
-            </div>
-          )}
-          {pendingQuery.isError && (
-            <p className="mt-3 text-sm" style={{ color: "var(--error)" }}>Unable to load pending queue. Check admin token.</p>
-          )}
-          {pendingQuery.data?.length === 0 && (
-            <div className="mt-4 rounded-3xl p-10 text-center" style={{ background: "var(--surface-container-low)" }}>
-              <p className="text-4xl">✅</p>
-              <p className="mt-3 font-black" style={{ color: "var(--on-surface)" }}>No pending listings</p>
-              <p className="text-sm" style={{ color: "var(--outline)" }}>All listings have been moderated</p>
-            </div>
-          )}
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            {pendingQuery.data?.map((item) => (
-              <article key={item.property_id} className="glass-card p-6">
-                <p className="font-black" style={{ color: "var(--on-surface)" }}>{item.title}</p>
-                <p className="text-sm" style={{ color: "var(--outline)" }}>{item.address_text || `ID: ${item.property_id}`}</p>
-                <p className="mt-1 text-sm" style={{ color: "var(--on-surface-variant)" }}>
-                  Type: {item.property_type} · ₹{item.rent_min}–₹{item.rent_max}
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <button
-                    onClick={() => moderationMutation.mutate({ action: "approve", propertyId: item.property_id })}
-                    className="rounded-full px-4 py-1.5 text-xs font-bold transition-colors"
-                    style={{ background: "var(--success-container)", color: "#065f46" }}
-                  >
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => moderationMutation.mutate({ action: "reject", propertyId: item.property_id })}
-                    className="rounded-full px-4 py-1.5 text-xs font-bold transition-colors"
-                    style={{ background: "rgba(186, 26, 26, 0.08)", color: "var(--error)" }}
-                  >
-                    Reject
-                  </button>
-                  <button
-                    onClick={() => moderationMutation.mutate({ action: "hide", propertyId: item.property_id })}
-                    className="rounded-full px-4 py-1.5 text-xs font-bold transition-colors"
-                    style={{ background: "var(--surface-container-high)", color: "var(--on-surface-variant)" }}
-                  >
-                    Hide
-                  </button>
-                  <button
-                    onClick={() => moderationMutation.mutate({ action: "feature", propertyId: item.property_id })}
-                    className="rounded-full px-4 py-1.5 text-xs font-bold transition-colors"
-                    style={{ background: "var(--primary-fixed)", color: "var(--on-primary-container)" }}
-                  >
-                    ✦ Feature
-                  </button>
-                </div>
-              </article>
-            ))}
+          <div className="flex items-center gap-4 border-b pb-4" style={{ borderColor: "var(--surface-container-high)" }}>
+            <button
+              onClick={() => setActiveTab("pending")}
+              className={`text-xl font-black transition-colors ${activeTab === "pending" ? "" : "opacity-40 hover:opacity-100"}`}
+              style={{ color: "var(--on-surface)" }}
+            >
+              Moderation Queue
+            </button>
+            <button
+              onClick={() => setActiveTab("all")}
+              className={`text-xl font-black transition-colors ${activeTab === "all" ? "" : "opacity-40 hover:opacity-100"}`}
+              style={{ color: "var(--on-surface)" }}
+            >
+              All Properties
+            </button>
           </div>
+
+          {activeTab === "all" && (
+            <div className="mt-4 flex gap-4">
+              <input 
+                type="text" 
+                placeholder="Search by title or ID..." 
+                value={filterSearch} 
+                onChange={e => setFilterSearch(e.target.value)} 
+                className="input-field max-w-sm"
+              />
+              <select 
+                value={filterStatus} 
+                onChange={e => setFilterStatus(e.target.value)} 
+                className="input-field max-w-xs"
+              >
+                <option value="">All Statuses</option>
+                <option value="live">Live (Approved & Visible)</option>
+                <option value="pending">Pending Approval</option>
+                <option value="rejected">Rejected</option>
+                <option value="hidden">Hidden</option>
+              </select>
+            </div>
+          )}
+
+          {/* Pending Queue View */}
+          {activeTab === "pending" && (
+            <>
+              {pendingQuery.isLoading && (
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  {[1, 2].map((i) => <div key={i} className="h-32 skeleton-shimmer" />)}
+                </div>
+              )}
+              {pendingQuery.isError && (
+                <p className="mt-3 text-sm" style={{ color: "var(--error)" }}>Unable to load pending queue. Check admin token.</p>
+              )}
+              {pendingQuery.data?.length === 0 && (
+                <div className="mt-4 rounded-3xl p-10 text-center" style={{ background: "var(--surface-container-low)" }}>
+                  <p className="text-4xl">✅</p>
+                  <p className="mt-3 font-black" style={{ color: "var(--on-surface)" }}>No pending listings</p>
+                  <p className="text-sm" style={{ color: "var(--outline)" }}>All listings have been moderated</p>
+                </div>
+              )}
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                {pendingQuery.data?.map((item) => (
+                  <article key={item.property_id} className="glass-card p-6 border-l-4" style={{ borderColor: "var(--outline)" }}>
+                    <p className="font-black" style={{ color: "var(--on-surface)" }}>{item.title}</p>
+                    <p className="text-sm" style={{ color: "var(--outline)" }}>{item.address_text || `ID: ${item.property_id}`}</p>
+                    <p className="mt-1 text-sm font-bold" style={{ color: "var(--outline)" }}>
+                      Type: <span style={{ color: "var(--on-surface)" }}>{item.property_type}</span> · Status: <span className="text-orange-500">{item.approval_status}</span>
+                    </p>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <button
+                        onClick={() => moderationMutation.mutate({ action: "approve", propertyId: item.property_id })}
+                        className="rounded-full px-4 py-1.5 text-xs font-bold transition-colors"
+                        style={{ background: "var(--success-container)", color: "#065f46" }}
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => moderationMutation.mutate({ action: "reject", propertyId: item.property_id })}
+                        className="rounded-full px-4 py-1.5 text-xs font-bold transition-colors"
+                        style={{ background: "rgba(186, 26, 26, 0.08)", color: "var(--error)" }}
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* All Properties View */}
+          {activeTab === "all" && (
+            <>
+              {allPropertiesQuery.isLoading && (
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 skeleton-shimmer" />)}
+                </div>
+              )}
+              {allPropertiesQuery.isError && (
+                <p className="mt-3 text-sm" style={{ color: "var(--error)" }}>Unable to load properties.</p>
+              )}
+              {filteredProperties.length === 0 && !allPropertiesQuery.isLoading && (
+                <div className="mt-4 rounded-3xl p-10 text-center" style={{ background: "var(--surface-container-low)" }}>
+                  <p className="text-4xl">🔍</p>
+                  <p className="mt-3 font-black" style={{ color: "var(--on-surface)" }}>No properties found</p>
+                </div>
+              )}
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                {filteredProperties.map((item) => (
+                  <article key={item.property_id} className="glass-card p-6 border-l-4" style={{ borderColor: item.visibility_status === "live" ? "var(--success)" : "var(--outline)" }}>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-black" style={{ color: "var(--on-surface)" }}>{item.title}</p>
+                        <p className="text-sm" style={{ color: "var(--outline)" }}>ID: {item.property_id}</p>
+                      </div>
+                      <div className="flex gap-1">
+                        {item.visibility_status === "live" && <span className="text-xs px-2 py-1 rounded bg-green-100 text-green-800 font-bold">Live</span>}
+                        {item.approval_status === "pending" && <span className="text-xs px-2 py-1 rounded bg-orange-100 text-orange-800 font-bold">Pending</span>}
+                        {item.visibility_status === "hidden" && item.approval_status !== "pending" && <span className="text-xs px-2 py-1 rounded bg-gray-200 text-gray-800 font-bold">Hidden</span>}
+                      </div>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {item.approval_status === "pending" && (
+                        <button
+                          onClick={() => moderationMutation.mutate({ action: "approve", propertyId: item.property_id })}
+                          className="rounded-full px-3 py-1 text-xs font-bold transition-colors bg-green-100 text-green-800 hover:bg-green-200"
+                        >
+                          Approve
+                        </button>
+                      )}
+                      {item.visibility_status === "live" && (
+                        <button
+                          onClick={() => moderationMutation.mutate({ action: "hide", propertyId: item.property_id })}
+                          className="rounded-full px-3 py-1 text-xs font-bold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300"
+                        >
+                          Hide
+                        </button>
+                      )}
+                      {item.visibility_status === "hidden" && item.approval_status === "approved" && (
+                        <button
+                          onClick={() => moderationMutation.mutate({ action: "approve", propertyId: item.property_id })}
+                          className="rounded-full px-3 py-1 text-xs font-bold transition-colors bg-blue-100 text-blue-800 hover:bg-blue-200"
+                        >
+                          Make Live
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          if (confirm("Are you sure you want to permanently delete this property?")) {
+                            moderationMutation.mutate({ action: "delete", propertyId: item.property_id });
+                          }
+                        }}
+                        className="rounded-full px-3 py-1 text-xs font-bold transition-colors bg-red-100 text-red-800 hover:bg-red-200"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </>
+          )}
         </section>
       </Reveal>
 

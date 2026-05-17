@@ -434,6 +434,28 @@ class PropertyRepository:
         current.update(patch)
         return self._to_card(current)
 
+    def list_all(self) -> List[PropertyCard]:
+        client = get_firestore_client()
+        if client is None:
+            return [self._to_card(dict(item)) for item in _FALLBACK_PROPERTIES.values()]
+
+        docs = client.collection("properties").stream()
+        return [self._to_card(doc.to_dict()) for doc in docs]
+
+    def delete_property(self, property_id: str) -> bool:
+        client = get_firestore_client()
+        if client is None:
+            if property_id in _FALLBACK_PROPERTIES:
+                _FALLBACK_PROPERTIES.pop(property_id)
+                return True
+            return False
+
+        ref = client.collection("properties").document(property_id)
+        if not ref.get().exists:
+            return False
+        ref.delete()
+        return True
+
     def count_all(self) -> int:
         client = get_firestore_client()
         if client is None:

@@ -192,6 +192,15 @@ export async function listAdminPending(): Promise<PropertyCard[]> {
   return res.data;
 }
 
+export async function adminListProperties(): Promise<PropertyCard[]> {
+  const res = await api.get<PropertyCard[]>("/admin/properties");
+  return res.data;
+}
+
+export async function adminDeleteProperty(propertyId: string): Promise<void> {
+  await api.delete(`/admin/properties/${propertyId}`);
+}
+
 export async function adminApprove(propertyId: string): Promise<PropertyCard> {
   const res = await api.patch<PropertyCard>(`/admin/properties/${propertyId}/approve`);
   return res.data;
