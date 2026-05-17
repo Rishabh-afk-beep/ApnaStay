@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "react-router-dom";
 
 import { listColleges } from "../../lib/api";
 
@@ -19,7 +20,8 @@ type SearchFiltersProps = {
 const AMENITY_OPTIONS = ["wifi", "food", "ac", "parking", "laundry", "gym", "cctv", "geyser", "power_backup", "study_room"];
 
 export function SearchFilters({ onApply }: SearchFiltersProps) {
-  const [collegeId, setCollegeId] = useState("sample-college-1");
+  const location = useLocation();
+  const [collegeId, setCollegeId] = useState(location.state?.collegeId || "sample-college-1");
   const [radius, setRadius] = useState(2);
   const [propertyType, setPropertyType] = useState("");
   const [gender, setGender] = useState("");

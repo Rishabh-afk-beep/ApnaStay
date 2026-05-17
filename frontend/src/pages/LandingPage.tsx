@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../lib/AuthContext";
 import { Reveal } from "../components/ui/Reveal";
-import { getPublicStats } from "../lib/api";
+import { getPublicStats, listColleges } from "../lib/api";
 
 const featureCards = [
   {
@@ -25,10 +26,27 @@ const featureCards = [
 
 export function LandingPage() {
   const { profile } = useAuth();
+  const navigate = useNavigate();
+  const [selectedCollege, setSelectedCollege] = useState("");
+
   const { data: stats, isLoading } = useQuery({
     queryKey: ["public-stats"],
     queryFn: getPublicStats,
   });
+
+  const { data: colleges } = useQuery({
+    queryKey: ["colleges"],
+    queryFn: listColleges,
+  });
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedCollege) {
+      navigate("/discover", { state: { collegeId: selectedCollege } });
+    } else {
+      navigate("/discover");
+    }
+  };
 
   const liveStats = [
     { label: "Verified Listings", value: isLoading ? "..." : `${stats?.verified_listings ?? 500}+`, icon: "🏠" },
@@ -70,29 +88,54 @@ export function LandingPage() {
               ApnaStay helps students discover nearby PGs, flats, hostels, single rooms, and co-living options with
               real filters and direct owner contact.
             </p>
-            <div className="mt-8 flex flex-wrap gap-4">
-              <Link to="/discover" className="btn-primary">
-                Start Discovering
-              </Link>
+            <div className="mt-8 max-w-lg">
+              <form onSubmit={handleSearch} className="flex flex-col gap-3 rounded-[2rem] p-3 shadow-xl md:flex-row md:items-center" style={{ background: "var(--surface-container-lowest)", border: "1px solid var(--glass-border)" }}>
+                <div className="flex-1 px-4 py-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>Select Campus / City</label>
+                  <select 
+                    value={selectedCollege} 
+                    onChange={(e) => setSelectedCollege(e.target.value)} 
+                    className="w-full appearance-none bg-transparent pt-1 text-base font-bold outline-none cursor-pointer"
+                    style={{ color: "var(--on-surface)" }}
+                  >
+                    <option value="">Where do you want to live?</option>
+                    {(colleges || []).map((c) => (
+                      <option key={c.college_id} value={c.college_id}>
+                        {c.short_name ? `${c.short_name} — ${c.name}` : c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <button 
+                  type="submit" 
+                  className="rounded-full px-8 py-4 text-sm font-black transition-all hover:scale-105 active:scale-95"
+                  style={{ background: "var(--primary)", color: "var(--on-primary)" }}
+                >
+                  Search
+                </button>
+              </form>
+              
               {!profile && (
-                <>
-                  <Link to="/login/student" className="btn-ghost" style={{ background: "var(--surface-container)" }}>
-                    Join as Student
+                <div className="mt-6 flex flex-wrap items-center gap-4 text-sm font-semibold pl-4">
+                  <span style={{ color: "var(--on-surface-variant)" }}>Are you an owner?</span>
+                  <Link to="/login/owner" className="transition-colors hover:underline font-bold" style={{ color: "var(--primary)" }}>
+                    Post property for free ✨
                   </Link>
-                  <Link to="/login/owner" className="btn-ghost">
-                    List as Owner →
-                  </Link>
-                </>
+                </div>
               )}
               {profile?.role === "owner" && (
-                <Link to="/owner" className="btn-ghost">
-                  Owner Dashboard →
-                </Link>
+                <div className="mt-6 pl-4">
+                  <Link to="/owner" className="text-sm font-bold transition-colors hover:underline" style={{ color: "var(--primary)" }}>
+                    Go to Owner Dashboard →
+                  </Link>
+                </div>
               )}
               {profile?.role === "admin" && (
-                <Link to="/admin" className="btn-ghost">
-                  Admin Dashboard →
-                </Link>
+                <div className="mt-6 pl-4">
+                  <Link to="/admin" className="text-sm font-bold transition-colors hover:underline" style={{ color: "var(--primary)" }}>
+                    Go to Admin Dashboard →
+                  </Link>
+                </div>
               )}
             </div>
           </div>

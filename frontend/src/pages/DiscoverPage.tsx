@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "react-router-dom";
 
 import { SearchFilters } from "../components/filters/SearchFilters";
 import { ListingCard } from "../components/listings/ListingCard";
@@ -8,8 +9,9 @@ import { AnimatedNumber } from "../components/ui/AnimatedNumber";
 import { searchProperties } from "../lib/api";
 
 export function DiscoverPage() {
+  const location = useLocation();
   const [params, setParams] = useState({
-    college_id: "sample-college-1",
+    college_id: location.state?.collegeId || "sample-college-1",
     radius_km: 2,
     property_type: undefined as string | undefined,
     gender: undefined as string | undefined,

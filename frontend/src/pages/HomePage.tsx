@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "react-router-dom";
 
 import { SearchFilters } from "../components/filters/SearchFilters";
 import { ListingCard } from "../components/listings/ListingCard";
@@ -7,8 +8,9 @@ import { Reveal } from "../components/ui/Reveal";
 import { searchProperties } from "../lib/api";
 
 export function HomePage() {
+  const location = useLocation();
   const [filters, setFilters] = useState({
-    collegeId: "sample-college-1",
+    collegeId: location.state?.collegeId || "sample-college-1",
     radius: 2,
     propertyType: undefined as string | undefined,
     gender: undefined as string | undefined,
