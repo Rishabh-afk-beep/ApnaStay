@@ -9,11 +9,14 @@ import {
   adminFeature,
   adminHide,
   adminReject,
+  adminListProperties,
+  adminDeleteProperty,
   getAdminAnalytics,
   getAdminLogs,
   listAdminPending,
   setApiToken,
 } from "../lib/api";
+import type { PropertyCard } from "../types";
 import { useAuth } from "../lib/AuthContext";
 
 export function AdminDashboardPage() {
@@ -62,12 +65,12 @@ export function AdminDashboardPage() {
   });
 
   const moderationMutation = useMutation({
-    mutationFn: ({ action, propertyId }: { action: "approve" | "reject" | "hide" | "feature" | "delete"; propertyId: string }) => {
-      if (action === "approve") return adminApprove(propertyId);
-      if (action === "reject") return adminReject(propertyId);
-      if (action === "hide") return adminHide(propertyId);
-      if (action === "delete") return adminDeleteProperty(propertyId);
-      return adminFeature(propertyId);
+    mutationFn: async ({ action, propertyId }: { action: "approve" | "reject" | "hide" | "feature" | "delete"; propertyId: string }) => {
+      if (action === "approve") await adminApprove(propertyId);
+      else if (action === "reject") await adminReject(propertyId);
+      else if (action === "hide") await adminHide(propertyId);
+      else if (action === "delete") await adminDeleteProperty(propertyId);
+      else await adminFeature(propertyId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-pending"] });
@@ -81,7 +84,7 @@ export function AdminDashboardPage() {
   const liveProperties = analyticsQuery.data?.live_properties ?? 0;
   const liveRatio = totalProperties > 0 ? Math.round((liveProperties / totalProperties) * 100) : 0;
 
-  const filteredProperties = (allPropertiesQuery.data || []).filter(p => {
+  const filteredProperties = (allPropertiesQuery.data || []).filter((p: PropertyCard) => {
     if (filterStatus && p.approval_status !== filterStatus && p.visibility_status !== filterStatus) {
       if (filterStatus === "live" && p.visibility_status !== "live") return false;
       if (filterStatus === "pending" && p.approval_status !== "pending") return false;
