@@ -8,11 +8,13 @@ from app.models.schemas.analytics import AdminAnalyticsOverview
 from app.models.schemas.college import CollegeCreate, CollegeOut, CollegeUpdate
 from app.models.schemas.property import PropertyCard
 from app.models.schemas.user import AdminUserStatusUpdate, UserProfile
+from app.models.schemas.engagement import AdminInquiryOut
 from app.repositories.admin_log_repository import AdminLogRepository
 from app.repositories.analytics_repository import AnalyticsRepository
 from app.repositories.college_repository import CollegeRepository
 from app.repositories.property_repository import PropertyRepository
 from app.repositories.user_repository import UserRepository
+from app.repositories.engagement_repository import EngagementRepository
 
 router = APIRouter()
 repo = PropertyRepository()
@@ -20,6 +22,7 @@ analytics_repo = AnalyticsRepository()
 admin_log_repo = AdminLogRepository()
 college_repo = CollegeRepository()
 user_repo = UserRepository()
+engagement_repo = EngagementRepository()
 
 
 # ── Listing moderation ──────────────────────────────────────────────
@@ -122,6 +125,43 @@ def feature_property(property_id: str, user: Annotated[UserProfile, Depends(requ
 def analytics_overview(user: Annotated[UserProfile, Depends(require_admin)]) -> AdminAnalyticsOverview:
     _ = user
     return analytics_repo.get_overview()
+
+
+@router.get("/inquiries")
+def admin_list_inquiries(user: Annotated[UserProfile, Depends(require_admin)]) -> list[AdminInquiryOut]:
+    _ = user
+    inquiries = engagement_repo.list_all_inquiries()
+    decorated = []
+    
+    for inq in inquiries:
+        prop = repo.get_by_id(inq.property_id)
+        prop_title = prop.title if prop else "Unknown PG / Deleted"
+        
+        owner_name = "Unknown Owner"
+        owner_email = "No Email"
+        if inq.owner_uid:
+            owner = user_repo.get_by_uid(inq.owner_uid)
+            if owner:
+                owner_name = owner.name or "Unnamed Owner"
+                owner_email = owner.email or "No Email"
+                
+        decorated.append(
+            AdminInquiryOut(
+                inquiry_id=inq.inquiry_id,
+                property_id=inq.property_id,
+                property_title=prop_title,
+                owner_uid=inq.owner_uid,
+                owner_name=owner_name,
+                owner_email=owner_email,
+                student_uid=inq.student_uid,
+                name=inq.name,
+                phone=inq.phone,
+                message=inq.message,
+                source=inq.source,
+                created_at=inq.created_at,
+            )
+        )
+    return decorated
 
 
 # ── Audit logs ──────────────────────────────────────────────────────

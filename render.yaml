@@ -20,7 +20,7 @@ services:
       - key: DEV_AUTH_ENABLED
         value: "false"
       - key: ADMIN_ALLOWED_EMAILS
-        value: "ashrafmaliknadaf5@gmail.com,ranjanrishabh2004@gmail.com,rishabhl.23.beis@acharya.ac.in"
+        value: "ashrafmaliknadaf5@gmail.com,ranjanrishabh2004@gmail.com,rishabhl.23.beis@acharya.ac.in,ashrafbusiness05@gmail.com"
       - key: CLOUDINARY_CLOUD_NAME
         sync: false
       - key: CLOUDINARY_API_KEY

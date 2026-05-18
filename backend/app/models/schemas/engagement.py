@@ -22,6 +22,21 @@ class InquiryOut(BaseModel):
     created_at: str
 
 
+class AdminInquiryOut(BaseModel):
+    inquiry_id: str
+    property_id: str
+    property_title: str
+    owner_uid: Optional[str] = None
+    owner_name: Optional[str] = None
+    owner_email: Optional[str] = None
+    student_uid: Optional[str] = None
+    name: str
+    phone: str
+    message: Optional[str] = None
+    source: str
+    created_at: str
+
+
 class ShortlistOut(BaseModel):
     user_uid: str
     property_id: str

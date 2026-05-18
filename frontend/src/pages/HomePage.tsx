@@ -59,6 +59,44 @@ export function HomePage() {
         </section>
       </Reveal>
 
+      {/* Premium Support Desk Panel */}
+      <Reveal className="mt-6" delayMs={30}>
+        <div className="rounded-3xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 border"
+          style={{ background: "var(--surface-container-low)", borderColor: "var(--glass-border)" }}>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">📞</span>
+            <div>
+              <h4 className="text-xs font-black uppercase tracking-wider" style={{ color: "var(--on-surface)" }}>24/7 Support Helpline</h4>
+              <p className="text-[11px] mt-0.5" style={{ color: "var(--outline)" }}>Need help? Call or WhatsApp our experts directly</p>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex items-center justify-between gap-3 rounded-2xl px-3 py-1.5 border bg-white dark:bg-slate-900" style={{ borderColor: "var(--glass-border)" }}>
+              <span className="text-xs font-black text-slate-800 dark:text-slate-200">8152916235</span>
+              <div className="flex gap-1.5">
+                <a href="tel:+918152916235" title="Call Support 1" className="p-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-950/30 dark:text-blue-400 transition-colors text-[10px]">
+                  📞 Call
+                </a>
+                <a href="https://wa.me/918152916235" target="_blank" rel="noopener noreferrer" title="WhatsApp Support 1" className="p-1 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 transition-colors text-[10px]">
+                  💬 WhatsApp
+                </a>
+              </div>
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-2xl px-3 py-1.5 border bg-white dark:bg-slate-900" style={{ borderColor: "var(--glass-border)" }}>
+              <span className="text-xs font-black text-slate-800 dark:text-slate-200">9002252480</span>
+              <div className="flex gap-1.5">
+                <a href="tel:+919002252480" title="Call Support 2" className="p-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-950/30 dark:text-blue-400 transition-colors text-[10px]">
+                  📞 Call
+                </a>
+                <a href="https://wa.me/919002252480" target="_blank" rel="noopener noreferrer" title="WhatsApp Support 2" className="p-1 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 transition-colors text-[10px]">
+                  💬 WhatsApp
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Reveal>
+
       {/* Filters */}
       <Reveal className="mt-8" delayMs={60}>
         <div className="glass-card-static p-6">

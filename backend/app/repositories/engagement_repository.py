@@ -178,6 +178,16 @@ class EngagementRepository:
         items.sort(key=lambda x: x.created_at, reverse=True)
         return items
 
+    def list_all_inquiries(self) -> List[InquiryOut]:
+        client = get_firestore_client()
+        if client is None:
+            return _FALLBACK_INQUIRIES
+
+        docs = client.collection("inquiries").stream()
+        items = [InquiryOut(**doc.to_dict()) for doc in docs]
+        items.sort(key=lambda x: x.created_at, reverse=True)
+        return items
+
     def delete_alert(self, user_uid: str, alert_id: str) -> bool:
         client = get_firestore_client()
         if client is None:

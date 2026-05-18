@@ -1,6 +1,5 @@
 import axios from "axios";
-
-import type { PropertyCard, PropertyDetail, PaginatedResponse, CollegeOut, UserProfile, AdminAnalyticsOverview, AdminLogOut, InquiryOut, ReviewOut, AlertOut, ShortlistOut, RecentViewOut, ImageUploadResponse } from "../types";
+import type { PropertyCard, PropertyDetail, PaginatedResponse, CollegeOut, UserProfile, AdminAnalyticsOverview, AdminLogOut, InquiryOut, AdminInquiryOut, ReviewOut, AlertOut, ShortlistOut, RecentViewOut, ImageUploadResponse } from "../types";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1",
@@ -259,6 +258,12 @@ export async function adminListUsers(role?: string, status?: string): Promise<Us
 
 export async function adminUpdateUserStatus(uid: string, data: { status: string; reason?: string }): Promise<UserProfile> {
   const res = await api.patch<UserProfile>(`/admin/users/${uid}/status`, data);
+  return res.data;
+}
+
+// Admin Inquiries
+export async function adminListInquiries(): Promise<AdminInquiryOut[]> {
+  const res = await api.get<AdminInquiryOut[]>("/admin/inquiries");
   return res.data;
 }
 

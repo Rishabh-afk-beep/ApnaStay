@@ -139,6 +139,21 @@ export interface InquiryOut {
   created_at: string;
 }
 
+export interface AdminInquiryOut {
+  inquiry_id: string;
+  property_id: string;
+  property_title: string;
+  owner_uid?: string;
+  owner_name?: string;
+  owner_email?: string;
+  student_uid?: string;
+  name: string;
+  phone: string;
+  message?: string;
+  source: string;
+  created_at: string;
+}
+
 export interface ShortlistOut {
   shortlist_id: string;
   property_id: string;

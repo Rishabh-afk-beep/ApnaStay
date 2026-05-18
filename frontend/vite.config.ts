@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    host: true,
     headers: {
       "Cross-Origin-Opener-Policy": "unsafe-none",
     },

@@ -14,9 +14,10 @@ import {
   getAdminAnalytics,
   getAdminLogs,
   listAdminPending,
+  adminListInquiries,
   setApiToken,
 } from "../lib/api";
-import type { PropertyCard } from "../types";
+import type { PropertyCard, AdminInquiryOut } from "../types";
 import { useAuth } from "../lib/AuthContext";
 
 export function AdminDashboardPage() {
@@ -36,7 +37,7 @@ export function AdminDashboardPage() {
     );
   }
 
-  const [activeTab, setActiveTab] = useState<"pending" | "all">("pending");
+  const [activeTab, setActiveTab] = useState<"pending" | "all" | "inquiries">("pending");
   const [filterStatus, setFilterStatus] = useState<string>("");
   const [filterSearch, setFilterSearch] = useState<string>("");
 
@@ -62,6 +63,12 @@ export function AdminDashboardPage() {
     queryKey: ["admin-logs"],
     queryFn: getAdminLogs,
     enabled: Boolean(profile),
+  });
+
+  const inquiriesQuery = useQuery({
+    queryKey: ["admin-inquiries"],
+    queryFn: adminListInquiries,
+    enabled: Boolean(profile) && activeTab === "inquiries",
   });
 
   const moderationMutation = useMutation({
@@ -97,6 +104,19 @@ export function AdminDashboardPage() {
 
   const filteredPending = (pendingQuery.data || []).filter((p: PropertyCard) => {
     if (filterSearch && !p.title.toLowerCase().includes(filterSearch.toLowerCase()) && !p.property_id.includes(filterSearch)) return false;
+    return true;
+  });
+
+  const filteredInquiries = (inquiriesQuery.data || []).filter((inq: AdminInquiryOut) => {
+    if (filterSearch) {
+      const q = filterSearch.toLowerCase();
+      const matchName = inq.name.toLowerCase().includes(q);
+      const matchPhone = inq.phone.includes(q);
+      const matchProp = inq.property_title.toLowerCase().includes(q);
+      const matchOwner = (inq.owner_name || "").toLowerCase().includes(q) || (inq.owner_email || "").toLowerCase().includes(q);
+      const matchMessage = (inq.message || "").toLowerCase().includes(q);
+      return matchName || matchPhone || matchProp || matchOwner || matchMessage;
+    }
     return true;
   });
 
@@ -237,6 +257,24 @@ export function AdminDashboardPage() {
                   </span>
                 )}
               </button>
+              <button
+                onClick={() => {
+                  setActiveTab("inquiries");
+                  setFilterSearch("");
+                }}
+                className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all duration-300 ${
+                  activeTab === "inquiries"
+                    ? "bg-white dark:bg-slate-800 text-slate-950 dark:text-white shadow-sm"
+                    : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+                }`}
+              >
+                <span>Student Inquiries</span>
+                {analyticsQuery.data && (
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-500 px-1.5 text-[10px] font-black text-white">
+                    {analyticsQuery.data.total_inquiries}
+                  </span>
+                )}
+              </button>
             </div>
           </div>
 
@@ -250,7 +288,13 @@ export function AdminDashboardPage() {
               </span>
               <input 
                 type="text" 
-                placeholder={activeTab === "all" ? "Search by title, address, or ID..." : "Search in pending queue..."} 
+                placeholder={
+                  activeTab === "all" 
+                    ? "Search by title, address, or ID..." 
+                    : activeTab === "inquiries"
+                      ? "Search by student, owner, message, or PG..."
+                      : "Search in pending queue..."
+                } 
                 value={filterSearch} 
                 onChange={e => setFilterSearch(e.target.value)} 
                 className="input-field w-full pl-12 pr-4 py-3 !rounded-2xl transition-shadow focus:ring-2 focus:ring-amber-500/20"
@@ -431,6 +475,70 @@ export function AdminDashboardPage() {
                     </article>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* Inquiries View */}
+          {activeTab === "inquiries" && (
+            <div className="mt-6">
+              {inquiriesQuery.isLoading && (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="h-44 rounded-2xl animate-pulse bg-slate-100 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80" />
+                  ))}
+                </div>
+              )}
+              {inquiriesQuery.isError && (
+                <div className="p-6 text-center rounded-2xl bg-red-50/10 border border-red-500/20 text-red-500 text-sm">
+                  Unable to load student inquiries. Please try again.
+                </div>
+              )}
+              {filteredInquiries.length === 0 && !inquiriesQuery.isLoading && (
+                <div className="rounded-3xl p-12 text-center border border-dashed" style={{ borderColor: "var(--surface-container-high)", background: "var(--surface-container-low)" }}>
+                  <p className="text-5xl">📩</p>
+                  <h3 className="mt-4 text-lg font-black" style={{ color: "var(--on-surface)" }}>No Inquiries Found</h3>
+                  <p className="text-sm mt-1" style={{ color: "var(--outline)" }}>
+                    {filterSearch ? "Try adjusting your search terms." : "No student inquiries have been recorded yet."}
+                  </p>
+                </div>
+              )}
+              <div className="grid gap-4 md:grid-cols-2">
+                {filteredInquiries.map((inq) => (
+                  <article key={inq.inquiry_id} className="relative overflow-hidden rounded-3xl p-6 transition-all duration-300 hover:shadow-lg border border-slate-250/60 dark:border-slate-800/80 hover:border-slate-350 dark:hover:border-slate-750" style={{ background: "var(--surface-container-low)" }}>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="inline-block text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                          Student Inquiry
+                        </span>
+                        <h3 className="text-lg font-bold mt-2" style={{ color: "var(--on-surface)" }}>{inq.name}</h3>
+                        <p className="text-xs" style={{ color: "var(--outline)" }}>
+                          📞 <span className="font-semibold text-slate-800 dark:text-slate-200">{inq.phone}</span>
+                        </p>
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-400">
+                        {new Date(inq.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+
+                    <div className="mt-4 p-4 rounded-2xl text-sm italic" style={{ background: "var(--surface-container-lowest)", color: "var(--on-surface-variant)", border: "1px solid var(--surface-container-high)" }}>
+                      "{inq.message || "No message left"}"
+                    </div>
+
+                    <div className="mt-4 pt-4 border-t space-y-2 text-xs" style={{ borderColor: "var(--surface-container-high)" }}>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Target PG / Property:</span>
+                        <span className="font-bold text-amber-600 dark:text-amber-400">{inq.property_title}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Owner Details:</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200">
+                          {inq.owner_name} ({inq.owner_email})
+                        </span>
+                      </div>
+                    </div>
+                  </article>
+                ))}
               </div>
             </div>
           )}
