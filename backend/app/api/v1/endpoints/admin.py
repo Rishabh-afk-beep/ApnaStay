@@ -15,6 +15,7 @@ from app.repositories.college_repository import CollegeRepository
 from app.repositories.property_repository import PropertyRepository
 from app.repositories.user_repository import UserRepository
 from app.repositories.engagement_repository import EngagementRepository
+from app.api.v1.endpoints.colleges import clear_colleges_cache
 
 router = APIRouter()
 repo = PropertyRepository()
@@ -192,6 +193,7 @@ def admin_create_college(
         target_type="college",
         target_id=college.college_id,
     )
+    clear_colleges_cache()  # Clear memory cache on create
     return college
 
 
@@ -213,6 +215,7 @@ def admin_update_college(
         target_type="college",
         target_id=college_id,
     )
+    clear_colleges_cache()  # Clear memory cache on update
     return updated
 
 
@@ -233,6 +236,7 @@ def admin_delete_college(
         target_type="college",
         target_id=college_id,
     )
+    clear_colleges_cache()  # Clear memory cache on delete
     return {"message": "College deleted"}
 
 

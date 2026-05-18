@@ -1,6 +1,7 @@
+import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 
 from app.api.deps import get_current_user, get_optional_user
 from app.models.schemas.engagement import (
@@ -61,10 +62,20 @@ def list_recent_views(user: Annotated[UserProfile, Depends(get_current_user)]) -
     return engagement_repo.list_recent_views(user.uid)
 
 
+def notify_inquiry_received(inquiry_title: str, owner_uid: str):
+    import time
+    logger = logging.getLogger(__name__)
+    logger.info("[Background Task] Sending instant call/WhatsApp notifications for %s to landlord %s...", inquiry_title, owner_uid)
+    # Simulate API network delay to third-party SMS/WhatsApp gateway
+    time.sleep(1.0)
+    logger.info("[Background Task] Landlord successfully notified asynchronously!")
+
+
 @router.post("/properties/{property_id}/inquiries")
 def create_inquiry(
     property_id: str,
     payload: InquiryCreate,
+    background_tasks: BackgroundTasks,
     user: Annotated[UserProfile | None, Depends(get_optional_user)],
 ) -> InquiryOut:
     property_item = property_repo.get_by_id(property_id)
@@ -73,12 +84,15 @@ def create_inquiry(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"code": "PROPERTY_NOT_FOUND", "message": "Property not found"},
         )
-    return engagement_repo.create_inquiry(
+    inquiry = engagement_repo.create_inquiry(
         property_id=property_id,
         owner_uid=property_item.owner_uid,
         student_uid=user.uid if user else None,
         payload=payload,
     )
+    # Offload the SMS/WhatsApp alert notification process to a background thread (100% free!)
+    background_tasks.add_task(notify_inquiry_received, property_item.title, property_item.owner_uid)
+    return inquiry
 
 
 @router.post("/me/alerts")

@@ -11,9 +11,21 @@ router = APIRouter()
 repo = CollegeRepository()
 
 
+# Local in-memory caching variables (100% free memory cache!)
+_active_colleges_cache = None
+
+
+def clear_colleges_cache():
+    global _active_colleges_cache
+    _active_colleges_cache = None
+
+
 @router.get("")
 def list_colleges() -> list[CollegeOut]:
-    return repo.list_active()
+    global _active_colleges_cache
+    if _active_colleges_cache is None:
+        _active_colleges_cache = repo.list_active()
+    return _active_colleges_cache
 
 
 @router.get("/{college_id}")
