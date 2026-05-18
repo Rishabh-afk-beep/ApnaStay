@@ -78,48 +78,49 @@
 /* ── Dark mode tokens ── */
 :root.dark {
   --primary: #ffb95f;
-  --primary-container: #653e00;
+  --primary-container: #F59E0B; /* Vibrant golden-amber accent for stars and highlights */
   --primary-fixed: #ffddb8;
   --primary-fixed-dim: #ffb95f;
   --on-primary: #442b00;
-  --on-primary-container: #ffddb8;
+  --on-primary-container: #1e1100; /* High-contrast dark brown on glowing gold bg */
 
-  --secondary: #c8c6c5;
-  --secondary-container: #474746;
-  --on-secondary: #303030;
+  --secondary: #cbd5e1;
+  --secondary-container: #334155;
+  --on-secondary: #0f172a;
 
   --tertiary: #ffb77d;
-  --tertiary-container: #6e3900;
+  --tertiary-container: #ff9837;
 
-  --surface: #0f172a;
-  --surface-container: #1a1c2e;
-  --surface-container-low: #131525;
-  --surface-container-high: #222438;
-  --surface-container-highest: #2a2d42;
-  --surface-container-lowest: #0a0c1a;
-  --surface-dim: #1a1c1c;
+  --surface: #0a0f1d; /* Elegant deep obsidian slate */
+  --surface-container: #131b2e; /* Stunning deep blue-slate card backings */
+  --surface-container-low: #0f172a;
+  --surface-container-high: #1e293b;
+  --surface-container-highest: #334155;
+  --surface-container-lowest: #05070f;
+  --surface-dim: #0a0f1d;
   --surface-tint: #ffb95f;
 
-  --on-surface: #e3e2e1;
-  --on-surface-variant: #d8c3ad;
+  --on-surface: #f8fafc; /* Crisp slate-50 high-contrast white text */
+  --on-surface-variant: #cbd5e1; /* Smooth slate-300 secondary text */
 
-  --outline: #9d8a79;
-  --outline-variant: #534434;
+  --outline: #64748b; /* Slate-500 outlines */
+  --outline-variant: #334155; /* Slate-700 borders */
 
-  --inverse-surface: #e3e2e1;
-  --inverse-on-surface: #2f3130;
+  --inverse-surface: #f8fafc;
+  --inverse-on-surface: #0f172a;
   --inverse-primary: #855300;
 
-  --shadow-ambient: 0 12px 40px 0 rgba(0, 0, 0, 0.3);
-  --shadow-hover: 0 20px 50px -12px rgba(255, 185, 95, 0.2);
-  --shadow-card: 0 4px 24px -4px rgba(0, 0, 0, 0.25);
+  --shadow-ambient: 0 16px 48px 0 rgba(0, 0, 0, 0.5);
+  --shadow-hover: 0 24px 60px -8px rgba(245, 158, 11, 0.25);
+  --shadow-card: 0 8px 32px -4px rgba(0, 0, 0, 0.4);
 
-  --glass-bg: rgba(15, 23, 42, 0.80);
-  --glass-border: rgba(83, 68, 52, 0.25);
+  --glass-bg: rgba(15, 23, 42, 0.75);
+  --glass-blur: 24px;
+  --glass-border: rgba(245, 158, 11, 0.15); /* Glowing golden-amber glass border! */
 
   --gradient-amber: linear-gradient(135deg, #ffb95f, #F59E0B);
-  --gradient-hero: linear-gradient(135deg, #1a1c2e 0%, #222438 50%, #2a2d42 100%);
-  --gradient-hero-subtle: linear-gradient(160deg, rgba(255, 185, 95, 0.06) 0%, rgba(245, 158, 11, 0.03) 50%, transparent 100%);
+  --gradient-hero: linear-gradient(135deg, #050814 0%, #0f172a 60%, #1e1b4b 100%); /* Gorgeous obsidian-indigo gradient */
+  --gradient-hero-subtle: linear-gradient(160deg, rgba(245, 158, 11, 0.08) 0%, rgba(255, 185, 95, 0.04) 50%, transparent 100%);
 
   color: var(--on-surface);
   background: var(--surface);
