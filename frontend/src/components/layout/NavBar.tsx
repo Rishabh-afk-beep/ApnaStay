@@ -62,13 +62,13 @@ export function NavBar() {
               color: "var(--on-primary)",
             }}
           >
-            C
+            N
           </span>
           <span
             className="text-lg font-black tracking-tight"
             style={{ color: "var(--on-surface)" }}
           >
-            ApnaStay
+            NearMyColleges
           </span>
         </Link>
 

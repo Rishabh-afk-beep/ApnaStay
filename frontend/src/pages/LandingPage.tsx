@@ -85,7 +85,7 @@ export function LandingPage() {
               <span style={{ color: "var(--primary-container)" }}>without the broker chaos.</span>
             </h1>
             <p className="mt-5 max-w-xl text-lg leading-8" style={{ color: "var(--on-surface-variant)" }}>
-              ApnaStay helps students discover nearby PGs, flats, hostels, single rooms, and co-living options with
+              NearMyColleges helps students discover nearby PGs, flats, hostels, single rooms, and co-living options with
               real filters and direct owner contact.
             </p>
             <div className="mt-8 max-w-lg">

@@ -388,7 +388,7 @@ export function PropertyDetailPage() {
                 {shortlistMutation.isSuccess ? "✓ Shortlisted" : "♥ Save to Shortlist"}
               </button>
               <a
-                href={`https://wa.me/918088892671?text=${encodeURIComponent(`Hi, I saw "${property.title}" on ApnaStay and I'm interested.`)}`}
+                href={`https://wa.me/918088892671?text=${encodeURIComponent(`Hi, I saw "${property.title}" on NearMyColleges and I'm interested.`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block w-full rounded-full py-3.5 text-center text-sm font-bold transition"

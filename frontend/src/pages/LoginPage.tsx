@@ -203,10 +203,10 @@ export function LoginPage({ forceRole }: LoginPageProps) {
           <Reveal>
             <p className="text-xs font-bold uppercase tracking-widest"
               style={{ color: "var(--primary)", letterSpacing: "0.15em" }}>
-              Welcome to ApnaStay
+              Welcome to NearMyColleges
             </p>
             <h1 className="mt-3 text-4xl font-black" style={{ color: "var(--on-surface)" }}>
-              How would you like to use ApnaStay?
+              How would you like to use NearMyColleges?
             </h1>
             <p className="mt-3 text-sm" style={{ color: "var(--outline)" }}>
               Choose your account type to get started

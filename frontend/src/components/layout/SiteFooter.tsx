@@ -18,10 +18,10 @@ export function SiteFooter() {
                 className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-sm font-black"
                 style={{ background: "var(--gradient-amber)", color: "var(--on-primary)" }}
               >
-                C
+                N
               </span>
               <span className="text-lg font-black tracking-tight" style={{ color: "var(--on-surface)" }}>
-                ApnaStay
+                NearMyColleges
               </span>
             </div>
             <p className="mt-4 text-sm leading-6" style={{ color: "var(--outline)" }}>
@@ -143,7 +143,7 @@ export function SiteFooter() {
             color: "var(--outline)",
           }}
         >
-          © {new Date().getFullYear()} ApnaStay. Curated student living. All rights reserved.
+          © {new Date().getFullYear()} NearMyColleges. Curated student living. All rights reserved.
         </div>
       </div>
     </footer>
