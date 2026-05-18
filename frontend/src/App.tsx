@@ -4,6 +4,7 @@ import { AuthProvider } from "./lib/AuthContext";
 import { NavBar } from "./components/layout/NavBar";
 import { SiteFooter } from "./components/layout/SiteFooter";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
+import { SupportHub } from "./components/ui/SupportHub";
 
 import { LandingPage } from "./pages/LandingPage";
 import { DiscoverPage } from "./pages/DiscoverPage";
@@ -52,6 +53,7 @@ export default function App() {
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
             <SiteFooter />
+            <SupportHub />
           </div>
         </ErrorBoundary>
       </AuthProvider>

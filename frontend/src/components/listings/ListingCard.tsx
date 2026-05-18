@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import type { PropertyCard } from "../../types";
-import { addShortlist, removeShortlist } from "../../lib/api";
+import { addShortlist, removeShortlist, getOptimizedImageUrl, getPropertyDetail } from "../../lib/api";
 import { useState } from "react";
 
 export function ListingCard({ listing }: { listing: PropertyCard }) {
@@ -23,17 +23,27 @@ export function ListingCard({ listing }: { listing: PropertyCard }) {
     },
   });
 
+  const handlePrefetch = () => {
+    queryClient.prefetchQuery({
+      queryKey: ["property-detail", listing.property_id],
+      queryFn: () => getPropertyDetail(listing.property_id),
+      staleTime: 60000,
+    });
+  };
+
   return (
     <article
       className="glass-card group overflow-hidden"
+      onMouseEnter={handlePrefetch}
     >
       {/* Image */}
       {listing.cover_image_url ? (
         <div className="relative overflow-hidden">
           <img
-            src={listing.cover_image_url}
+            src={getOptimizedImageUrl(listing.cover_image_url, 600, 400)}
             alt={listing.title}
             className="h-52 w-full object-cover transition duration-500 group-hover:scale-110"
+            loading="lazy"
           />
           {/* Gradient overlay */}
           <div
@@ -44,7 +54,7 @@ export function ListingCard({ listing }: { listing: PropertyCard }) {
           />
           <button
             onClick={() => shortlistMutation.mutate()}
-            className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-lg transition-transform hover:scale-110"
+            className={`absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-lg transition-all duration-300 hover:scale-110 active:scale-95 ${shortlisted ? "animate-heart-pop text-red-500 scale-105" : "text-white"}`}
             style={{
               background: "var(--glass-bg)",
               backdropFilter: "blur(12px)",
@@ -83,7 +93,7 @@ export function ListingCard({ listing }: { listing: PropertyCard }) {
           <span className="text-5xl opacity-60">🏠</span>
           <button
             onClick={() => shortlistMutation.mutate()}
-            className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-lg transition-transform hover:scale-110"
+            className={`absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-lg transition-all duration-300 hover:scale-110 active:scale-95 ${shortlisted ? "animate-heart-pop text-red-500 scale-105" : "text-white"}`}
             style={{
               background: "var(--glass-bg)",
               backdropFilter: "blur(12px)",

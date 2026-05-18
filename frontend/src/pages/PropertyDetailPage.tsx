@@ -16,7 +16,7 @@ const DefaultIcon = L.icon({
   tooltipAnchor: [16, -28],
 });
 L.Marker.prototype.options.icon = DefaultIcon;
-import { getPropertyDetail, getPropertyReviews, submitInquiry, submitReview, addShortlist, recordView } from "../lib/api";
+import { getPropertyDetail, getPropertyReviews, submitInquiry, submitReview, addShortlist, recordView, getOptimizedImageUrl } from "../lib/api";
 import { Reveal } from "../components/ui/Reveal";
 
 export function PropertyDetailPage() {
@@ -126,7 +126,7 @@ export function PropertyDetailPage() {
           <div className="space-y-3">
             <div className="overflow-hidden rounded-3xl" style={{ boxShadow: "var(--shadow-ambient)" }}>
               <img
-                src={images[selectedImg]}
+                src={getOptimizedImageUrl(images[selectedImg], 1000, 700)}
                 alt={property.title}
                 className="h-80 w-full object-cover md:h-[440px] transition-all duration-500"
               />
@@ -143,7 +143,7 @@ export function PropertyDetailPage() {
                       opacity: selectedImg === i ? 1 : 0.6,
                     }}
                   >
-                    <img src={url} alt="" className="h-full w-full object-cover" />
+                    <img src={getOptimizedImageUrl(url, 200, 150)} alt="" className="h-full w-full object-cover" />
                   </button>
                 ))}
               </div>

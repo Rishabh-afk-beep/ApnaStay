@@ -277,3 +277,11 @@ export async function uploadImage(file: File): Promise<ImageUploadResponse> {
   });
   return res.data;
 }
+
+// ── Cloudinary Dynamic Image Optimization ──
+export function getOptimizedImageUrl(url: string, width = 600, height = 400): string {
+  if (!url || typeof url !== "string") return "";
+  if (!url.includes("cloudinary.com")) return url;
+  // Automatically injects responsive widths, responsive heights, fill crop, auto quality, and auto format support
+  return url.replace("/upload/", `/upload/w_${width},h_${height},c_fill,q_auto,f_auto/`);
+}
