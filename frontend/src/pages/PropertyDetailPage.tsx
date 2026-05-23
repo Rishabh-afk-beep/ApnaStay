@@ -355,6 +355,14 @@ export function PropertyDetailPage() {
             <div className="overflow-hidden rounded-2xl" style={{ border: "1px solid var(--glass-border)" }}>
               <div ref={mapRef} className="h-72 w-full" />
             </div>
+            <a 
+              href={`https://www.google.com/maps/dir/?api=1&destination=${property.latitude},${property.longitude}`} 
+              target="_blank" rel="noopener noreferrer"
+              className="mt-3 block w-full rounded-2xl py-3 text-center text-sm font-bold transition-transform hover:scale-[1.02]"
+              style={{ background: "var(--primary-container)", color: "var(--on-primary-container)" }}
+            >
+              🗺️ Open for Directions
+            </a>
           </Reveal>
 
           {/* Reviews */}

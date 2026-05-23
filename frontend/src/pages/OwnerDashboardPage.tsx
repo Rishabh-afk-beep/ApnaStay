@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Reveal } from "../components/ui/Reveal";
@@ -14,6 +14,19 @@ import {
 } from "../lib/api";
 import { useAuth } from "../lib/AuthContext";
 import type { InquiryOut } from "../types";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+const DefaultIcon = L.icon({
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+});
+L.Marker.prototype.options.icon = DefaultIcon;
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -188,6 +201,57 @@ export function OwnerDashboardPage() {
       { timeout: 8000 }
     );
   };
+
+  // ── Map Picker Modal ──────────────────────────────────────────────────────
+  const [showMapModal, setShowMapModal] = useState(false);
+  const mapPickerRef = useRef<HTMLDivElement | null>(null);
+  const pickerInstanceRef = useRef<L.Map | null>(null);
+  const pickerMarkerRef = useRef<L.Marker | null>(null);
+
+  useEffect(() => {
+    if (!showMapModal || !mapPickerRef.current) return;
+    
+    if (pickerInstanceRef.current) {
+      pickerInstanceRef.current.remove();
+      pickerInstanceRef.current = null;
+    }
+
+    const initialLat = Number(form.latitude) || 20.5937;
+    const initialLng = Number(form.longitude) || 78.9629;
+    const zoom = form.latitude ? 15 : 5;
+
+    const map = L.map(mapPickerRef.current).setView([initialLat, initialLng], zoom);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap contributors",
+    }).addTo(map);
+
+    const marker = L.marker([initialLat, initialLng]).addTo(map);
+    pickerMarkerRef.current = marker;
+
+    map.on("click", (e) => {
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
+      marker.setLatLng([lat, lng]);
+      setForm((prev) => ({
+        ...prev,
+        latitude: lat.toFixed(6),
+        longitude: lng.toFixed(6),
+      }));
+    });
+
+    pickerInstanceRef.current = map;
+
+    // Fix map rendering issue in modal
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
+
+    return () => {
+      map.remove();
+      pickerInstanceRef.current = null;
+      pickerMarkerRef.current = null;
+    };
+  }, [showMapModal]);
 
   // ── Image upload ─────────────────────────────────────────────────────────
   const [uploadingImages, setUploadingImages] = useState(false);
@@ -524,15 +588,25 @@ export function OwnerDashboardPage() {
                 <div className="flex flex-col gap-2 md:col-span-2">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Location (for Map)</label>
-                    <button
-                      type="button"
-                      onClick={handleUseMyLocation}
-                      disabled={geoLoading}
-                      className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-all hover:scale-105 disabled:opacity-50"
-                      style={{ background: "var(--surface-container-high)", color: "var(--primary)" }}
-                    >
-                      {geoLoading ? "⏳ Getting location…" : "📍 Use My Location"}
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowMapModal(true)}
+                        className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-all hover:scale-105"
+                        style={{ background: "var(--surface-container-high)", color: "var(--on-surface)" }}
+                      >
+                        🗺️ Pick on Map
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleUseMyLocation}
+                        disabled={geoLoading}
+                        className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-all hover:scale-105 disabled:opacity-50"
+                        style={{ background: "var(--surface-container-high)", color: "var(--primary)" }}
+                      >
+                        {geoLoading ? "⏳ Getting location…" : "📍 Use My Location"}
+                      </button>
+                    </div>
                   </div>
                   {geoError && <p className="text-xs" style={{ color: "var(--error)" }}>{geoError}</p>}
                   <div className="grid grid-cols-2 gap-3">
@@ -1114,6 +1188,28 @@ export function OwnerDashboardPage() {
           </div>
         </section>
       </Reveal>
+
+
+      {/* Map Picker Modal */}
+      {showMapModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.5)" }}>
+          <div className="w-full max-w-3xl overflow-hidden rounded-3xl shadow-2xl" style={{ background: "var(--surface)" }}>
+            <div className="flex items-center justify-between p-4" style={{ borderBottom: "1px solid var(--glass-border)" }}>
+              <h3 className="font-black" style={{ color: "var(--on-surface)" }}>Pick Location</h3>
+              <button onClick={() => setShowMapModal(false)} className="text-xl hover:opacity-70">✕</button>
+            </div>
+            <div className="p-4">
+              <p className="mb-3 text-xs" style={{ color: "var(--outline)" }}>
+                Click anywhere on the map to place the pin. Drag the map to zoom and find the exact location.
+              </p>
+              <div ref={mapPickerRef} className="h-96 w-full rounded-2xl border" />
+            </div>
+            <div className="flex justify-end gap-3 p-4" style={{ borderTop: "1px solid var(--glass-border)" }}>
+              <button onClick={() => setShowMapModal(false)} className="btn-primary !px-6">Done</button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
