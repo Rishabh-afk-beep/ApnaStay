@@ -3,7 +3,7 @@ import { Navigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
 import { useAuth } from "../lib/AuthContext";
-import { listColleges } from "../lib/api";
+import { listColleges, getPublicStats } from "../lib/api";
 import { Reveal } from "../components/ui/Reveal";
 
 type RoleType = "student" | "owner" | "admin";
@@ -71,7 +71,20 @@ export function LoginPage({ forceRole }: LoginPageProps) {
   const [busy, setBusy] = useState(false);
 
   const collegesQuery = useQuery({ queryKey: ["colleges"], queryFn: listColleges });
-  const branding = ROLE_BRANDING[role];
+  const statsQuery = useQuery({ queryKey: ["public-stats"], queryFn: getPublicStats });
+  
+  let branding = ROLE_BRANDING[role];
+  if (role === "student" && statsQuery.data) {
+    branding = {
+      ...branding,
+      stats: [
+        { value: `${statsQuery.data.verified_listings}+`, label: "Verified Listings" },
+        { value: `${statsQuery.data.colleges_covered}+`, label: "Colleges" },
+        { value: `${statsQuery.data.students_active}+`, label: "Students" },
+      ],
+    };
+  }
+  
   const isAdmin = role === "admin";
 
   // Auto-transition to registration step when user is authenticated but has no profile
