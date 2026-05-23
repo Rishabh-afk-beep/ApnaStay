@@ -5,6 +5,7 @@ import { NavBar } from "./components/layout/NavBar";
 import { SiteFooter } from "./components/layout/SiteFooter";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 import { SupportHub } from "./components/ui/SupportHub";
+import { ScrollToTop } from "./components/ui/ScrollToTop";
 
 import { LandingPage } from "./pages/LandingPage";
 import { DiscoverPage } from "./pages/DiscoverPage";
@@ -23,6 +24,7 @@ import { NotFoundPage } from "./pages/NotFoundPage";
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
         <ErrorBoundary>
           <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
