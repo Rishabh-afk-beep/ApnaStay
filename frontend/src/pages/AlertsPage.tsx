@@ -10,7 +10,7 @@ export function AlertsPage() {
   const alertsQuery = useQuery({ queryKey: ["alerts"], queryFn: listAlerts });
   const collegesQuery = useQuery({ queryKey: ["colleges"], queryFn: listColleges });
 
-  const [newAlert, setNewAlert] = useState({ college_id: "sample-college-1", radius_km: 2, property_type: "", budget_max: 0 });
+  const [newAlert, setNewAlert] = useState({ college_id: "", radius_km: 2, property_type: "", budget_max: 0 });
 
   const createMutation = useMutation({
     mutationFn: () =>
@@ -68,6 +68,7 @@ export function AlertsPage() {
               onChange={(e) => setNewAlert({ ...newAlert, college_id: e.target.value })}
               className="input-field"
             >
+              <option value="">— Select a college —</option>
               {(collegesQuery.data ?? []).map((c) => (
                 <option key={c.college_id} value={c.college_id}>{c.name}</option>
               ))}
@@ -103,7 +104,7 @@ export function AlertsPage() {
           </div>
           <button
             onClick={() => createMutation.mutate()}
-            disabled={createMutation.isPending}
+            disabled={createMutation.isPending || !newAlert.college_id}
             className="btn-primary mt-5 disabled:opacity-50"
           >
             {createMutation.isPending ? "Creating..." : "Create Alert"}

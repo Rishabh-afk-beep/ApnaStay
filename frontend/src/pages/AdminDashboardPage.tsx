@@ -1,6 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+const DefaultIcon = L.icon({
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+});
+L.Marker.prototype.options.icon = DefaultIcon;
 
 import { Reveal } from "../components/ui/Reveal";
 import { AnimatedNumber } from "../components/ui/AnimatedNumber";
@@ -37,9 +50,12 @@ export function AdminDashboardPage() {
     );
   }
 
-  const [activeTab, setActiveTab] = useState<"pending" | "all" | "inquiries">("pending");
+  const [activeTab, setActiveTab] = useState<"pending" | "all" | "inquiries" | "map">("pending");
   const [filterStatus, setFilterStatus] = useState<string>("");
   const [filterSearch, setFilterSearch] = useState<string>("");
+
+  const mapRef = useRef<HTMLDivElement | null>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
 
   const pendingQuery = useQuery({
     queryKey: ["admin-pending"],
@@ -50,7 +66,7 @@ export function AdminDashboardPage() {
   const allPropertiesQuery = useQuery({
     queryKey: ["admin-properties"],
     queryFn: adminListProperties,
-    enabled: Boolean(profile) && activeTab === "all",
+    enabled: Boolean(profile) && (activeTab === "all" || activeTab === "map"),
   });
 
   const analyticsQuery = useQuery({
@@ -101,6 +117,43 @@ export function AdminDashboardPage() {
     if (filterSearch && !p.title.toLowerCase().includes(filterSearch.toLowerCase()) && !p.property_id.includes(filterSearch)) return false;
     return true;
   });
+
+  // Map effect
+  useEffect(() => {
+    if (activeTab !== "map" || !mapRef.current) return;
+    
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+      mapInstanceRef.current = null;
+    }
+
+    const map = L.map(mapRef.current).setView([20.5937, 78.9629], 5); // Center of India default
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap contributors",
+    }).addTo(map);
+
+    const bounds = L.latLngBounds([]);
+
+    filteredProperties.forEach((p) => {
+      if (p.latitude && p.longitude) {
+        bounds.extend([p.latitude, p.longitude]);
+        L.marker([p.latitude, p.longitude])
+          .addTo(map)
+          .bindPopup(`<b>${p.title}</b><br/>${p.property_type.replace("_", " ")}<br/>${p.visibility_status}`);
+      }
+    });
+
+    if (bounds.isValid()) {
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }
+
+    mapInstanceRef.current = map;
+
+    return () => {
+      map.remove();
+      mapInstanceRef.current = null;
+    };
+  }, [activeTab, filteredProperties]);
 
   const filteredPending = (pendingQuery.data || []).filter((p: PropertyCard) => {
     if (filterSearch && !p.title.toLowerCase().includes(filterSearch.toLowerCase()) && !p.property_id.includes(filterSearch)) return false;
@@ -275,6 +328,19 @@ export function AdminDashboardPage() {
                   </span>
                 )}
               </button>
+              <button
+                onClick={() => {
+                  setActiveTab("map");
+                  setFilterSearch("");
+                }}
+                className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all duration-300 ${
+                  activeTab === "map"
+                    ? "bg-white dark:bg-slate-800 text-slate-950 dark:text-white shadow-sm"
+                    : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+                }`}
+              >
+                <span>🗺️ Map View</span>
+              </button>
             </div>
           </div>
 
@@ -302,7 +368,7 @@ export function AdminDashboardPage() {
               />
             </div>
             
-            {activeTab === "all" && (
+            {(activeTab === "all" || activeTab === "map") && (
               <div className="flex gap-2">
                 <select 
                   value={filterStatus} 
@@ -445,12 +511,20 @@ export function AdminDashboardPage() {
                             </button>
                           )}
                           {isLive && (
-                            <button
-                              onClick={() => moderationMutation.mutate({ action: "hide", propertyId: item.property_id })}
-                              className="rounded-xl px-3 py-2 text-xs font-bold transition-all bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-850 dark:text-slate-300 dark:hover:bg-slate-800"
-                            >
-                              Hide Listing
-                            </button>
+                            <>
+                              <button
+                                onClick={() => moderationMutation.mutate({ action: "feature", propertyId: item.property_id })}
+                                className={`rounded-xl px-3 py-2 text-xs font-bold transition-all ${item.featured ? "bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/40 dark:text-amber-400" : "bg-amber-50 text-amber-600 hover:bg-amber-100 dark:bg-amber-950/20 dark:text-amber-500"}`}
+                              >
+                                {item.featured ? "★ Unfeature" : "☆ Feature"}
+                              </button>
+                              <button
+                                onClick={() => moderationMutation.mutate({ action: "hide", propertyId: item.property_id })}
+                                className="rounded-xl px-3 py-2 text-xs font-bold transition-all bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-850 dark:text-slate-300 dark:hover:bg-slate-800"
+                              >
+                                Hide Listing
+                              </button>
+                            </>
                           )}
                           {isHidden && item.approval_status === "approved" && (
                             <button
@@ -475,6 +549,15 @@ export function AdminDashboardPage() {
                     </article>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* Map View */}
+          {activeTab === "map" && (
+            <div className="mt-6">
+              <div className="overflow-hidden rounded-2xl border" style={{ borderColor: "var(--surface-container-high)" }}>
+                <div ref={mapRef} className="h-[600px] w-full" />
               </div>
             </div>
           )}

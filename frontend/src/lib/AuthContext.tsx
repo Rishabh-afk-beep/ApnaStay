@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isFirebaseConfigured) {
-      console.info("[ApnaStay] Firebase not configured — running in guest mode");
+      console.info("[NearMyColleges] Firebase not configured — running in guest mode");
       setLoading(false);
       return;
     }
@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       return unsubscribe;
     } catch (err) {
-      console.warn("[ApnaStay] Auth listener failed:", err);
+      console.warn("[NearMyColleges] Auth listener failed:", err);
       setLoading(false);
     }
   }, []);

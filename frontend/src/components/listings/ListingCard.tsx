@@ -64,17 +64,28 @@ export function ListingCard({ listing }: { listing: PropertyCard }) {
           >
             {shortlisted ? "❤️" : "🤍"}
           </button>
-          {listing.featured && (
+          {listing.featured ? (
             <span
-              className="absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold"
-              style={{
-                background: "var(--gradient-amber)",
-                color: "var(--on-primary)",
-              }}
+              className="absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm"
+              style={{ background: "var(--gradient-amber)", color: "var(--on-primary)" }}
             >
               ✦ Featured
             </span>
-          )}
+          ) : listing.rating_avg >= 4.5 && listing.review_count >= 2 ? (
+            <span
+              className="absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm"
+              style={{ background: "var(--success)", color: "var(--on-primary)" }}
+            >
+              ⭐ Top Rated
+            </span>
+          ) : listing.review_count >= 5 ? (
+            <span
+              className="absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm"
+              style={{ background: "var(--error)", color: "var(--on-primary)" }}
+            >
+              🔥 High Demand
+            </span>
+          ) : null}
           {/* Bottom rent overlay */}
           <div className="absolute bottom-3 left-4">
             <span className="text-2xl font-black text-white drop-shadow-lg">
@@ -103,14 +114,28 @@ export function ListingCard({ listing }: { listing: PropertyCard }) {
           >
             {shortlisted ? "❤️" : "🤍"}
           </button>
-          {listing.featured && (
+          {listing.featured ? (
             <span
-              className="absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold"
+              className="absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm"
               style={{ background: "var(--gradient-amber)", color: "var(--on-primary)" }}
             >
               ✦ Featured
             </span>
-          )}
+          ) : listing.rating_avg >= 4.5 && listing.review_count >= 2 ? (
+            <span
+              className="absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm"
+              style={{ background: "var(--success)", color: "var(--on-primary)" }}
+            >
+              ⭐ Top Rated
+            </span>
+          ) : listing.review_count >= 5 ? (
+            <span
+              className="absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm"
+              style={{ background: "var(--error)", color: "var(--on-primary)" }}
+            >
+              🔥 High Demand
+            </span>
+          ) : null}
           {/* Bottom rent overlay */}
           <div className="absolute bottom-3 left-4">
             <span className="text-2xl font-black" style={{ color: "var(--on-surface)" }}>

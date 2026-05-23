@@ -16,8 +16,9 @@ const DefaultIcon = L.icon({
   tooltipAnchor: [16, -28],
 });
 L.Marker.prototype.options.icon = DefaultIcon;
-import { getPropertyDetail, getPropertyReviews, submitInquiry, submitReview, addShortlist, recordView, getOptimizedImageUrl } from "../lib/api";
+import { getPropertyDetail, getPropertyReviews, submitInquiry, submitReview, addShortlist, recordView, getOptimizedImageUrl, searchProperties } from "../lib/api";
 import { Reveal } from "../components/ui/Reveal";
+import { ListingCard } from "../components/listings/ListingCard";
 
 export function PropertyDetailPage() {
   const { propertyId } = useParams<{ propertyId: string }>();
@@ -43,6 +44,16 @@ export function PropertyDetailPage() {
     queryKey: ["property-reviews", propertyId],
     queryFn: () => getPropertyReviews(propertyId!),
     enabled: Boolean(propertyId),
+  });
+
+  const similarPropertiesQuery = useQuery({
+    queryKey: ["similar-properties", propertyQuery.data?.primary_college_id, propertyQuery.data?.property_type],
+    queryFn: () => searchProperties({ 
+      college_id: propertyQuery.data!.primary_college_id, 
+      property_type: propertyQuery.data!.property_type,
+      limit: 4 
+    }),
+    enabled: Boolean(propertyQuery.data?.primary_college_id),
   });
 
   const inquiryMutation = useMutation({
@@ -89,6 +100,7 @@ export function PropertyDetailPage() {
 
   const property = propertyQuery.data;
   const reviews = reviewsQuery.data ?? [];
+  const similarProperties = similarPropertiesQuery.data?.items.filter((p: any) => p.property_id !== propertyId).slice(0, 3) ?? [];
 
   if (propertyQuery.isLoading) {
     return (
@@ -224,6 +236,33 @@ export function PropertyDetailPage() {
               </div>
             </Reveal>
           )}
+
+          {property.metadata && Object.keys(property.metadata).length > 0 && (
+            <Reveal delayMs={180}>
+              <div className="glass-card-static p-6">
+                <h2 className="font-black" style={{ color: "var(--on-surface)" }}>Key Details</h2>
+                <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                  {Object.entries(property.metadata).map(([key, value]) => {
+                    if (value == null || value === "") return null;
+                    const formatKey = (k: string) => k.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+                    const formatVal = (v: unknown) => typeof v === "boolean" ? (v ? "Yes" : "No") : String(v);
+                    
+                    return (
+                      <div key={key}>
+                        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>
+                          {formatKey(key)}
+                        </p>
+                        <p className="mt-1 text-sm font-semibold capitalize" style={{ color: "var(--on-surface-variant)" }}>
+                          {formatVal(value)}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </Reveal>
+          )}
+
 
           <Reveal delayMs={210}>
             <div className="glass-card-static p-6">
@@ -388,7 +427,7 @@ export function PropertyDetailPage() {
                 {shortlistMutation.isSuccess ? "✓ Shortlisted" : "♥ Save to Shortlist"}
               </button>
               <a
-                href={`https://wa.me/918088892671?text=${encodeURIComponent(`Hi, I saw "${property.title}" on NearMyColleges and I'm interested.`)}`}
+                href={`https://wa.me/918152916235?text=${encodeURIComponent(`Hi, I saw "${property.title}" on NearMyColleges and I'm interested. Can you help me with more details?`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block w-full rounded-full py-3.5 text-center text-sm font-bold transition"
@@ -398,12 +437,27 @@ export function PropertyDetailPage() {
                   border: "1px solid rgba(34, 197, 94, 0.2)",
                 }}
               >
-                💬 WhatsApp
+                💬 WhatsApp Support
               </a>
             </div>
           </Reveal>
         </div>
       </div>
+
+      {/* Similar Properties */}
+      {similarProperties.length > 0 && (
+        <Reveal delayMs={460} className="mt-16">
+          <h2 className="text-2xl font-black" style={{ color: "var(--on-surface)" }}>Similar Properties</h2>
+          <p className="mb-6 mt-1 text-sm" style={{ color: "var(--outline)" }}>
+            Other {property.property_type.replace(/_/g, " ")} options nearby you might like
+          </p>
+          <div className="grid gap-6 md:grid-cols-3">
+            {similarProperties.map((listing: any) => (
+              <ListingCard key={listing.property_id} listing={listing} />
+            ))}
+          </div>
+        </Reveal>
+      )}
 
       {/* Inquiry Modal */}
       {showInquiry && (

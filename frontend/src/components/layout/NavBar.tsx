@@ -112,6 +112,29 @@ export function NavBar() {
 
         <div className="flex items-center gap-2 md:hidden">
           <ThemeToggle />
+          {/* Login / Avatar visible on mobile without opening hamburger */}
+          {isLoggedIn ? (
+            <Link
+              to="/profile"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-black transition-all hover:scale-105"
+              style={{
+                background: "var(--primary-fixed)",
+                color: "var(--on-primary-container)",
+              }}
+              onClick={() => setMobileOpen(false)}
+            >
+              {(profile?.name || "U")[0].toUpperCase()}
+            </Link>
+          ) : (
+            <Link
+              to="/login"
+              className="rounded-full px-4 py-1.5 text-xs font-black transition-all hover:scale-105"
+              style={{ background: "var(--gradient-amber)", color: "var(--on-primary)" }}
+              onClick={() => setMobileOpen(false)}
+            >
+              Login
+            </Link>
+          )}
           <button
             type="button"
             onClick={() => setMobileOpen((prev) => !prev)}

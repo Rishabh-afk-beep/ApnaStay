@@ -1,6 +1,19 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+const DefaultIcon = L.icon({
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+});
+L.Marker.prototype.options.icon = DefaultIcon;
 
 import { SearchFilters } from "../components/filters/SearchFilters";
 import { ListingCard } from "../components/listings/ListingCard";
@@ -11,7 +24,7 @@ import { searchProperties } from "../lib/api";
 export function DiscoverPage() {
   const location = useLocation();
   const [params, setParams] = useState({
-    college_id: location.state?.collegeId || "sample-college-1",
+    college_id: location.state?.collegeId || "",
     radius_km: 2,
     property_type: undefined as string | undefined,
     gender: undefined as string | undefined,
@@ -23,9 +36,15 @@ export function DiscoverPage() {
     limit: 12,
   });
 
+  const [viewMode, setViewMode] = useState<"list" | "map">("list");
+  const mapRef = useRef<HTMLDivElement | null>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+
   const propertiesQuery = useQuery({
     queryKey: ["properties", params],
     queryFn: () => searchProperties(params),
+    // Only fetch when a college has been selected
+    enabled: Boolean(params.college_id),
   });
 
   const items = propertiesQuery.data?.items ?? [];
@@ -56,6 +75,48 @@ export function DiscoverPage() {
     });
   };
 
+  useEffect(() => {
+    if (viewMode !== "map" || !mapRef.current) return;
+
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+      mapInstanceRef.current = null;
+    }
+
+    const map = L.map(mapRef.current).setView([20.5937, 78.9629], 5);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap contributors",
+    }).addTo(map);
+
+    const bounds = L.latLngBounds([]);
+
+    items.forEach((p) => {
+      if (p.latitude && p.longitude) {
+        bounds.extend([p.latitude, p.longitude]);
+        const marker = L.marker([p.latitude, p.longitude]).addTo(map);
+        marker.bindPopup(`
+          <div class="text-xs p-1">
+            <span class="font-black text-amber-600 block mb-1">${p.property_type.replace(/_/g, " ")}</span>
+            <b class="text-sm">${p.title}</b><br/>
+            <span class="font-bold">₹${p.rent_min}</span>/mo<br/>
+            <a href="/properties/${p.property_id}" target="_blank" class="mt-2 inline-block font-bold text-blue-600">View Details</a>
+          </div>
+        `);
+      }
+    });
+
+    if (bounds.isValid()) {
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }
+
+    mapInstanceRef.current = map;
+
+    return () => {
+      map.remove();
+      mapInstanceRef.current = null;
+    };
+  }, [viewMode, items]);
+
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
       {/* Header */}
@@ -83,7 +144,7 @@ export function DiscoverPage() {
       </Reveal>
 
       <Reveal className="mt-8" delayMs={60}>
-        <div className="mb-5 flex items-center justify-between">
+        <div className="mb-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <p className="text-sm font-semibold" style={{ color: "var(--on-surface-variant)" }}>
             <AnimatedNumber
               value={total}
@@ -91,16 +152,55 @@ export function DiscoverPage() {
               style={{ color: "var(--on-surface)" }}
             />{" "}
             listings found
+            {totalPages > 1 && (
+              <span className="ml-3 text-xs" style={{ color: "var(--outline)" }}>
+                (Page {params.page} of {totalPages})
+              </span>
+            )}
           </p>
-          {totalPages > 1 && (
-            <p className="text-sm" style={{ color: "var(--outline)" }}>
-              Page {params.page} of {totalPages}
-            </p>
-          )}
+
+          <div className="flex rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+            <button
+              onClick={() => setViewMode("list")}
+              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+                viewMode === "list"
+                  ? "bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white"
+                  : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
+              }`}
+            >
+              📋 List View
+            </button>
+            <button
+              onClick={() => setViewMode("map")}
+              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+                viewMode === "map"
+                  ? "bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white"
+                  : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
+              }`}
+            >
+              🗺️ Map View
+            </button>
+          </div>
         </div>
       </Reveal>
 
-      {propertiesQuery.isLoading && (
+      {/* No college selected yet — prompt user */}
+      {!params.college_id && (
+        <div
+          className="mt-8 rounded-3xl p-12 text-center"
+          style={{ background: "var(--surface-container-low)" }}
+        >
+          <p className="text-5xl">🎓</p>
+          <p className="mt-4 text-xl font-black" style={{ color: "var(--on-surface)" }}>
+            Select your college to get started
+          </p>
+          <p className="mt-2 text-sm" style={{ color: "var(--outline)" }}>
+            Choose a city and campus above, then click <strong>Apply Filters</strong> to see listings nearby.
+          </p>
+        </div>
+      )}
+
+      {params.college_id && propertiesQuery.isLoading && (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="h-80 skeleton-shimmer" />
@@ -108,7 +208,7 @@ export function DiscoverPage() {
         </div>
       )}
 
-      {propertiesQuery.isError && (
+      {params.college_id && propertiesQuery.isError && (
         <div
           className="rounded-2xl p-8 text-center"
           style={{
@@ -121,15 +221,23 @@ export function DiscoverPage() {
         </div>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {items.map((listing) => (
-          <Reveal key={listing.property_id}>
-            <ListingCard listing={listing} />
-          </Reveal>
-        ))}
-      </div>
+      {viewMode === "list" ? (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {items.map((listing) => (
+            <Reveal key={listing.property_id}>
+              <ListingCard listing={listing} />
+            </Reveal>
+          ))}
+        </div>
+      ) : (
+        <Reveal delayMs={100}>
+          <div className="overflow-hidden rounded-3xl border" style={{ borderColor: "var(--surface-container-high)" }}>
+            <div ref={mapRef} className="h-[600px] w-full" />
+          </div>
+        </Reveal>
+      )}
 
-      {items.length === 0 && !propertiesQuery.isLoading && !propertiesQuery.isError && (
+      {params.college_id && items.length === 0 && !propertiesQuery.isLoading && !propertiesQuery.isError && (
         <div
           className="mt-8 rounded-3xl p-12 text-center"
           style={{ background: "var(--surface-container-low)" }}

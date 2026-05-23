@@ -22,7 +22,7 @@ const AMENITY_OPTIONS = ["wifi", "food", "ac", "parking", "laundry", "gym", "cct
 export function SearchFilters({ onApply }: SearchFiltersProps) {
   const location = useLocation();
   const [selectedCity, setSelectedCity] = useState(location.state?.city || "");
-  const [collegeId, setCollegeId] = useState(location.state?.collegeId || "sample-college-1");
+  const [collegeId, setCollegeId] = useState(location.state?.collegeId || "");
   const [radius, setRadius] = useState(2);
   const [propertyType, setPropertyType] = useState("");
   const [gender, setGender] = useState("");

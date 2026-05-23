@@ -19,6 +19,10 @@ export function AdminCollegesPage() {
     longitude: "",
   });
 
+  const [activeTab, setActiveTab] = useState<"single" | "bulk">("single");
+  const [bulkInput, setBulkInput] = useState("");
+  const [bulkError, setBulkError] = useState("");
+
   const [editId, setEditId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ name: "", short_name: "", address: "", city: "", state: "" });
 
@@ -39,6 +43,24 @@ export function AdminCollegesPage() {
     },
   });
 
+  const bulkCreateMutation = useMutation({
+    mutationFn: async (colleges: any[]) => {
+      for (const c of colleges) {
+        await adminCreateCollege(c);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-colleges"] });
+      setBulkInput("");
+      setBulkError("");
+      setActiveTab("single");
+      alert("Bulk import completed successfully!");
+    },
+    onError: (err: any) => {
+      setBulkError(err.message || "Failed during bulk import.");
+    },
+  });
+
   const updateMutation = useMutation({
     mutationFn: () => adminUpdateCollege(editId!, editForm),
     onSuccess: () => {
@@ -55,6 +77,18 @@ export function AdminCollegesPage() {
   const handleCreate = (e: FormEvent) => {
     e.preventDefault();
     createMutation.mutate();
+  };
+
+  const handleBulkSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    setBulkError("");
+    try {
+      const parsed = JSON.parse(bulkInput);
+      if (!Array.isArray(parsed)) throw new Error("Input must be a JSON array of colleges");
+      bulkCreateMutation.mutate(parsed);
+    } catch (err: any) {
+      setBulkError("Invalid JSON: " + err.message);
+    }
   };
 
   const startEdit = (college: any) => {
@@ -94,33 +128,72 @@ export function AdminCollegesPage() {
       {/* Create form */}
       <Reveal className="mt-8" delayMs={60}>
         <section className="glass-card-static p-7">
-          <h2 className="font-black" style={{ color: "var(--on-surface)" }}>Add New College</h2>
-          {createMutation.isError && (
-            <div className="mt-3 rounded-xl p-3 text-sm"
-              style={{ background: "rgba(186,26,26,0.08)", color: "var(--error)" }}>
-              {(createMutation.error as any)?.response?.data?.detail?.message
-                || (createMutation.error as any)?.message
-                || "Failed to create college"}
+          <div className="flex items-center justify-between">
+            <h2 className="font-black" style={{ color: "var(--on-surface)" }}>Add New College</h2>
+            <div className="flex rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
+              <button
+                onClick={() => setActiveTab("single")}
+                className={`rounded-md px-3 py-1.5 text-xs font-bold ${activeTab === "single" ? "bg-white text-slate-900 shadow dark:bg-slate-700 dark:text-white" : "text-slate-500 hover:text-slate-700 dark:text-slate-400"}`}
+              >
+                Single Entry
+              </button>
+              <button
+                onClick={() => setActiveTab("bulk")}
+                className={`rounded-md px-3 py-1.5 text-xs font-bold ${activeTab === "bulk" ? "bg-white text-slate-900 shadow dark:bg-slate-700 dark:text-white" : "text-slate-500 hover:text-slate-700 dark:text-slate-400"}`}
+              >
+                Bulk Import
+              </button>
+            </div>
+          </div>
+          
+          {activeTab === "single" ? (
+            <>
+              {createMutation.isError && (
+                <div className="mt-3 rounded-xl p-3 text-sm"
+                  style={{ background: "rgba(186,26,26,0.08)", color: "var(--error)" }}>
+                  {(createMutation.error as any)?.response?.data?.detail?.message
+                    || (createMutation.error as any)?.message
+                    || "Failed to create college"}
+                </div>
+              )}
+              {createMutation.isSuccess && (
+                <div className="mt-3 rounded-xl p-3 text-sm"
+                  style={{ background: "var(--success-container)", color: "#065f46" }}>
+                  ✅ College added successfully!
+                </div>
+              )}
+              <form onSubmit={handleCreate} className="mt-5 grid gap-3 md:grid-cols-2">
+                <input required className="input-field" placeholder="College Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                <input className="input-field" placeholder="Short Name (e.g. IIT-H)" value={form.short_name} onChange={(e) => setForm({ ...form, short_name: e.target.value })} />
+                <input className="input-field md:col-span-2" placeholder="Address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+                <input required className="input-field" placeholder="City" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+                <input required className="input-field" placeholder="State" value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} />
+                <input required type="number" step="any" className="input-field" placeholder="Latitude (e.g. 13.0836)" value={form.latitude} onChange={(e) => setForm({ ...form, latitude: e.target.value })} />
+                <input required type="number" step="any" className="input-field" placeholder="Longitude (e.g. 77.4827)" value={form.longitude} onChange={(e) => setForm({ ...form, longitude: e.target.value })} />
+                <button type="submit" disabled={createMutation.isPending} className="btn-primary disabled:opacity-50">
+                  {createMutation.isPending ? "Adding..." : "Add College"}
+                </button>
+              </form>
+            </>
+          ) : (
+            <div className="mt-5">
+              {bulkError && (
+                <div className="mb-3 rounded-xl p-3 text-sm" style={{ background: "rgba(186,26,26,0.08)", color: "var(--error)" }}>
+                  {bulkError}
+                </div>
+              )}
+              <p className="text-xs text-slate-500 mb-2">Paste a JSON array of college objects. Required fields: name, city, state, latitude, longitude.</p>
+              <textarea
+                value={bulkInput}
+                onChange={(e) => setBulkInput(e.target.value)}
+                className="input-field min-h-[200px] font-mono text-xs"
+                placeholder={'[\n  { "name": "IIT Delhi", "city": "New Delhi", "state": "Delhi", "latitude": 28.545, "longitude": 77.192 }\n]'}
+              />
+              <button onClick={handleBulkSubmit} disabled={bulkCreateMutation.isPending || !bulkInput.trim()} className="btn-primary mt-3 disabled:opacity-50">
+                {bulkCreateMutation.isPending ? "Importing..." : "Run Bulk Import"}
+              </button>
             </div>
           )}
-          {createMutation.isSuccess && (
-            <div className="mt-3 rounded-xl p-3 text-sm"
-              style={{ background: "var(--success-container)", color: "#065f46" }}>
-              ✅ College added successfully!
-            </div>
-          )}
-          <form onSubmit={handleCreate} className="mt-5 grid gap-3 md:grid-cols-2">
-            <input required className="input-field" placeholder="College Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-            <input className="input-field" placeholder="Short Name (e.g. IIT-H)" value={form.short_name} onChange={(e) => setForm({ ...form, short_name: e.target.value })} />
-            <input className="input-field md:col-span-2" placeholder="Address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-            <input required className="input-field" placeholder="City" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
-            <input required className="input-field" placeholder="State" value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} />
-            <input required type="number" step="any" className="input-field" placeholder="Latitude (e.g. 13.0836)" value={form.latitude} onChange={(e) => setForm({ ...form, latitude: e.target.value })} />
-            <input required type="number" step="any" className="input-field" placeholder="Longitude (e.g. 77.4827)" value={form.longitude} onChange={(e) => setForm({ ...form, longitude: e.target.value })} />
-            <button type="submit" disabled={createMutation.isPending} className="btn-primary disabled:opacity-50">
-              {createMutation.isPending ? "Adding..." : "Add College"}
-            </button>
-          </form>
         </section>
       </Reveal>
 
