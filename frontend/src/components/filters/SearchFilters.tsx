@@ -12,6 +12,7 @@ type SearchFiltersProps = {
     gender?: string;
     budgetMin?: number;
     budgetMax?: number;
+    availabilityStatus?: string;
     amenities?: string[];
     sort?: string;
   }) => void;
@@ -28,6 +29,7 @@ export function SearchFilters({ onApply }: SearchFiltersProps) {
   const [gender, setGender] = useState("");
   const [budgetMin, setBudgetMin] = useState("");
   const [budgetMax, setBudgetMax] = useState("");
+  const [availabilityStatus, setAvailabilityStatus] = useState("");
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [sort, setSort] = useState("nearest");
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -51,6 +53,7 @@ export function SearchFilters({ onApply }: SearchFiltersProps) {
       gender: gender || undefined,
       budgetMin: budgetMin ? Number(budgetMin) : undefined,
       budgetMax: budgetMax ? Number(budgetMax) : undefined,
+      availabilityStatus: availabilityStatus || undefined,
       amenities: selectedAmenities.length ? selectedAmenities : undefined,
       sort,
     });
@@ -106,14 +109,20 @@ export function SearchFilters({ onApply }: SearchFiltersProps) {
           </select>
         </label>
         <label className="block">
-          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)", letterSpacing: "0.05em" }}>
-            Radius
-          </span>
-          <select value={radius} onChange={(e) => setRadius(Number(e.target.value))} className="input-field mt-2">
-            {[0.5, 1, 2, 5, 10].map((r) => (
-              <option key={r} value={r}>{r} km</option>
-            ))}
-          </select>
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)", letterSpacing: "0.05em" }}>
+              Distance: {radius} km
+            </span>
+          </div>
+          <input
+            type="range"
+            min="0.5"
+            max="15"
+            step="0.5"
+            value={radius}
+            onChange={(e) => setRadius(Number(e.target.value))}
+            className="mt-4 w-full accent-amber-500"
+          />
         </label>
         <label className="block">
           <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)", letterSpacing: "0.05em" }}>
@@ -134,6 +143,7 @@ export function SearchFilters({ onApply }: SearchFiltersProps) {
           </span>
           <select value={sort} onChange={(e) => setSort(e.target.value)} className="input-field mt-2">
             <option value="nearest">Nearest First</option>
+            <option value="popular">Most Popular</option>
             <option value="lowest_price">Lowest Price</option>
             <option value="highest_rated">Highest Rated</option>
             <option value="newest">Newest First</option>
@@ -185,7 +195,20 @@ export function SearchFilters({ onApply }: SearchFiltersProps) {
             </label>
           </div>
 
-          <div>
+          <div className="mt-4">
+            <label className="block max-w-xs">
+              <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)", letterSpacing: "0.05em" }}>
+                Availability
+              </span>
+              <select value={availabilityStatus} onChange={(e) => setAvailabilityStatus(e.target.value)} className="input-field mt-2">
+                <option value="">Any Time</option>
+                <option value="available">Available Immediately</option>
+                <option value="unavailable">Currently Full (Waitlist)</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="mt-4">
             <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)", letterSpacing: "0.05em" }}>
               Amenities
             </p>

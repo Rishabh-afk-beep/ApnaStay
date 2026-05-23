@@ -16,7 +16,8 @@ const DefaultIcon = L.icon({
   tooltipAnchor: [16, -28],
 });
 L.Marker.prototype.options.icon = DefaultIcon;
-import { getPropertyDetail, getPropertyReviews, submitInquiry, submitReview, addShortlist, recordView, getOptimizedImageUrl, searchProperties } from "../lib/api";
+import { searchProperties, getPropertyDetail, getPropertyReviews, submitInquiry, submitReview, addShortlist, recordView, getOptimizedImageUrl } from "../lib/api";
+import { Helmet } from "react-helmet-async";
 import { Reveal } from "../components/ui/Reveal";
 import { ListingCard } from "../components/listings/ListingCard";
 
@@ -126,13 +127,27 @@ export function PropertyDetailPage() {
     );
   }
 
-  if (!property) return null;
 
+  if (!property) return null;
   const images = property.image_urls?.length ? property.image_urls : (property.cover_image_url ? [property.cover_image_url] : []);
+  const mainImage = property.image_urls?.[0] || property.cover_image_url || "";
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-10">
-      {/* Image Gallery */}
+    <main className="min-h-screen" style={{ background: "var(--surface)" }}>
+      <Helmet>
+        <title>{property.title} | NearMyColleges</title>
+        <meta name="description" content={property.description || `View details for ${property.title} on NearMyColleges.`} />
+        <meta property="og:title" content={`${property.title} - Rent: ₹${property.rent_min} to ₹${property.rent_max}`} />
+        <meta property="og:description" content={property.description || `Looking for ${property.property_type.replace(/_/g, " ")}? View this listing.`} />
+        <meta property="og:image" content={mainImage} />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={property.title} />
+        <meta name="twitter:description" content={`Rent: ₹${property.rent_min} to ₹${property.rent_max}. ${property.description || ""}`} />
+        <meta name="twitter:image" content={mainImage} />
+      </Helmet>
+      
+      {/* ── Photo Gallery Grid ── */}
       <Reveal>
         {images.length > 0 ? (
           <div className="space-y-3">

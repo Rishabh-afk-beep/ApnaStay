@@ -30,6 +30,7 @@ export function DiscoverPage() {
     gender: undefined as string | undefined,
     budget_min: undefined as number | undefined,
     budget_max: undefined as number | undefined,
+    availability_status: undefined as string | undefined,
     amenities: undefined as string[] | undefined,
     sort: "nearest",
     page: 1,
@@ -58,6 +59,7 @@ export function DiscoverPage() {
     gender?: string;
     budgetMin?: number;
     budgetMax?: number;
+    availabilityStatus?: string;
     amenities?: string[];
     sort?: string;
   }) => {
@@ -68,6 +70,7 @@ export function DiscoverPage() {
       gender: filters.gender,
       budget_min: filters.budgetMin,
       budget_max: filters.budgetMax,
+      availability_status: filters.availabilityStatus,
       amenities: filters.amenities,
       sort: filters.sort || "nearest",
       page: 1,

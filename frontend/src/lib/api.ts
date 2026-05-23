@@ -82,6 +82,7 @@ export async function searchProperties(params: {
   gender?: string;
   budget_min?: number;
   budget_max?: number;
+  availability_status?: string;
   amenities?: string[];
   sort?: string;
   page?: number;

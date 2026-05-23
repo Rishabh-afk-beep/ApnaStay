@@ -89,6 +89,7 @@ class PropertySearchQuery(BaseModel):
     gender: Optional[str] = None
     budget_min: Optional[int] = None
     budget_max: Optional[int] = None
+    availability_status: Optional[str] = None
     amenities: List[str] = Field(default_factory=list)
     sort: str = "nearest"
     page: int = 1

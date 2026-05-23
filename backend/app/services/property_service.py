@@ -45,6 +45,8 @@ class PropertyService:
                 continue
             if query.amenities and not set(query.amenities).issubset(set(item.amenities)):
                 continue
+            if query.availability_status and item.availability_status != query.availability_status:
+                continue
 
             item.distance_km = round(distance, 2)
             filtered.append(item)
@@ -55,6 +57,8 @@ class PropertyService:
             filtered.sort(key=lambda x: x.created_at or "", reverse=True)
         elif query.sort == "highest_rated":
             filtered.sort(key=lambda x: x.rating_avg, reverse=True)
+        elif query.sort == "popular":
+            filtered.sort(key=lambda x: x.review_count + x.rating_count, reverse=True)
         else:
             filtered.sort(key=lambda x: x.distance_km or 9999)
 

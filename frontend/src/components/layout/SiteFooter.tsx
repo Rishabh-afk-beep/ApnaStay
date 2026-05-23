@@ -107,33 +107,6 @@ export function SiteFooter() {
             </nav>
           </div>
 
-          {/* Support Helpline */}
-          <div>
-            <h4
-              className="text-xs font-bold uppercase tracking-widest"
-              style={{ color: "var(--outline)", letterSpacing: "0.1em" }}
-            >
-              Support Helpline
-            </h4>
-            <div className="mt-4 flex flex-col gap-4 text-xs font-semibold" style={{ color: "var(--on-surface-variant)" }}>
-              <div className="flex flex-col gap-1">
-                <span className="font-bold text-[11px]" style={{ color: "var(--on-surface)" }}>Support Helpline 1:</span>
-                <span className="font-mono text-xs text-slate-800 dark:text-slate-200">8152916235</span>
-                <div className="flex gap-2.5 mt-1">
-                  <a href="tel:+918152916235" className="hover:underline text-amber-500 font-bold transition-opacity hover:opacity-80">📞 Call</a>
-                  <a href="https://wa.me/918152916235" target="_blank" rel="noopener noreferrer" className="hover:underline text-emerald-500 font-bold transition-opacity hover:opacity-80">💬 WhatsApp</a>
-                </div>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="font-bold text-[11px]" style={{ color: "var(--on-surface)" }}>Support Helpline 2:</span>
-                <span className="font-mono text-xs text-slate-800 dark:text-slate-200">9002252480</span>
-                <div className="flex gap-2.5 mt-1">
-                  <a href="tel:+919002252480" className="hover:underline text-amber-500 font-bold transition-opacity hover:opacity-80">📞 Call</a>
-                  <a href="https://wa.me/919002252480" target="_blank" rel="noopener noreferrer" className="hover:underline text-emerald-500 font-bold transition-opacity hover:opacity-80">💬 WhatsApp</a>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div
