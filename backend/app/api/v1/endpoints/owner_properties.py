@@ -6,17 +6,25 @@ from app.api.deps import require_owner
 from app.models.schemas.engagement import InquiryOut
 from app.models.schemas.property import OwnerPropertyCreate, OwnerPropertyUpdate, PropertyDetail
 from app.models.schemas.user import UserProfile
+from app.models.schemas.analytics import OwnerAnalyticsOut
 from app.repositories.engagement_repository import EngagementRepository
 from app.repositories.property_repository import PropertyRepository
+from app.repositories.analytics_repository import AnalyticsRepository
 
 router = APIRouter()
 repo = PropertyRepository()
 engagement_repo = EngagementRepository()
+analytics_repo = AnalyticsRepository()
 
 
 @router.get("")
 def list_my_properties(user: Annotated[UserProfile, Depends(require_owner)]) -> list[PropertyDetail]:
     return repo.list_by_owner(user.uid)
+
+
+@router.get("/analytics")
+def get_owner_analytics(user: Annotated[UserProfile, Depends(require_owner)]) -> OwnerAnalyticsOut:
+    return analytics_repo.get_owner_analytics(user.uid)
 
 
 @router.post("")

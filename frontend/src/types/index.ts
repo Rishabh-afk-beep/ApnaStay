@@ -211,3 +211,19 @@ export interface ImageUploadResponse {
   height: number;
   format: string;
 }
+
+// ── Owner ─────────────────────────────────────────────────────────
+
+export interface DailyStat {
+  date: string;
+  views: number;
+  shortlists: number;
+  inquiries: number;
+}
+
+export interface OwnerAnalyticsOut {
+  total_views: number;
+  total_shortlists: number;
+  total_inquiries: number;
+  daily_stats: DailyStat[];
+}

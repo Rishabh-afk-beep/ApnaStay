@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import { AuthProvider } from "./lib/AuthContext";
+import { ThemeProvider } from "./lib/ThemeContext";
 import { NavBar } from "./components/layout/NavBar";
 import { SiteFooter } from "./components/layout/SiteFooter";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
@@ -25,8 +26,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      <AuthProvider>
-        <ErrorBoundary>
+      <ThemeProvider>
+        <AuthProvider>
+          <ErrorBoundary>
           <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
             <NavBar />
             <Routes>
@@ -59,6 +61,7 @@ export default function App() {
           </div>
         </ErrorBoundary>
       </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

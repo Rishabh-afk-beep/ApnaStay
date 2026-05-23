@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { PropertyCard, PropertyDetail, PaginatedResponse, CollegeOut, UserProfile, AdminAnalyticsOverview, AdminLogOut, InquiryOut, AdminInquiryOut, ReviewOut, AlertOut, ShortlistOut, RecentViewOut, ImageUploadResponse } from "../types";
+import type { PropertyCard, PropertyDetail, PaginatedResponse, CollegeOut, UserProfile, AdminAnalyticsOverview, AdminLogOut, InquiryOut, AdminInquiryOut, ReviewOut, AlertOut, ShortlistOut, RecentViewOut, ImageUploadResponse, OwnerAnalyticsOut } from "../types";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1",
@@ -161,13 +161,13 @@ export async function deleteAlert(alertId: string): Promise<void> {
 
 // ── Owner ─────────────────────────────────────────────────────────
 
-export async function listOwnerProperties(): Promise<PropertyDetail[]> {
-  const res = await api.get<PropertyDetail[]>("/owner/properties");
+export async function createOwnerProperty(data: any): Promise<PropertyDetail> {
+  const res = await api.post<PropertyDetail>("/owner/properties", data);
   return res.data;
 }
 
-export async function createOwnerProperty(data: any): Promise<PropertyDetail> {
-  const res = await api.post<PropertyDetail>("/owner/properties", data);
+export async function listOwnerProperties(): Promise<PropertyDetail[]> {
+  const res = await api.get<PropertyDetail[]>("/owner/properties");
   return res.data;
 }
 
@@ -176,12 +176,18 @@ export async function updateOwnerProperty(propertyId: string, data: any): Promis
   return res.data;
 }
 
-export async function deleteOwnerProperty(propertyId: string): Promise<void> {
-  await api.delete(`/owner/properties/${propertyId}`);
+export async function deleteOwnerProperty(propertyId: string): Promise<any> {
+  const res = await api.delete(`/owner/properties/${propertyId}`);
+  return res.data;
 }
 
 export async function listOwnerInquiries(propertyId: string): Promise<InquiryOut[]> {
   const res = await api.get<InquiryOut[]>(`/owner/properties/${propertyId}/inquiries`);
+  return res.data;
+}
+
+export async function getOwnerAnalytics(): Promise<OwnerAnalyticsOut> {
+  const res = await api.get<OwnerAnalyticsOut>("/owner/properties/analytics");
   return res.data;
 }
 

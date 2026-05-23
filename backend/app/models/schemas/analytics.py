@@ -16,3 +16,17 @@ class PublicStatsOut(BaseModel):
     colleges_covered: int
     students_active: int
     cities_active: int
+
+
+class DailyStat(BaseModel):
+    date: str
+    views: int
+    shortlists: int
+    inquiries: int
+
+
+class OwnerAnalyticsOut(BaseModel):
+    total_views: int
+    total_shortlists: int
+    total_inquiries: int
+    daily_stats: list[DailyStat]
