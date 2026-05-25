@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import type { PropertyCard } from "../../types";
@@ -7,6 +7,7 @@ import { useState } from "react";
 
 export function ListingCard({ listing }: { listing: PropertyCard }) {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [shortlisted, setShortlisted] = useState(false);
 
   const shortlistMutation = useMutation({
@@ -31,14 +32,27 @@ export function ListingCard({ listing }: { listing: PropertyCard }) {
     });
   };
 
+  const handleCardClick = () => {
+    navigate(`/properties/${listing.property_id}`);
+  };
+
+  const handleShortlistClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    shortlistMutation.mutate();
+  };
+
   return (
     <article
-      className="glass-card group overflow-hidden"
+      className="glass-card group overflow-hidden cursor-pointer"
       onMouseEnter={handlePrefetch}
+      onClick={handleCardClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === "Enter" && handleCardClick()}
     >
       {/* Image */}
       {listing.cover_image_url ? (
-        <div className="relative overflow-hidden">
+        <div className="relative overflow-hidden rounded-t-[19px]">
           <img
             src={getOptimizedImageUrl(listing.cover_image_url, 600, 400)}
             alt={listing.title}
@@ -53,7 +67,7 @@ export function ListingCard({ listing }: { listing: PropertyCard }) {
             }}
           />
           <button
-            onClick={() => shortlistMutation.mutate()}
+            onClick={handleShortlistClick}
             className={`absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-lg transition-all duration-300 hover:scale-110 active:scale-95 ${shortlisted ? "animate-heart-pop text-red-500 scale-105" : "text-white"}`}
             style={{
               background: "var(--glass-bg)",
@@ -96,14 +110,14 @@ export function ListingCard({ listing }: { listing: PropertyCard }) {
         </div>
       ) : (
         <div
-          className="relative flex h-52 items-center justify-center"
+          className="relative flex h-52 items-center justify-center rounded-t-[19px]"
           style={{
             background: "linear-gradient(135deg, var(--surface-container) 0%, var(--surface-container-high) 100%)",
           }}
         >
           <span className="text-5xl opacity-60">🏠</span>
           <button
-            onClick={() => shortlistMutation.mutate()}
+            onClick={handleShortlistClick}
             className={`absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-lg transition-all duration-300 hover:scale-110 active:scale-95 ${shortlisted ? "animate-heart-pop text-red-500 scale-105" : "text-white"}`}
             style={{
               background: "var(--glass-bg)",
@@ -217,9 +231,8 @@ export function ListingCard({ listing }: { listing: PropertyCard }) {
           )}
         </div>
 
-        <Link
-          to={`/properties/${listing.property_id}`}
-          className="mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-wider transition-all hover:gap-3"
+        <div
+          className="mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-wider transition-all group-hover:gap-3"
           style={{
             background: "var(--surface-container)",
             color: "var(--on-surface)",
@@ -227,7 +240,7 @@ export function ListingCard({ listing }: { listing: PropertyCard }) {
         >
           View Details
           <span style={{ fontSize: "10px" }}>→</span>
-        </Link>
+        </div>
       </div>
     </article>
   );
