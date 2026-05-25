@@ -20,6 +20,8 @@ import { searchProperties, getPropertyDetail, getPropertyReviews, submitInquiry,
 import { Helmet } from "react-helmet-async";
 import { Reveal } from "../components/ui/Reveal";
 import { ListingCard } from "../components/listings/ListingCard";
+import { useAuth } from "../lib/AuthContext";
+import { Link } from "react-router-dom";
 
 export function PropertyDetailPage() {
   const { propertyId } = useParams<{ propertyId: string }>();
@@ -33,6 +35,9 @@ export function PropertyDetailPage() {
   const [inquirySent, setInquirySent] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: "" });
+
+  const { firebaseUser } = useAuth();
+  const isLoggedIn = Boolean(firebaseUser);
 
   const propertyQuery = useQuery({
     queryKey: ["property-detail", propertyId],
@@ -436,19 +441,91 @@ export function PropertyDetailPage() {
         <div className="space-y-4">
           <Reveal delayMs={60}>
             <div className="sticky top-24 space-y-3">
-              <button
-                onClick={() => setShowInquiry(true)}
-                className="btn-primary w-full"
-              >
-                Send Inquiry
-              </button>
-              <button
-                onClick={() => shortlistMutation.mutate()}
-                disabled={shortlistMutation.isPending}
-                className="btn-ghost w-full"
-              >
-                {shortlistMutation.isSuccess ? "✓ Shortlisted" : "♥ Save to Shortlist"}
-              </button>
+
+              {isLoggedIn ? (
+                /* ── Logged-in: Show inquiry + shortlist ── */
+                <>
+                  <button
+                    onClick={() => setShowInquiry(true)}
+                    className="btn-primary w-full"
+                  >
+                    📩 Send Inquiry
+                  </button>
+                  <button
+                    onClick={() => shortlistMutation.mutate()}
+                    disabled={shortlistMutation.isPending}
+                    className="btn-ghost w-full"
+                  >
+                    {shortlistMutation.isSuccess ? "✓ Shortlisted" : "♥ Save to Shortlist"}
+                  </button>
+                  {/* Commission notice */}
+                  <div
+                    className="rounded-2xl p-4 text-xs leading-5"
+                    style={{ background: "var(--surface-container-low)", color: "var(--outline)" }}
+                  >
+                    <p className="font-bold mb-1" style={{ color: "var(--on-surface-variant)" }}>📌 Platform Commission</p>
+                    <p>
+                      If you finalise this property through NearMyColleges, a one-time platform fee of{" "}
+                      <span className="font-black" style={{ color: "var(--primary)" }}>₹2,000</span>{" "}
+                      is charged to the owner. No extra charges for you!
+                    </p>
+                  </div>
+                </>
+              ) : (
+                /* ── Guest: Show locked state ── */
+                <>
+                  <div
+                    className="rounded-2xl p-5 text-center space-y-3"
+                    style={{ background: "var(--surface-container-low)", border: "1.5px dashed var(--outline-variant)" }}
+                  >
+                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full text-2xl" style={{ background: "var(--surface-container-high)" }}>
+                      🔒
+                    </div>
+                    <div>
+                      <p className="text-sm font-black" style={{ color: "var(--on-surface)" }}>Contact Locked</p>
+                      <p className="mt-1 text-xs" style={{ color: "var(--outline)" }}>
+                        Login to send an inquiry and connect with the owner through our platform.
+                      </p>
+                    </div>
+                    <Link
+                      to="/login"
+                      className="btn-primary block w-full text-center"
+                    >
+                      🔑 Login to Contact Owner
+                    </Link>
+                  </div>
+
+                  {/* Teaser — what they'll get after login */}
+                  <div
+                    className="rounded-2xl p-4 space-y-2"
+                    style={{ background: "var(--surface-container)", border: "1px solid var(--glass-border)" }}
+                  >
+                    <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>What you get after login</p>
+                    {[
+                      "📩 Send direct inquiry to owner",
+                      "♥ Save to shortlist",
+                      "💬 Get a response within 24 hours",
+                      "🛡️ Platform-verified listing",
+                    ].map((item) => (
+                      <p key={item} className="text-xs" style={{ color: "var(--on-surface-variant)" }}>{item}</p>
+                    ))}
+                  </div>
+
+                  <div
+                    className="rounded-2xl p-4 text-xs leading-5"
+                    style={{ background: "var(--surface-container-low)", color: "var(--outline)" }}
+                  >
+                    <p className="font-bold mb-1" style={{ color: "var(--on-surface-variant)" }}>📌 Platform Commission</p>
+                    <p>
+                      A one-time fee of{" "}
+                      <span className="font-black" style={{ color: "var(--primary)" }}>₹2,000</span>{" "}
+                      is charged to the owner when a deal is finalised. Free for students!
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {/* WhatsApp Support (always visible) */}
               <a
                 href={`https://wa.me/918152916235?text=${encodeURIComponent(`Hi, I saw "${property.title}" on NearMyColleges and I'm interested. Can you help me with more details?`)}`}
                 target="_blank"
@@ -466,6 +543,7 @@ export function PropertyDetailPage() {
           </Reveal>
         </div>
       </div>
+
 
       {/* Similar Properties */}
       {similarProperties.length > 0 && (

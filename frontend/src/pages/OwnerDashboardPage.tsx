@@ -140,6 +140,7 @@ export function OwnerDashboardPage() {
 
   // ── Amenity chips ────────────────────────────────────────────────────────
   const [selectedAmenities, setSelectedAmenities] = useState<Set<string>>(new Set());
+  const [commissionAgreed, setCommissionAgreed] = useState(false);
 
   const toggleAmenity = (key: string) => {
     setSelectedAmenities((prev) => {
@@ -1169,10 +1170,44 @@ export function OwnerDashboardPage() {
               )}
             </div>
 
+            {/* ── Commission Agreement ── */}
+            <div
+              className="rounded-2xl p-5 space-y-4"
+              style={{ background: "var(--surface-container-low)", border: "1.5px solid var(--outline-variant)" }}
+            >
+              <div>
+                <p className="text-sm font-black" style={{ color: "var(--on-surface)" }}>📜 Commission Agreement</p>
+                <p className="mt-1 text-xs leading-5" style={{ color: "var(--on-surface-variant)" }}>
+                  NearMyColleges connects students with your property for free. When a student finalises a booking
+                  through our platform, a one-time platform fee of{" "}
+                  <span className="font-black" style={{ color: "var(--primary)" }}>₹2,000</span>{" "}
+                  is charged to you (the owner). This fee is only due after a successful deal — no upfront costs.
+                </p>
+              </div>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={commissionAgreed}
+                  onChange={(e) => setCommissionAgreed(e.target.checked)}
+                  className="accent-amber-500 mt-0.5 h-4 w-4 flex-shrink-0"
+                />
+                <span className="text-xs leading-5" style={{ color: "var(--on-surface)" }}>
+                  I agree to pay NearMyColleges a commission of <strong>₹2,000</strong> per successful student
+                  booking facilitated through this platform. I understand that the platform connects students
+                  to my listing and earns this fee for the service.
+                </span>
+              </label>
+              {!commissionAgreed && (
+                <p className="text-[11px]" style={{ color: "var(--outline)" }}>
+                  ⚠️ You must accept the commission terms to submit your listing.
+                </p>
+              )}
+            </div>
+
             {/* ── Submit ── */}
             <button
               type="submit"
-              disabled={createMutation.isPending || updateMutation.isPending}
+              disabled={createMutation.isPending || updateMutation.isPending || !commissionAgreed}
               className="btn-primary w-full disabled:opacity-50 text-base py-4"
             >
               {editingPropertyId
