@@ -98,6 +98,15 @@ export function OwnerDashboardPage() {
     food_available: false,
     food_menu: "",
     rules: "",
+    // New optional fields
+    owner_contact: "",
+    owner_whatsapp: "",
+    available_from: "",
+    video_tour_url: "",
+    nearby_landmarks: "",
+    maintenance_charge: "",
+    notice_period_days: "",
+    preferred_tenant: "any",
   });
 
   // ── Metadata state (type-specific extra fields) ──────────────────────────
@@ -113,14 +122,20 @@ export function OwnerDashboardPage() {
     // Flat / Single Room / Co-living
     furnishing: "",
     floor: "",
+    total_floors: "",
     lift: false,
     society_name: "",
     bathroom_type: "",
+    num_bathrooms: "",
     kitchen_access: false,
     // Co-living
     min_stay_duration: "",
     community_events: false,
     coworking: false,
+    // Common extras
+    size_sqft: "",
+    parking_type: "",
+    water_supply: "",
   });
 
   // ── Amenity chips ────────────────────────────────────────────────────────
@@ -330,8 +345,8 @@ export function OwnerDashboardPage() {
 
   // ── Form helpers ─────────────────────────────────────────────────────────
   const resetForm = () => {
-    setForm({ title: "", property_type: "pg", primary_college_id: "", description: "", address_text: "", latitude: "", longitude: "", rent_min: "", rent_max: "", security_deposit: "", gender: "any", food_available: false, food_menu: "", rules: "" });
-    setMeta({ mess_timing: "", gate_timing: "", warden_contact: "", curfew_time: "", warden_on_site: false, total_capacity: "", study_hall: false, furnishing: "", floor: "", lift: false, society_name: "", bathroom_type: "", kitchen_access: false, min_stay_duration: "", community_events: false, coworking: false });
+    setForm({ title: "", property_type: "pg", primary_college_id: "", description: "", address_text: "", latitude: "", longitude: "", rent_min: "", rent_max: "", security_deposit: "", gender: "any", food_available: false, food_menu: "", rules: "", owner_contact: "", owner_whatsapp: "", available_from: "", video_tour_url: "", nearby_landmarks: "", maintenance_charge: "", notice_period_days: "", preferred_tenant: "any" });
+    setMeta({ mess_timing: "", gate_timing: "", warden_contact: "", curfew_time: "", warden_on_site: false, total_capacity: "", study_hall: false, furnishing: "", floor: "", total_floors: "", lift: false, society_name: "", bathroom_type: "", num_bathrooms: "", kitchen_access: false, min_stay_duration: "", community_events: false, coworking: false, size_sqft: "", parking_type: "", water_supply: "" });
     setSelectedAmenities(new Set());
     setRoomOptions([]);
     setImageUrls([]);
@@ -363,10 +378,12 @@ export function OwnerDashboardPage() {
       m.study_hall = meta.study_hall;
     }
     if (pt === "flat" || pt === "single_room" || pt === "co_living") {
-      if (meta.furnishing) m.furnishing = meta.furnishing;
-      if (meta.floor)      m.floor      = Number(meta.floor);
+      if (meta.furnishing)   m.furnishing   = meta.furnishing;
+      if (meta.floor)        m.floor        = Number(meta.floor);
+      if (meta.total_floors) m.total_floors = Number(meta.total_floors);
       m.lift = meta.lift;
-      if (meta.society_name) m.society_name = meta.society_name;
+      if (meta.society_name)  m.society_name  = meta.society_name;
+      if (meta.num_bathrooms) m.num_bathrooms = Number(meta.num_bathrooms);
     }
     if (pt === "single_room") {
       if (meta.bathroom_type) m.bathroom_type = meta.bathroom_type;
@@ -377,6 +394,10 @@ export function OwnerDashboardPage() {
       m.community_events = meta.community_events;
       m.coworking        = meta.coworking;
     }
+    // Common optional extras
+    if (meta.size_sqft)    m.size_sqft    = Number(meta.size_sqft);
+    if (meta.parking_type) m.parking_type = meta.parking_type;
+    if (meta.water_supply) m.water_supply = meta.water_supply;
     return Object.keys(m).length > 0 ? m : undefined;
   };
 
@@ -414,6 +435,15 @@ export function OwnerDashboardPage() {
       cover_image_url:     imageUrls[0]    || undefined,
       room_options:        builtRoomOptions.length > 0 ? builtRoomOptions : undefined,
       metadata:            buildMetadata(),
+      // New optional fields
+      owner_contact:       form.owner_contact    || undefined,
+      owner_whatsapp:      form.owner_whatsapp   || undefined,
+      available_from:      form.available_from   || undefined,
+      video_tour_url:      form.video_tour_url   || undefined,
+      nearby_landmarks:    form.nearby_landmarks || undefined,
+      maintenance_charge:  form.maintenance_charge ? Number(form.maintenance_charge) : undefined,
+      notice_period_days:  form.notice_period_days ? Number(form.notice_period_days) : undefined,
+      preferred_tenant:    form.preferred_tenant !== "any" ? form.preferred_tenant : undefined,
     };
 
     if (editingPropertyId) {
@@ -634,6 +664,22 @@ export function OwnerDashboardPage() {
                   </select>
                 </div>
 
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Preferred Tenant</label>
+                  <select className="input-field" value={form.preferred_tenant} onChange={(e) => setForm({ ...form, preferred_tenant: e.target.value })}>
+                    <option value="any">Any (Students &amp; Working)</option>
+                    <option value="student">Students Only</option>
+                    <option value="working">Working Professionals</option>
+                    <option value="family">Families</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Nearby Landmarks</label>
+                  <input className="input-field" placeholder="e.g. Near BITS Pilani Gate, 200m from Metro"
+                    value={form.nearby_landmarks} onChange={(e) => setForm({ ...form, nearby_landmarks: e.target.value })} />
+                </div>
+
                 {/* Lat/Long with geolocation */}
                 <div className="flex flex-col gap-2 md:col-span-2">
                   <div className="flex items-center justify-between">
@@ -817,7 +863,7 @@ export function OwnerDashboardPage() {
               </div>
             )}
 
-            {/* ── Step 4: Pricing ── */}
+            {/* ── Step: Pricing ── */}
             <div>
               <p className="mb-3 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>
                 Step {ROOM_OPTION_LABELS[form.property_type]?.length > 0 ? "4" : "3"} — Pricing
@@ -837,6 +883,21 @@ export function OwnerDashboardPage() {
                   <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Security Deposit ₹ *</label>
                   <input type="number" className="input-field" placeholder="e.g. 10000" required
                     value={form.security_deposit} onChange={(e) => setForm({ ...form, security_deposit: e.target.value })} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Maintenance Charge ₹/mo</label>
+                  <input type="number" className="input-field" placeholder="e.g. 500 (optional)"
+                    value={form.maintenance_charge} onChange={(e) => setForm({ ...form, maintenance_charge: e.target.value })} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Notice Period (days)</label>
+                  <input type="number" className="input-field" placeholder="e.g. 30 (optional)"
+                    value={form.notice_period_days} onChange={(e) => setForm({ ...form, notice_period_days: e.target.value })} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Available From</label>
+                  <input type="date" className="input-field"
+                    value={form.available_from} onChange={(e) => setForm({ ...form, available_from: e.target.value })} />
                 </div>
               </div>
             </div>
@@ -951,6 +1012,16 @@ export function OwnerDashboardPage() {
                     <input className="input-field" placeholder="e.g. Sobha Daffodil Apartments"
                       value={meta.society_name} onChange={(e) => setMeta({ ...meta, society_name: e.target.value })} />
                   </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Total Floors in Building</label>
+                    <input type="number" className="input-field" placeholder="e.g. 8"
+                      value={meta.total_floors} onChange={(e) => setMeta({ ...meta, total_floors: e.target.value })} />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Number of Bathrooms</label>
+                    <input type="number" className="input-field" placeholder="e.g. 2"
+                      value={meta.num_bathrooms} onChange={(e) => setMeta({ ...meta, num_bathrooms: e.target.value })} />
+                  </div>
                   <label className="flex items-center gap-2 text-sm font-semibold" style={{ color: "var(--on-surface-variant)" }}>
                     <input type="checkbox" checked={meta.lift} onChange={(e) => setMeta({ ...meta, lift: e.target.checked })} className="accent-amber-500 h-4 w-4" />
                     Lift / Elevator available
@@ -997,6 +1068,59 @@ export function OwnerDashboardPage() {
                 </div>
               </div>
             )}
+
+            {/* ── Property Size & Infrastructure ── */}
+            <div>
+              <p className="mb-3 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>Property Size &amp; Infrastructure</p>
+              <div className="grid gap-4 md:grid-cols-3 rounded-2xl p-5" style={{ background: "var(--surface-container-low)" }}>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Size (sq ft)</label>
+                  <input type="number" className="input-field" placeholder="e.g. 120"
+                    value={meta.size_sqft} onChange={(e) => setMeta({ ...meta, size_sqft: e.target.value })} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Parking Type</label>
+                  <select className="input-field" value={meta.parking_type} onChange={(e) => setMeta({ ...meta, parking_type: e.target.value })}>
+                    <option value="">None</option>
+                    <option value="two_wheeler">2-Wheeler Only</option>
+                    <option value="four_wheeler">4-Wheeler Only</option>
+                    <option value="both">Both 2 &amp; 4 Wheeler</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Water Supply</label>
+                  <select className="input-field" value={meta.water_supply} onChange={(e) => setMeta({ ...meta, water_supply: e.target.value })}>
+                    <option value="">— Not specified —</option>
+                    <option value="corporation">Corporation / Municipal</option>
+                    <option value="borewell">Borewell</option>
+                    <option value="tanker">Water Tanker</option>
+                    <option value="24hr">24-hour Supply</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* ── Owner Contact Info ── */}
+            <div>
+              <p className="mb-3 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>Contact Information</p>
+              <div className="grid gap-4 md:grid-cols-2 rounded-2xl p-5" style={{ background: "var(--surface-container-low)" }}>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Contact Number</label>
+                  <input type="tel" className="input-field" placeholder="e.g. 9876543210"
+                    value={form.owner_contact} onChange={(e) => setForm({ ...form, owner_contact: e.target.value })} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>WhatsApp Number</label>
+                  <input type="tel" className="input-field" placeholder="e.g. 9876543210 (if different)"
+                    value={form.owner_whatsapp} onChange={(e) => setForm({ ...form, owner_whatsapp: e.target.value })} />
+                </div>
+                <div className="flex flex-col gap-1 md:col-span-2">
+                  <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Video Tour Link (YouTube / Reels)</label>
+                  <input type="url" className="input-field" placeholder="https://youtube.com/... or https://instagram.com/reels/..."
+                    value={form.video_tour_url} onChange={(e) => setForm({ ...form, video_tour_url: e.target.value })} />
+                </div>
+              </div>
+            </div>
 
             {/* ── House Rules ── */}
             <div className="flex flex-col gap-1">
@@ -1164,6 +1288,14 @@ export function OwnerDashboardPage() {
                           food_available:     item.food_available,
                           food_menu:          item.food_menu || "",
                           rules:              item.rules || "",
+                          owner_contact:      "",
+                          owner_whatsapp:     "",
+                          available_from:     "",
+                          video_tour_url:     "",
+                          nearby_landmarks:   "",
+                          maintenance_charge: "",
+                          notice_period_days: "",
+                          preferred_tenant:   "any",
                         });
                         setSelectedAmenities(new Set(item.amenities));
                         setImageUrls(item.image_urls);
