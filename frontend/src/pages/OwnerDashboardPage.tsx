@@ -1179,9 +1179,9 @@ export function OwnerDashboardPage() {
                 <p className="text-sm font-black" style={{ color: "var(--on-surface)" }}>📜 Commission Agreement</p>
                 <p className="mt-1 text-xs leading-5" style={{ color: "var(--on-surface-variant)" }}>
                   NearMyColleges connects students with your property for free. When a student finalises a booking
-                  through our platform, a one-time platform fee of{" "}
-                  <span className="font-black" style={{ color: "var(--primary)" }}>₹2,000</span>{" "}
-                  is charged to you (the owner). This fee is only due after a successful deal — no upfront costs.
+                  through our platform, a platform commission fee is charged to you (the owner).
+                  The exact amount will be communicated to you by the NearMyColleges admin.
+                  This fee is only due after a successful deal — no upfront costs.
                 </p>
               </div>
               <label className="flex items-start gap-3 cursor-pointer">
@@ -1192,9 +1192,9 @@ export function OwnerDashboardPage() {
                   className="accent-amber-500 mt-0.5 h-4 w-4 flex-shrink-0"
                 />
                 <span className="text-xs leading-5" style={{ color: "var(--on-surface)" }}>
-                  I agree to pay NearMyColleges a commission of <strong>₹2,000</strong> per successful student
-                  booking facilitated through this platform. I understand that the platform connects students
-                  to my listing and earns this fee for the service.
+                  I agree to pay NearMyColleges a commission fee per successful student booking
+                  facilitated through this platform. I understand that the commission amount will be
+                  decided and communicated by the NearMyColleges admin.
                 </span>
               </label>
               {!commissionAgreed && (

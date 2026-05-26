@@ -465,8 +465,7 @@ export function PropertyDetailPage() {
                   >
                     <p className="font-bold mb-1" style={{ color: "var(--on-surface-variant)" }}>📌 Platform Commission</p>
                     <p>
-                      If you finalise this property through NearMyColleges, a one-time platform fee of{" "}
-                      <span className="font-black" style={{ color: "var(--primary)" }}>₹2,000</span>{" "}
+                      If you finalise this property through NearMyColleges, a platform commission fee
                       is charged to the owner. No extra charges for you!
                     </p>
                   </div>
@@ -517,9 +516,8 @@ export function PropertyDetailPage() {
                   >
                     <p className="font-bold mb-1" style={{ color: "var(--on-surface-variant)" }}>📌 Platform Commission</p>
                     <p>
-                      A one-time fee of{" "}
-                      <span className="font-black" style={{ color: "var(--primary)" }}>₹2,000</span>{" "}
-                      is charged to the owner when a deal is finalised. Free for students!
+                      A platform commission fee is charged to the owner when a deal is finalised.
+                      This service is completely free for students!
                     </p>
                   </div>
                 </>
