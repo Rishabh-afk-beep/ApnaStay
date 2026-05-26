@@ -34,10 +34,10 @@ export function AdminUsersPage() {
               style={{ color: "var(--primary-fixed-dim)", letterSpacing: "0.15em" }}>
               Admin
             </p>
-            <h1 className="mt-2 text-3xl font-black" style={{ color: "var(--inverse-on-surface)" }}>
+            <h1 className="mt-2 text-3xl font-black text-white">
               User Management
             </h1>
-            <p className="mt-2 text-sm" style={{ color: "var(--inverse-on-surface)", opacity: 0.7 }}>
+            <p className="mt-2 text-sm text-slate-300">
               <AnimatedNumber value={users.length} /> users · <AnimatedNumber value={activeCount} /> active · <AnimatedNumber value={blockedCount} /> blocked
             </p>
           </div>

@@ -9,7 +9,7 @@ import { Reveal } from "../components/ui/Reveal";
 const ROLE_CONFIG = {
   admin:   { label: "Administrator",    icon: "⚙️",  gradient: "linear-gradient(135deg, #1e1b4b 0%, #3730a3 60%, #4f46e5 100%)", badge: "bg-violet-500/20 text-violet-300", quickLinks: [{ label: "Admin Dashboard", to: "/admin" }, { label: "Manage Colleges", to: "/admin/colleges" }, { label: "Manage Users", to: "/admin/users" }] },
   owner:   { label: "Property Owner",   icon: "🏠",  gradient: "linear-gradient(135deg, #431407 0%, #9a3412 60%, #c2410c 100%)", badge: "bg-orange-500/20 text-orange-300", quickLinks: [{ label: "Owner Dashboard", to: "/owner" }, { label: "My Listings", to: "/owner" }, { label: "Inquiries", to: "/owner" }] },
-  student: { label: "Student",          icon: "🎓",  gradient: "var(--gradient-amber)", badge: "bg-amber-500/20 text-amber-700",   quickLinks: [{ label: "Discover PGs", to: "/discover" }, { label: "Saved Listings", to: "/shortlists" }, { label: "My Alerts", to: "/alerts" }] },
+  student: { label: "Student",          icon: "🎓",  gradient: "linear-gradient(135deg, #451a03 0%, #78350f 60%, #92400e 100%)", badge: "bg-amber-500/20 text-amber-200",   quickLinks: [{ label: "Discover PGs", to: "/discover" }, { label: "Saved Listings", to: "/shortlists" }, { label: "My Alerts", to: "/alerts" }] },
 };
 
 export function ProfilePage() {

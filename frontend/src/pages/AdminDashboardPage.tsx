@@ -263,7 +263,7 @@ export function AdminDashboardPage() {
               >
                 {stat.icon}
               </div>
-              <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--outline)" }}>
+              <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--on-surface-variant)" }}>
                 {stat.label}
               </p>
               <p className="mt-1.5 text-3xl font-black" style={{ color: "var(--on-surface)" }}>
@@ -277,7 +277,7 @@ export function AdminDashboardPage() {
                       style={{ width: `${liveRatio}%`, background: "#10b981" }}
                     />
                   </div>
-                  <p className="mt-1 text-xs font-semibold" style={{ color: "var(--outline)" }}>Live ratio: {liveRatio}%</p>
+                  <p className="mt-1 text-xs font-semibold" style={{ color: "var(--on-surface-variant)" }}>Live ratio: {liveRatio}%</p>
                 </>
               )}
             </article>
@@ -304,7 +304,7 @@ export function AdminDashboardPage() {
               >
                 {stat.icon}
               </div>
-              <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--outline)" }}>
+              <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--on-surface-variant)" }}>
                 {stat.label}
               </p>
               <p className="mt-1.5 text-3xl font-black" style={{ color: "var(--on-surface)" }}>
@@ -324,7 +324,7 @@ export function AdminDashboardPage() {
               <h2 className="text-2xl font-black tracking-tight" style={{ color: "var(--on-surface)" }}>
                 Property Control Center
               </h2>
-              <p className="text-sm mt-1" style={{ color: "var(--outline)" }}>
+              <p className="text-sm mt-1" style={{ color: "var(--on-surface-variant)" }}>
                 Audit listings, manage marketplace supply, and moderate landlord submissions.
               </p>
             </div>

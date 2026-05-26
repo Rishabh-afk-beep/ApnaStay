@@ -115,10 +115,10 @@ export function AdminCollegesPage() {
               style={{ color: "var(--primary-fixed-dim)", letterSpacing: "0.15em" }}>
               Admin
             </p>
-            <h1 className="mt-2 text-3xl font-black" style={{ color: "var(--inverse-on-surface)" }}>
+            <h1 className="mt-2 text-3xl font-black text-white">
               College Management
             </h1>
-            <p className="mt-2 text-sm" style={{ color: "var(--inverse-on-surface)", opacity: 0.7 }}>
+            <p className="mt-2 text-sm text-slate-300">
               <AnimatedNumber value={colleges.length} /> colleges registered
             </p>
           </div>

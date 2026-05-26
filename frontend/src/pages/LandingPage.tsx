@@ -404,10 +404,10 @@ export function LandingPage() {
             style={{ background: "var(--primary-fixed-dim)", filter: "blur(60px)" }}
           />
           <div className="relative z-10">
-            <h3 className="text-3xl font-black" style={{ color: "var(--inverse-on-surface)" }}>
+            <h3 className="text-3xl font-black text-white">
               Ready to launch your housing search?
             </h3>
-            <p className="mt-3 max-w-2xl text-base leading-7" style={{ color: "var(--inverse-on-surface)", opacity: 0.7 }}>
+            <p className="mt-3 max-w-2xl text-base leading-7 text-slate-300">
               Use advanced filters, compare options by distance and rent, and contact owners directly without waiting on
               fragmented WhatsApp groups.
             </p>

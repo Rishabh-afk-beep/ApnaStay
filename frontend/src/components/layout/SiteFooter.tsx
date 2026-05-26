@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-24 relative overflow-hidden" style={{ background: "var(--surface-inverse)", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+    <footer className="mt-24 relative overflow-hidden" style={{ background: "#090d16", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
       {/* Ambient glow blobs */}
       <div className="pointer-events-none absolute -left-32 -top-32 h-64 w-64 rounded-full opacity-10" style={{ background: "var(--primary)", filter: "blur(80px)" }} />
       <div className="pointer-events-none absolute -right-20 bottom-0 h-48 w-48 rounded-full opacity-10" style={{ background: "var(--primary-container)", filter: "blur(60px)" }} />

@@ -1,26 +1,11 @@
+import { useTheme } from "../../lib/ThemeContext";
 import { useEffect, useState } from "react";
 
-const THEME_KEY = "apnastay-theme";
-
-function applyTheme(theme: "light" | "dark") {
-  document.documentElement.classList.toggle("dark", theme === "dark");
-}
-
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
-
-  useEffect(() => {
-    const stored = localStorage.getItem(THEME_KEY);
-    const nextTheme = stored === "dark" || stored === "light" ? stored : "light";
-    setTheme(nextTheme);
-    applyTheme(nextTheme);
-  }, []);
+  const { setTheme, resolvedTheme } = useTheme();
 
   const onToggle = () => {
-    const nextTheme = theme === "dark" ? "light" : "dark";
-    setTheme(nextTheme);
-    localStorage.setItem(THEME_KEY, nextTheme);
-    applyTheme(nextTheme);
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
   return (
@@ -33,10 +18,10 @@ export function ThemeToggle() {
         color: "var(--on-surface)",
         boxShadow: "var(--shadow-ambient)",
       }}
-      aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+      aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
       type="button"
     >
-      {theme === "dark" ? (
+      {resolvedTheme === "dark" ? (
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
