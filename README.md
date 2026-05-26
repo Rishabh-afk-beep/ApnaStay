@@ -1,125 +1,105 @@
-# ApnaStay: The Ultimate Student Rental Marketplace 🎓
+<div align="center">
 
-ApnaStay (formerly CollegePG) is a modern, full-stack platform designed to simplify student housing. It connects students directly with PG owners, hostel operators, and landlords near their specific college campuses—completely eliminating broker chaos.
+<img src="https://img.shields.io/badge/Status-Live-brightgreen?style=for-the-badge" />
+<img src="https://img.shields.io/badge/Platform-Web-blue?style=for-the-badge" />
+<img src="https://img.shields.io/badge/Made%20for-Students-orange?style=for-the-badge" />
 
-## 🚀 Features
+# 🏠 NearMyColleges
 
-- **College-First Discovery:** Students search for housing anchored around their university or campus, filtering by walking distance, amenities, budget, and property type.
-- **Robust Role System:** Separate interfaces and workflows for **Students**, **Owners**, and **Admins**.
-- **Owner Dashboard:** Landlords can easily list properties, manage room availability, and track student inquiries.
-- **Admin Moderation:** All listings are pending until an Admin approves them. Includes audit logs and real-time marketplace analytics.
-- **Real-time Map Integration:** Built-in Leaflet Maps pinpointing property coordinates.
-- **Cross-Platform:** Includes both a responsive React Web App and a React Native Mobile App scaffolding!
+### India's Student Housing Discovery Platform
 
----
+**Find verified PGs, flats & hostels near your campus — instantly.**  
+No brokers. No spam. Just real listings, real prices, real homes.
 
-## 🛠 Tech Stack
+[🌐 Visit Live Site](https://nearmycolleges.in) &nbsp;·&nbsp; [📧 Contact Support](mailto:support@nearmycolleges.in) &nbsp;·&nbsp; [💬 WhatsApp](https://wa.me/918152916235)
 
-Built for scale, security, and velocity using modern technologies.
-
-- **Frontend (Web):** React, Vite, Tailwind CSS, `@tanstack/react-query`, React Router.
-- **Mobile (App):** React Native (Expo)
-- **Backend:** Python, FastAPI, Pydantic (Type validation)
-- **Database / Auth:** Firebase Auth (Google + Email) & Firebase Firestore (NoSQL Document DB)
-- **Maps:** Leaflet & OpenStreetMap (100% Free)
+</div>
 
 ---
 
-## 🏗 Repository Structure
+## ✨ What is NearMyColleges?
 
-This is a Monorepo containing three distinct codebases:
+NearMyColleges is a curated student housing platform that connects college students directly with verified PG owners and hostel operators near their campus. Students can browse listings, filter by distance, budget, and amenities, and send direct inquiries — all in one place.
 
-```text
-/apnastay
-│
-├── /frontend      # The React Web App (Vercel Ready)
-├── /backend       # The FastAPI Python Server (Render Ready)
-├── /mobile        # The React Native Expo Application
-└── docker-compose.yml 
-```
+> Built by a student, for students. 🎓
 
 ---
 
-## 💻 Local Development Setup
+## 🎯 Key Features
 
-You can run the entire platform using Docker, or natively manually.
-
-### Option 1: Docker (Fastest)
-Ensure Docker Desktop is running, then execute the startup script from the root folder:
-```powershell
-./start.ps1
-```
-This automatically scaffolds missing `.env` files and builds both the `backend` and `frontend` containers side-by-side.
-
-### Option 2: Native Setup 
-If you want to run things manually for debugging:
-
-**1. Backend (FastAPI)**
-```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate  # (or .\.venv\Scripts\activate on Windows)
-pip install -r requirements.txt
-python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
-*API will run at: `http://localhost:8000`*
-
-**2. Frontend (React/Vite)**
-```bash
-cd frontend
-npm install
-npm run dev
-```
-*Web App will run at: `http://localhost:5173`*
+| Feature | Description |
+|---|---|
+| 🔍 **Smart Discovery** | Browse all PGs instantly or filter by college, city, distance, type & budget |
+| 🗺️ **Map View** | See properties plotted on a live map with distance markers |
+| ❤️ **Shortlists** | Save favourite listings to revisit later |
+| 🔔 **Smart Alerts** | Get notified when new listings match your preferences |
+| 👤 **Role-Based Access** | Separate dashboards for Students, Owners & Admins |
+| 🏠 **Owner Dashboard** | List properties, manage availability, track inquiries |
+| 🛡️ **Admin Verified** | Every listing reviewed and approved before going live |
+| 🌙 **Dark & Light Mode** | Beautiful UI in both themes, mobile-first design |
+| 🔒 **Secure Auth** | Email/password and Google Sign-In via Firebase |
 
 ---
 
-## 🔒 Firebase Configuration
+## 🖼️ Platform Roles
 
-ApnaStay relies on Firebase for Authentication and Database architecture. 
-To launch successfully, you must have a Firebase project securely connected.
+### 🎓 For Students
+- Search for accommodation near any college across India
+- Filter by PG / Hostel / Flat / Single Room / Co-living
+- Filter by gender, budget, amenities (WiFi, food, AC, parking...)
+- Shortlist properties and set alerts for new matches
+- Send direct inquiries to property owners
 
-1. Create a project at [Firebase Console](https://console.firebase.google.com).
-2. Enable **Firestore Database** and **Authentication** (Email/Password & Google).
-3. Fetch your web settings and populate `frontend/.env`.
-4. Generate a Service Account Private Key (`.json`), base64 encode it, and place it in the environment variable `FIREBASE_SERVICE_ACCOUNT_B64` for the backend.
+### 🏠 For Property Owners
+- List your PG, hostel, or flat with photos, pricing, and amenities
+- Manage room availability and occupancy status
+- Receive and respond to student inquiries
+- Get discovered by thousands of students near your listed college
 
-### Firestore Security Rules
-All read/write operations happen securely through the FastAPI backend! Keep your Firestore lock down:
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if false; // Only backend Python SDK has access 
-    }
-  }
-}
-```
+### 🛡️ For Admins
+- Review and approve/reject property listings
+- Manage registered colleges across India
+- Monitor platform users and verify accounts
+- Access real-time marketplace analytics
 
 ---
 
-## ☁️ Production Deployment
+## 🛠️ Tech Stack
 
-### Backend (Render)
-1. Deploy the `/backend` folder as a **Web Service** on Render using the Python 3 native environment.
-2. Set Build Command: `pip install -r requirements.txt`
-3. Set Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-4. Inject your Base64 Firebase Credentials via Environment Variables.
-5. Set `APP_ENV=production` exactly to automatically hide sensitive Swagger API docs!
-
-### Frontend (Vercel)
-1. Import the `/frontend` directory to Vercel.
-2. Vercel automatically detects Vite configurations. 
-3. **CRITICAL:** Set `VITE_API_BASE_URL` to point to your deployed Render URL (e.g. `https://apnastay-api.onrender.com/api/v1`).
-4. Add your Vercel URL to the Firebase Auth "Authorized Domains" list to prevent cross-origin auth blocking.
+| Layer | Technology |
+|---|---|
+| **Frontend** | React 18, Vite, TypeScript, TailwindCSS |
+| **State Management** | TanStack Query (React Query) |
+| **Backend** | Python, FastAPI, Pydantic |
+| **Database** | Firebase Firestore (NoSQL) |
+| **Authentication** | Firebase Auth (Email + Google) |
+| **Maps** | Leaflet + OpenStreetMap |
+| **Hosting** | Vercel (Frontend) · Render (Backend) |
+| **Images** | Cloudinary / Unsplash CDN |
 
 ---
 
-## 📜 Dev & Testing Scripts
-Inside the `backend/scripts` folder, you will find incredibly helpful scripts:
-- `seed_firestore.py` - Automatically inserts test colleges, 3 mock properties, and test users into a fresh database.
-- `generate_dev_tokens.py` - Synthesizes fake JWT tokens if Firebase is intentionally bypassed during local UI testing.
-- `smoke_auth.ps1` - Runs end-to-end integration tests natively. 
+## 📜 Legal
 
-**Maintained and updated lovingly for the college housing ecosystem.**
+- [Privacy Policy](https://nearmycolleges.in/privacy-policy)
+- [Terms of Service](https://nearmycolleges.in/terms-of-service)
+
+---
+
+## 📬 Contact
+
+Have questions or want to list your property?
+
+- 📧 Email: [support@nearmycolleges.in](mailto:support@nearmycolleges.in)
+- 💬 WhatsApp: [+91 81529 16235](https://wa.me/918152916235)
+- 📞 Call: [+91 81529 16235](tel:+918152916235)
+
+---
+
+<div align="center">
+
+© 2025 NearMyColleges · Built with ❤️ for India's student community
+
+*This is a proprietary platform. The source code is not licensed for reuse or redistribution.*
+
+</div>
