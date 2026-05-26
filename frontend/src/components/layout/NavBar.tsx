@@ -65,7 +65,7 @@ export function NavBar() {
             N
           </span>
           <span
-            className="text-lg font-black tracking-tight"
+            className="text-sm min-[380px]:text-base md:text-lg font-black tracking-tight hidden min-[320px]:inline-block"
             style={{ color: "var(--on-surface)" }}
           >
             NearMyColleges

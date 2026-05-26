@@ -37,7 +37,7 @@ export function ShortlistsPage() {
     <main className="mx-auto max-w-5xl px-6 py-10">
       <Reveal>
         <section
-          className="relative overflow-hidden rounded-3xl p-8"
+          className="relative overflow-hidden rounded-3xl p-6 md:p-8"
           style={{ background: "linear-gradient(135deg, #451a03 0%, #78350f 60%, #92400e 100%)" }}
         >
           <div

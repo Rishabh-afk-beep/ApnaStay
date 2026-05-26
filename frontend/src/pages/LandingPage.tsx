@@ -46,7 +46,7 @@ function CityDropdown({
 
       {open && (
         <div
-          className="absolute left-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-2xl py-1 shadow-2xl"
+          className="absolute left-0 top-full z-50 mt-2 w-48 max-w-[calc(100vw-48px)] overflow-hidden rounded-2xl py-1 shadow-2xl"
           style={{ background: "var(--surface-container-lowest)", border: "1px solid var(--glass-border)" }}
         >
           {["", ...cities].map((city) => (
@@ -127,7 +127,7 @@ function CollegeDropdown({
 
       {open && (
         <div
-          className="absolute left-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-2xl shadow-2xl"
+          className="absolute left-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-48px)] overflow-hidden rounded-2xl shadow-2xl"
           style={{ background: "var(--surface-container-lowest)", border: "1px solid var(--glass-border)" }}
         >
           {/* Search inside dropdown */}

@@ -43,7 +43,7 @@ export function ProfilePage() {
       {/* ── Profile Hero Card ── */}
       <Reveal>
         <section
-          className="relative overflow-hidden rounded-3xl p-8"
+          className="relative overflow-hidden rounded-3xl p-6 md:p-8"
           style={{ background: cfg.gradient, boxShadow: "0 20px 60px rgba(0,0,0,0.18)" }}
         >
           {/* Decorative blobs */}

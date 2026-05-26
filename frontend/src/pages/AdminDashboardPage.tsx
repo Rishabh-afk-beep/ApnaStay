@@ -178,7 +178,7 @@ export function AdminDashboardPage() {
       {/* ── Hero Banner ── */}
       <Reveal>
         <section
-          className="relative overflow-hidden rounded-3xl p-8 md:p-10"
+          className="relative overflow-hidden rounded-3xl p-6 md:p-10"
           style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0c1a2e 100%)", boxShadow: "0 25px 60px rgba(0,0,0,0.35)" }}
         >
           {/* Animated ambient glows */}
@@ -330,13 +330,13 @@ export function AdminDashboardPage() {
             </div>
 
             {/* Custom Segmented Control Switcher */}
-            <div className="flex p-1 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 self-start lg:self-auto">
+            <div className="flex p-1 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 self-stretch lg:self-auto overflow-x-auto no-scrollbar whitespace-nowrap">
               <button
                 onClick={() => {
                   setActiveTab("pending");
                   setFilterSearch("");
                 }}
-                className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all duration-300 ${
+                className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all duration-300 flex-shrink-0 ${
                   activeTab === "pending"
                     ? "bg-white dark:bg-slate-800 text-slate-950 dark:text-white shadow-sm"
                     : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
@@ -354,7 +354,7 @@ export function AdminDashboardPage() {
                   setActiveTab("all");
                   setFilterSearch("");
                 }}
-                className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all duration-300 ${
+                className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all duration-300 flex-shrink-0 ${
                   activeTab === "all"
                     ? "bg-white dark:bg-slate-800 text-slate-950 dark:text-white shadow-sm"
                     : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
@@ -372,7 +372,7 @@ export function AdminDashboardPage() {
                   setActiveTab("inquiries");
                   setFilterSearch("");
                 }}
-                className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all duration-300 ${
+                className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all duration-300 flex-shrink-0 ${
                   activeTab === "inquiries"
                     ? "bg-white dark:bg-slate-800 text-slate-950 dark:text-white shadow-sm"
                     : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
@@ -390,7 +390,7 @@ export function AdminDashboardPage() {
                   setActiveTab("map");
                   setFilterSearch("");
                 }}
-                className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all duration-300 ${
+                className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all duration-300 flex-shrink-0 ${
                   activeTab === "map"
                     ? "bg-white dark:bg-slate-800 text-slate-950 dark:text-white shadow-sm"
                     : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
