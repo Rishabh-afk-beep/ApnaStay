@@ -42,7 +42,7 @@ export function SupportHub() {
             {/* Helpline 1 */}
             <div className="rounded-2xl p-3 border transition-colors hover:bg-slate-500/5" style={{ borderColor: "var(--outline-variant)" }}>
               <div className="flex justify-between items-center mb-2">
-                <span className="text-[11px] font-bold text-slate-400">NearMyColleges Support</span>
+                <span className="text-[11px] font-bold text-slate-400">Support Line 1</span>
                 <span className="text-xs font-black">8152916235</span>
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -66,7 +66,7 @@ export function SupportHub() {
             {/* Helpline 2 */}
             <div className="rounded-2xl p-3 border transition-colors hover:bg-slate-500/5" style={{ borderColor: "var(--outline-variant)" }}>
               <div className="flex justify-between items-center mb-2">
-                <span className="text-[11px] font-bold text-slate-400">Owner Helpline</span>
+                <span className="text-[11px] font-bold text-slate-400">Support Line 2</span>
                 <span className="text-xs font-black">9002252480</span>
               </div>
               <div className="grid grid-cols-2 gap-2">
