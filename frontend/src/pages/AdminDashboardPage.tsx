@@ -481,11 +481,11 @@ export function AdminDashboardPage() {
                       </span>
                     </div>
 
-                    <div className="mt-6 flex items-center justify-between gap-4 border-t pt-4" style={{ borderColor: "var(--surface-container-high)" }}>
+                    <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t pt-4" style={{ borderColor: "var(--surface-container-high)" }}>
                       <span className="text-sm font-black" style={{ color: "var(--on-surface)" }}>
                         ₹{item.rent_min} - ₹{item.rent_max} <span className="text-xs font-normal" style={{ color: "var(--outline)" }}>/mo</span>
                       </span>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => moderationMutation.mutate({ action: "reject", propertyId: item.property_id })}
                           className="rounded-xl px-4 py-2 text-xs font-bold transition-all bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-950/20 dark:text-red-400 dark:hover:bg-red-950/40"
@@ -553,12 +553,12 @@ export function AdminDashboardPage() {
                         </div>
                       </div>
 
-                      <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t pt-4" style={{ borderColor: "var(--surface-container-high)" }}>
+                      <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t pt-4" style={{ borderColor: "var(--surface-container-high)" }}>
                         <span className="text-sm font-black" style={{ color: "var(--on-surface)" }}>
                           ₹{item.rent_min} - ₹{item.rent_max} <span className="text-xs font-normal" style={{ color: "var(--outline)" }}>/mo</span>
                         </span>
                         
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           {isPending && (
                             <button
                               onClick={() => moderationMutation.mutate({ action: "approve", propertyId: item.property_id })}
@@ -646,7 +646,7 @@ export function AdminDashboardPage() {
               <div className="grid gap-4 md:grid-cols-2">
                 {filteredInquiries.map((inq) => (
                   <article key={inq.inquiry_id} className="relative overflow-hidden rounded-3xl p-6 transition-all duration-300 hover:shadow-lg border border-slate-250/60 dark:border-slate-800/80 hover:border-slate-350 dark:hover:border-slate-750" style={{ background: "var(--surface-container-low)" }}>
-                    <div className="flex justify-between items-start">
+                    <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-2">
                       <div>
                         <span className="inline-block text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
                           Student Inquiry
@@ -666,11 +666,11 @@ export function AdminDashboardPage() {
                     </div>
 
                     <div className="mt-4 pt-4 border-t space-y-2 text-xs" style={{ borderColor: "var(--surface-container-high)" }}>
-                      <div className="flex justify-between">
+                      <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                         <span className="text-slate-400">Target PG / Property:</span>
                         <span className="font-bold text-amber-600 dark:text-amber-400">{inq.property_title}</span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                         <span className="text-slate-400">Owner Details:</span>
                         <span className="font-bold text-slate-800 dark:text-slate-200">
                           {inq.owner_name} ({inq.owner_email})

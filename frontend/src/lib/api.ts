@@ -76,7 +76,7 @@ export async function getCollege(collegeId: string): Promise<CollegeOut> {
 // ── Public Properties ─────────────────────────────────────────────
 
 export async function searchProperties(params: {
-  college_id: string;
+  college_id?: string;
   radius_km?: number;
   property_type?: string;
   gender?: string;

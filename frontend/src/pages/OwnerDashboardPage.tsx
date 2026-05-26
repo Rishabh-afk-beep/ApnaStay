@@ -685,7 +685,7 @@ export function OwnerDashboardPage() {
                 <div className="flex flex-col gap-2 md:col-span-2">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--outline)" }}>Location (for Map)</label>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
                         onClick={() => setShowMapModal(true)}
@@ -827,7 +827,7 @@ export function OwnerDashboardPage() {
                             />
                           </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           {["available", "occupied", "reserved"].map((s) => (
                             <button
                               key={s}
@@ -1373,7 +1373,7 @@ export function OwnerDashboardPage() {
                         inquiries.map((inq) => (
                           <div key={inq.inquiry_id} className="rounded-xl p-4 text-sm"
                             style={{ background: "var(--surface-container-lowest)" }}>
-                            <div className="flex items-start justify-between gap-2">
+                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                               <p className="font-bold" style={{ color: "var(--on-surface)" }}>{inq.name}</p>
                               <div className="flex gap-1.5 shrink-0">
                                 <a href={`tel:${inq.phone}`}

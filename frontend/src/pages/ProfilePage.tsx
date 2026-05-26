@@ -50,7 +50,7 @@ export function ProfilePage() {
           <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full opacity-20" style={{ background: "#fff", filter: "blur(50px)" }} />
           <div className="pointer-events-none absolute -left-8 bottom-0 h-32 w-32 rounded-full opacity-10" style={{ background: "#fff", filter: "blur(40px)" }} />
 
-          <div className="relative z-10 flex items-center gap-5">
+          <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5">
             {/* Avatar */}
             <div
               className="flex items-center justify-center rounded-2xl text-2xl font-black text-white shadow-xl"
@@ -59,7 +59,7 @@ export function ProfilePage() {
               {initials}
             </div>
             <div className="flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex flex-col sm:flex-row items-center gap-2 flex-wrap">
                 <h1 className="text-2xl font-black text-white">{profile?.name || "Set up your profile"}</h1>
                 <span className={`rounded-full px-3 py-1 text-xs font-bold ${cfg.badge}`}>
                   {cfg.icon} {cfg.label}
@@ -93,7 +93,7 @@ export function ProfilePage() {
       {/* ── Account Status Strip ── */}
       <Reveal delayMs={60}>
         <section
-          className="grid grid-cols-3 gap-3 rounded-2xl p-4"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-2xl p-4"
           style={{ background: "var(--surface-container-low)", border: "1px solid var(--glass-border)" }}
         >
           {[

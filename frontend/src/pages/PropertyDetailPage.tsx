@@ -217,7 +217,7 @@ export function PropertyDetailPage() {
           {/* Price panel */}
           <Reveal delayMs={110}>
             <div
-              className="grid grid-cols-3 gap-4 rounded-2xl p-6"
+              className="grid grid-cols-2 md:grid-cols-3 gap-4 rounded-2xl p-6"
               style={{ background: "var(--surface-container-low)" }}
             >
               <div>

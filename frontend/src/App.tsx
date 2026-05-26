@@ -21,6 +21,8 @@ import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 import { AdminCollegesPage } from "./pages/AdminCollegesPage";
 import { AdminUsersPage } from "./pages/AdminUsersPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
+import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
+import { TermsOfServicePage } from "./pages/TermsOfServicePage";
 
 export default function App() {
   return (
@@ -52,6 +54,10 @@ export default function App() {
               <Route path="/admin" element={<AdminDashboardPage />} />
               <Route path="/admin/colleges" element={<AdminCollegesPage />} />
               <Route path="/admin/users" element={<AdminUsersPage />} />
+
+              {/* Legal pages */}
+              <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+              <Route path="/terms-of-service" element={<TermsOfServicePage />} />
 
               {/* Catch-all 404 route */}
               <Route path="*" element={<NotFoundPage />} />

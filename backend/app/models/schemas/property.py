@@ -83,7 +83,7 @@ class PropertyDetail(PropertyCard):
 
 
 class PropertySearchQuery(BaseModel):
-    college_id: str
+    college_id: Optional[str] = None
     radius_km: float = 2.0
     property_type: Optional[str] = None
     gender: Optional[str] = None
@@ -91,7 +91,7 @@ class PropertySearchQuery(BaseModel):
     budget_max: Optional[int] = None
     availability_status: Optional[str] = None
     amenities: List[str] = Field(default_factory=list)
-    sort: str = "nearest"
+    sort: str = "newest"
     page: int = 1
     limit: int = 20
 

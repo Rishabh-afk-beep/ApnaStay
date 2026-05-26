@@ -151,6 +151,20 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.15;
 }
 
+.section-dark {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #050b14 100%);
+  border-radius: 2rem;
+  padding: 2rem;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+  color: #ffffff;
+}
+
+@media (min-width: 768px) {
+  .section-dark {
+    padding: 3rem;
+  }
+}
+
 /* ══════════════════════════════════════════════════════════════════
    GLASS CARD SYSTEM — "The Glass Folio"
    ══════════════════════════════════════════════════════════════════ */

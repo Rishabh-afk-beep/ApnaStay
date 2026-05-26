@@ -12,7 +12,7 @@ repo = PropertyRepository()
 
 @router.get("/search")
 def search_properties(
-    college_id: str,
+    college_id: str | None = None,
     radius_km: float = 2.0,
     property_type: str | None = None,
     gender: str | None = None,
@@ -20,7 +20,7 @@ def search_properties(
     budget_max: int | None = None,
     availability_status: str | None = None,
     amenities: list[str] = Query(default=[]),
-    sort: str = "nearest",
+    sort: str = "newest",
     page: int = 1,
     limit: int = 20,
 ) -> PaginatedResponse[PropertyCard]:

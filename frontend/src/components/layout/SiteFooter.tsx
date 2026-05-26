@@ -9,7 +9,7 @@ export function SiteFooter() {
 
       <div className="relative mx-auto max-w-6xl px-6 pt-16 pb-6">
         {/* ── Top grid ── */}
-        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-6">
 
           {/* Brand col — spans 2 */}
           <div className="lg:col-span-2">
@@ -88,6 +88,12 @@ export function SiteFooter() {
             <FooterLink to="/login">🔑 Login / Sign Up</FooterLink>
             <FooterLink to="/profile">👤 My Profile</FooterLink>
           </FooterCol>
+
+          {/* Legal */}
+          <FooterCol title="Legal">
+            <FooterLink to="/privacy-policy">🔒 Privacy Policy</FooterLink>
+            <FooterLink to="/terms-of-service">📋 Terms of Service</FooterLink>
+          </FooterCol>
         </div>
 
         {/* ── Divider ── */}
@@ -98,12 +104,10 @@ export function SiteFooter() {
           <p className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>
             © {new Date().getFullYear()} NearMyColleges · Curated student living. All rights reserved.
           </p>
-          <div className="flex gap-5 text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>
-            {["Privacy Policy", "Terms of Service", "Refund Policy"].map((item) => (
-              <a key={item} href="#" className="transition-colors hover:text-white/60">
-                {item}
-              </a>
-            ))}
+          <div className="flex gap-5 text-xs flex-wrap justify-center sm:justify-end" style={{ color: "rgba(255,255,255,0.3)" }}>
+              <Link to="/privacy-policy" className="transition-colors hover:text-white/60">Privacy Policy</Link>
+              <Link to="/terms-of-service" className="transition-colors hover:text-white/60">Terms of Service</Link>
+              <a href="mailto:support@nearmycolleges.in" className="transition-colors hover:text-white/60">Contact Support</a>
           </div>
         </div>
       </div>

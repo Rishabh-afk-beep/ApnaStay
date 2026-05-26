@@ -248,7 +248,51 @@ class PropertyRepository:
             results.append(self._to_card(data))
         return results
 
+    def search_all_live(self, property_type: Optional[str] = None, gender: Optional[str] = None) -> List[PropertyCard]:
+        """Return all live/approved properties regardless of college — for global discovery."""
+        client = get_firestore_client()
+        if client is None:
+            items = [
+                dict(item)
+                for item in _FALLBACK_PROPERTIES.values()
+                if item.get("approval_status") == "approved"
+                and item.get("visibility_status") == "live"
+            ]
+            if property_type:
+                items = [i for i in items if i.get("property_type") == property_type]
+            if gender and gender != "any":
+                items = [i for i in items if i.get("gender") in (gender, "any", None)]
+            return [self._to_card(i) for i in items]
+
+        # Firestore: fetch all live properties
+        query = client.collection("properties").where(filter=firestore_v1.FieldFilter("status", "==", "live"))
+        docs = list(query.stream())
+        query2 = (
+            client.collection("properties")
+            .where(filter=firestore_v1.FieldFilter("approval_status", "==", "approved"))
+            .where(filter=firestore_v1.FieldFilter("visibility_status", "==", "live"))
+        )
+        docs2 = list(query2.stream())
+
+        seen = set()
+        all_docs = []
+        for doc in docs + docs2:
+            if doc.id not in seen:
+                seen.add(doc.id)
+                all_docs.append(doc)
+
+        results = []
+        for doc in all_docs:
+            data = doc.to_dict()
+            if property_type and data.get("property_type") != property_type:
+                continue
+            if gender and gender != "any" and data.get("gender") not in (gender, "any", None):
+                continue
+            results.append(self._to_card(data))
+        return results
+
     def get_by_id(self, property_id: str) -> Optional[PropertyCard]:
+
         client = get_firestore_client()
         if client is None:
             data = _FALLBACK_PROPERTIES.get(property_id)
