@@ -175,60 +175,109 @@ export function AdminDashboardPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
-      {/* Header */}
+      {/* ── Hero Banner ── */}
       <Reveal>
-        <section className="section-dark relative overflow-hidden">
-          <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full opacity-15"
-            style={{ background: "var(--primary-fixed-dim)", filter: "blur(60px)" }} />
-          <div className="relative z-10">
-            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--primary-fixed-dim)", letterSpacing: "0.15em" }}>
-              Moderation + Analytics
-            </p>
-            <h1 className="mt-2 text-3xl font-black" style={{ color: "var(--inverse-on-surface)" }}>
-              Admin Dashboard
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm" style={{ color: "var(--inverse-on-surface)", opacity: 0.7 }}>
-              Track supply health, approve owner inventory, and monitor trust signals across the marketplace.
-            </p>
-            <div className="mt-5 flex gap-3">
-              <Link to="/admin/colleges" className="btn-ghost !border-white/20 !text-white/80 hover:!bg-white/10">
-                Manage Colleges
-              </Link>
-              <Link to="/admin/users" className="btn-ghost !border-white/20 !text-white/80 hover:!bg-white/10">
-                Manage Users
-              </Link>
+        <section
+          className="relative overflow-hidden rounded-3xl p-8 md:p-10"
+          style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0c1a2e 100%)", boxShadow: "0 25px 60px rgba(0,0,0,0.35)" }}
+        >
+          {/* Animated ambient glows */}
+          <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full opacity-20 animate-float"
+            style={{ background: "var(--primary)", filter: "blur(80px)" }} />
+          <div className="pointer-events-none absolute -left-10 bottom-0 h-48 w-48 rounded-full opacity-15 animate-float"
+            style={{ background: "#6366f1", filter: "blur(60px)", animationDelay: "2s" }} />
+
+          {/* Dot-grid overlay */}
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.04]"
+            style={{ backgroundImage: "radial-gradient(circle, #fff 1px, transparent 1px)", backgroundSize: "24px 24px" }}
+          />
+
+          <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em]"
+                style={{ background: "rgba(250,189,0,0.12)", color: "var(--primary)", border: "1px solid rgba(250,189,0,0.2)" }}>
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                Moderation + Analytics
+              </div>
+              <h1 className="text-4xl font-black text-white" style={{ letterSpacing: "-0.02em" }}>Admin Dashboard</h1>
+              <p className="mt-2 max-w-lg text-sm leading-6" style={{ color: "rgba(255,255,255,0.5)" }}>
+                Track supply health, approve owner inventory, and monitor trust signals across the marketplace.
+              </p>
             </div>
+            {/* Admin identity pill */}
+            <div
+              className="flex items-center gap-3 rounded-2xl px-5 py-4 flex-shrink-0"
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(12px)" }}
+            >
+              <div
+                className="flex h-12 w-12 items-center justify-center rounded-xl text-lg font-black text-white"
+                style={{ background: "var(--gradient-amber)" }}
+              >
+                {(profile?.name || "A")[0]}
+              </div>
+              <div>
+                <p className="text-sm font-black text-white">{profile?.name || "Admin"}</p>
+                <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>⚙️ Administrator</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick action buttons */}
+          <div className="relative z-10 mt-6 flex flex-wrap gap-3">
+            <Link
+              to="/admin/colleges"
+              className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all hover:scale-[1.03]"
+              style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.8)", border: "1px solid rgba(255,255,255,0.12)" }}
+            >
+              🎓 Manage Colleges
+            </Link>
+            <Link
+              to="/admin/users"
+              className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all hover:scale-[1.03]"
+              style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.8)", border: "1px solid rgba(255,255,255,0.12)" }}
+            >
+              👥 Manage Users
+            </Link>
           </div>
         </section>
       </Reveal>
 
-      {/* Analytics cards */}
+      {/* ── Analytics Cards ── */}
       <Reveal className="mt-6" delayMs={110}>
-        <section className="grid gap-4 md:grid-cols-4">
+        <section className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
           {[
-            { label: "Total Properties", value: analyticsQuery.data?.total_properties ?? 0, icon: "🏠" },
-            { label: "Live Properties", value: analyticsQuery.data?.live_properties ?? 0, icon: "✅", extra: true },
-            { label: "Pending Properties", value: analyticsQuery.data?.pending_properties ?? 0, icon: "⏳" },
-            { label: "Total Inquiries", value: analyticsQuery.data?.total_inquiries ?? 0, icon: "📩" },
+            { label: "Total Properties", value: analyticsQuery.data?.total_properties ?? 0, icon: "🏠", color: "rgba(99,102,241,0.12)", iconBg: "rgba(99,102,241,0.2)", extra: false },
+            { label: "Live Properties",  value: analyticsQuery.data?.live_properties ?? 0,  icon: "✅", color: "rgba(16,185,129,0.12)", iconBg: "rgba(16,185,129,0.2)", extra: true },
+            { label: "Pending Review",   value: analyticsQuery.data?.pending_properties ?? 0, icon: "⏳", color: "rgba(245,158,11,0.12)", iconBg: "rgba(245,158,11,0.2)", extra: false },
+            { label: "Total Inquiries",  value: analyticsQuery.data?.total_inquiries ?? 0,   icon: "📩", color: "rgba(59,130,246,0.12)", iconBg: "rgba(59,130,246,0.2)", extra: false },
           ].map((stat) => (
-            <article key={stat.label} className="stat-card">
-              <span className="text-xl">{stat.icon}</span>
-              <p className="mt-2 text-xs font-bold uppercase tracking-widest"
-                style={{ color: "var(--outline)", letterSpacing: "0.05em" }}>
+            <article
+              key={stat.label}
+              className="relative overflow-hidden rounded-2xl p-5 transition-all hover:scale-[1.02]"
+              style={{ background: stat.color, border: "1px solid var(--glass-border)", boxShadow: "var(--shadow-ambient)" }}
+            >
+              <div
+                className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl text-xl"
+                style={{ background: stat.iconBg }}
+              >
+                {stat.icon}
+              </div>
+              <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--outline)" }}>
                 {stat.label}
               </p>
-              <p className="mt-1 text-2xl font-black" style={{ color: "var(--on-surface)" }}>
+              <p className="mt-1.5 text-3xl font-black" style={{ color: "var(--on-surface)" }}>
                 <AnimatedNumber value={stat.value} />
               </p>
               {stat.extra && (
                 <>
-                  <div className="mt-3 h-2 overflow-hidden rounded-full" style={{ background: "var(--surface-container-high)" }}>
+                  <div className="mt-3 h-1.5 overflow-hidden rounded-full" style={{ background: "var(--surface-container-high)" }}>
                     <div
                       className="h-full rounded-full transition-all duration-700"
-                      style={{ width: `${liveRatio}%`, background: "var(--success)" }}
+                      style={{ width: `${liveRatio}%`, background: "#10b981" }}
                     />
                   </div>
-                  <p className="mt-1 text-xs" style={{ color: "var(--outline)" }}>Live ratio: {liveRatio}%</p>
+                  <p className="mt-1 text-xs font-semibold" style={{ color: "var(--outline)" }}>Live ratio: {liveRatio}%</p>
                 </>
               )}
             </article>
@@ -236,21 +285,29 @@ export function AdminDashboardPage() {
         </section>
       </Reveal>
 
-      {/* Extra analytics */}
+      {/* ── Extra Stats ── */}
       <Reveal className="mt-4" delayMs={130}>
-        <section className="grid gap-4 md:grid-cols-3">
+        <section className="grid gap-4 sm:grid-cols-3">
           {[
-            { label: "Total Shortlists", value: analyticsQuery.data?.total_shortlists ?? 0, icon: "❤️" },
-            { label: "Total Reviews", value: analyticsQuery.data?.total_reviews ?? 0, icon: "⭐" },
-            { label: "Active Alerts", value: analyticsQuery.data?.total_alerts ?? 0, icon: "🔔" },
+            { label: "Total Shortlists", value: analyticsQuery.data?.total_shortlists ?? 0, icon: "❤️", color: "rgba(244,63,94,0.1)",   iconBg: "rgba(244,63,94,0.15)" },
+            { label: "Total Reviews",    value: analyticsQuery.data?.total_reviews ?? 0,    icon: "⭐", color: "rgba(234,179,8,0.1)",   iconBg: "rgba(234,179,8,0.15)" },
+            { label: "Active Alerts",    value: analyticsQuery.data?.total_alerts ?? 0,     icon: "🔔", color: "rgba(168,85,247,0.1)",  iconBg: "rgba(168,85,247,0.15)" },
           ].map((stat) => (
-            <article key={stat.label} className="stat-card">
-              <span className="text-xl">{stat.icon}</span>
-              <p className="mt-2 text-xs font-bold uppercase tracking-widest"
-                style={{ color: "var(--outline)", letterSpacing: "0.05em" }}>
+            <article
+              key={stat.label}
+              className="relative overflow-hidden rounded-2xl p-5 transition-all hover:scale-[1.02]"
+              style={{ background: stat.color, border: "1px solid var(--glass-border)", boxShadow: "var(--shadow-ambient)" }}
+            >
+              <div
+                className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl text-xl"
+                style={{ background: stat.iconBg }}
+              >
+                {stat.icon}
+              </div>
+              <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--outline)" }}>
                 {stat.label}
               </p>
-              <p className="mt-1 text-2xl font-black" style={{ color: "var(--on-surface)" }}>
+              <p className="mt-1.5 text-3xl font-black" style={{ color: "var(--on-surface)" }}>
                 <AnimatedNumber value={stat.value} />
               </p>
             </article>
