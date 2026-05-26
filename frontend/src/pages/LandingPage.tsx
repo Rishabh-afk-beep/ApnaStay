@@ -1,10 +1,182 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../lib/AuthContext";
 import { Reveal } from "../components/ui/Reveal";
 import { getPublicStats, listColleges } from "../lib/api";
+
+// ── Custom City Dropdown ────────────────────────────────────────────────────
+function CityDropdown({
+  cities,
+  value,
+  onChange,
+}: {
+  cities: string[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const close = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, []);
+
+  const label = value || "Any City";
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-between pt-1 text-base font-bold outline-none"
+        style={{ color: "var(--on-surface)", background: "transparent" }}
+      >
+        <span>{label}</span>
+        <span
+          className="ml-2 text-xs transition-transform duration-200"
+          style={{ color: "var(--outline)", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+        >
+          ▾
+        </span>
+      </button>
+
+      {open && (
+        <div
+          className="absolute left-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-2xl py-1 shadow-2xl"
+          style={{ background: "var(--surface-container-lowest)", border: "1px solid var(--glass-border)" }}
+        >
+          {["", ...cities].map((city) => (
+            <button
+              key={city || "__any__"}
+              type="button"
+              onClick={() => { onChange(city); setOpen(false); }}
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-bold transition-colors"
+              style={{
+                background: value === city ? "var(--primary-container)" : "transparent",
+                color: value === city ? "var(--on-primary-container)" : "var(--on-surface)",
+              }}
+              onMouseEnter={(e) => { if (value !== city) (e.currentTarget as HTMLElement).style.background = "var(--surface-container-low)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = value === city ? "var(--primary-container)" : "transparent"; }}
+            >
+              {city || "Any City"}
+              {value === city && <span className="ml-auto text-xs">✓</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Custom College Dropdown ─────────────────────────────────────────────────
+function CollegeDropdown({
+  colleges,
+  value,
+  onChange,
+  placeholder,
+  disabled,
+}: {
+  colleges: { college_id: string; name: string; short_name?: string }[];
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  disabled: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const close = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) { setOpen(false); setSearch(""); } };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, []);
+
+  const selectedCollege = colleges.find((c) => c.college_id === value);
+  const label = selectedCollege ? (selectedCollege.short_name || selectedCollege.name) : placeholder;
+  const filtered = search
+    ? colleges.filter((c) => `${c.name} ${c.short_name ?? ""}`.toLowerCase().includes(search.toLowerCase()))
+    : colleges;
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => { if (!disabled) setOpen((o) => !o); }}
+        className="flex w-full items-center justify-between pt-1 text-base font-bold outline-none"
+        style={{
+          color: disabled ? "var(--outline)" : selectedCollege ? "var(--on-surface)" : "var(--outline)",
+          background: "transparent",
+          cursor: disabled ? "not-allowed" : "pointer",
+        }}
+      >
+        <span className="truncate pr-2">{label}</span>
+        {!disabled && (
+          <span
+            className="ml-2 flex-shrink-0 text-xs transition-transform duration-200"
+            style={{ color: "var(--outline)", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+          >
+            ▾
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div
+          className="absolute left-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-2xl shadow-2xl"
+          style={{ background: "var(--surface-container-lowest)", border: "1px solid var(--glass-border)" }}
+        >
+          {/* Search inside dropdown */}
+          <div className="px-3 pt-3 pb-1">
+            <input
+              autoFocus
+              type="text"
+              placeholder="Search campus..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full rounded-xl px-3 py-2 text-sm outline-none"
+              style={{
+                background: "var(--surface-container-low)",
+                border: "1px solid var(--glass-border)",
+                color: "var(--on-surface)",
+              }}
+            />
+          </div>
+          <div className="max-h-56 overflow-y-auto py-1">
+            {filtered.length === 0 ? (
+              <p className="px-4 py-3 text-sm" style={{ color: "var(--outline)" }}>No colleges found</p>
+            ) : (
+              filtered.map((c) => (
+                <button
+                  key={c.college_id}
+                  type="button"
+                  onClick={() => { onChange(c.college_id); setOpen(false); setSearch(""); }}
+                  className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm transition-colors"
+                  style={{
+                    background: value === c.college_id ? "var(--primary-container)" : "transparent",
+                    color: value === c.college_id ? "var(--on-primary-container)" : "var(--on-surface)",
+                  }}
+                  onMouseEnter={(e) => { if (value !== c.college_id) (e.currentTarget as HTMLElement).style.background = "var(--surface-container-low)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = value === c.college_id ? "var(--primary-container)" : "transparent"; }}
+                >
+                  <div>
+                    {c.short_name && <span className="font-black text-xs block" style={{ color: value === c.college_id ? "var(--on-primary-container)" : "var(--primary)" }}>{c.short_name}</span>}
+                    <span className={c.short_name ? "text-xs opacity-70" : "font-semibold"}>{c.name}</span>
+                  </div>
+                  {value === c.college_id && <span className="ml-auto text-xs flex-shrink-0">✓</span>}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const featureCards = [
   {
@@ -90,44 +262,35 @@ export function LandingPage() {
             </p>
             <div className="mt-8 max-w-lg">
               <form onSubmit={handleSearch} className="flex flex-col gap-3 rounded-[2rem] p-3 shadow-xl md:flex-row md:items-center" style={{ background: "var(--surface-container-lowest)", border: "1px solid var(--glass-border)" }}>
-                <div className="flex-1 px-4 py-2 border-b md:border-b-0 md:border-r" style={{ borderColor: "var(--glass-border)" }}>
+                {/* ── City Picker ── */}
+                <div className="relative flex-1 px-4 py-2 border-b md:border-b-0 md:border-r" style={{ borderColor: "var(--glass-border)" }}>
                   <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>1. Select City</label>
-                  <select 
-                    value={selectedCity} 
-                    onChange={(e) => { setSelectedCity(e.target.value); setSelectedCollege(""); }} 
-                    className="w-full appearance-none bg-transparent pt-1 text-base font-bold outline-none cursor-pointer"
-                    style={{ color: "var(--on-surface)" }}
-                  >
-                    <option value="">Any City</option>
-                    {uniqueCities.map((city) => (
-                      <option key={city} value={city}>{city}</option>
-                    ))}
-                  </select>
+                  <CityDropdown
+                    cities={uniqueCities}
+                    value={selectedCity}
+                    onChange={(v) => { setSelectedCity(v); setSelectedCollege(""); }}
+                  />
                 </div>
-                <div className="flex-1 px-4 py-2">
+                {/* ── Campus Picker ── */}
+                <div className="relative flex-1 px-4 py-2">
                   <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>2. Select Campus</label>
-                  <select 
-                    value={selectedCollege} 
-                    onChange={(e) => setSelectedCollege(e.target.value)} 
-                    className="w-full appearance-none bg-transparent pt-1 text-base font-bold outline-none cursor-pointer"
-                    style={{ color: "var(--on-surface)" }}
-                  >
-                    <option value="">{selectedCity ? "Select a campus..." : "Select city first"}</option>
-                    {filteredColleges.map((c) => (
-                      <option key={c.college_id} value={c.college_id}>
-                        {c.short_name ? `${c.short_name} — ${c.name}` : c.name}
-                      </option>
-                    ))}
-                  </select>
+                  <CollegeDropdown
+                    colleges={filteredColleges}
+                    value={selectedCollege}
+                    onChange={setSelectedCollege}
+                    placeholder={selectedCity ? "Select a campus..." : "Select city first"}
+                    disabled={!selectedCity}
+                  />
                 </div>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="rounded-full px-8 py-4 text-sm font-black transition-all hover:scale-105 active:scale-95"
                   style={{ background: "var(--primary)", color: "var(--on-primary)" }}
                 >
                   Search
                 </button>
               </form>
+
               
               {!profile && (
                 <div className="mt-6 flex flex-wrap items-center gap-4 text-sm font-semibold pl-4">
