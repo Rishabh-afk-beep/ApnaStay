@@ -193,27 +193,8 @@ export function DiscoverPage() {
             </p>
           </Reveal>
 
-          {/* Quick stats */}
-          <Reveal delayMs={60}>
-            <div className="mt-6 flex flex-wrap gap-4">
-              {[
-                { icon: "🏘️", label: "Total Listings", val: total },
-                { icon: "✅", label: "Admin Verified", val: total },
-                { icon: "⚡", label: "Instant Inquiry", val: null },
-              ].map((s) => (
-                <div key={s.label} className="flex items-center gap-2 rounded-full px-4 py-2"
-                  style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}>
-                  <span className="text-base">{s.icon}</span>
-                  <span className="text-xs font-bold text-white/80">{s.label}</span>
-                  {s.val !== null && (
-                    <span className="text-xs font-black text-amber-400">
-                      <AnimatedNumber value={s.val} />
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </Reveal>
+
+
         </div>
       </div>
 
