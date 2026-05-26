@@ -35,7 +35,7 @@ export function AlertsPage() {
       <Reveal>
         <section
           className="relative overflow-hidden rounded-3xl p-8"
-          style={{ background: "var(--gradient-amber)" }}
+          style={{ background: "linear-gradient(135deg, #451a03 0%, #78350f 60%, #92400e 100%)" }}
         >
           <div
             className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full opacity-20"

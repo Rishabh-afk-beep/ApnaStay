@@ -38,7 +38,7 @@ export function ShortlistsPage() {
       <Reveal>
         <section
           className="relative overflow-hidden rounded-3xl p-8"
-          style={{ background: "var(--gradient-amber)" }}
+          style={{ background: "linear-gradient(135deg, #451a03 0%, #78350f 60%, #92400e 100%)" }}
         >
           <div
             className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-20"
