@@ -118,10 +118,21 @@ export function PrivacyPolicyPage() {
 
           <Section id="cookies" title="4. Cookies & Local Storage">
             <p>
-              We use browser <strong style={{ color: "var(--on-surface)" }}>localStorage</strong> to remember your theme preference (dark/light mode) and session data. We may use essential cookies for authentication session management via Firebase.
+              We use <strong style={{ color: "var(--on-surface)" }}>cookies</strong> and browser <strong style={{ color: "var(--on-surface)" }}>localStorage</strong> to improve your experience on the Platform:
             </p>
+            <ul className="ml-5 list-disc space-y-2 mt-2">
+              <li>
+                <strong style={{ color: "var(--on-surface)" }}>Essential Cookies:</strong> Firebase authentication uses cookies to manage your login session securely. These are strictly necessary for the Platform to function.
+              </li>
+              <li>
+                <strong style={{ color: "var(--on-surface)" }}>Analytics Cookies:</strong> We use Google Analytics (gtag.js) to understand how visitors interact with the Platform — including page views, session duration, and general traffic patterns. Google Analytics sets cookies such as <code style={{ background: "var(--surface-container)", padding: "0.1em 0.4em", borderRadius: "4px", fontSize: "0.85em" }}>_ga</code> and <code style={{ background: "var(--surface-container)", padding: "0.1em 0.4em", borderRadius: "4px", fontSize: "0.85em" }}>_ga_*</code> to distinguish unique users. This data is anonymised and used solely to improve the Platform.
+              </li>
+              <li>
+                <strong style={{ color: "var(--on-surface)" }}>Local Storage:</strong> We use browser localStorage to remember your theme preference (dark/light mode).
+              </li>
+            </ul>
             <p className="mt-3">
-              We do not currently use advertising or tracking cookies. If this changes, we will update this policy and seek your consent where required.
+              We do <strong style={{ color: "var(--on-surface)" }}>not</strong> use advertising cookies or sell data to third-party advertisers. You can clear cookies at any time from your browser settings, though this may affect your login session.
             </p>
           </Section>
 

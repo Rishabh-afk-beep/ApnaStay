@@ -7,6 +7,7 @@ import { SiteFooter } from "./components/layout/SiteFooter";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 import { SupportHub } from "./components/ui/SupportHub";
 import { ScrollToTop } from "./components/ui/ScrollToTop";
+import { CookieConsent } from "./components/ui/CookieConsent";
 
 import { LandingPage } from "./pages/LandingPage";
 import { DiscoverPage } from "./pages/DiscoverPage";
@@ -64,6 +65,7 @@ export default function App() {
             </Routes>
             <SiteFooter />
             <SupportHub />
+            <CookieConsent />
           </div>
         </ErrorBoundary>
       </AuthProvider>
