@@ -7,7 +7,7 @@ from app.models.schemas.admin_log import AdminLogOut
 from app.models.schemas.analytics import AdminAnalyticsOverview
 from app.models.schemas.college import CollegeCreate, CollegeOut, CollegeUpdate
 from app.models.schemas.property import PropertyCard
-from app.models.schemas.user import AdminUserStatusUpdate, UserProfile
+from app.models.schemas.user import AdminUserStatusUpdate, AdminVerificationUpdate, UserProfile
 from app.models.schemas.engagement import AdminInquiryOut
 from app.repositories.admin_log_repository import AdminLogRepository
 from app.repositories.analytics_repository import AnalyticsRepository
@@ -271,5 +271,39 @@ def admin_update_user_status(
         target_id=uid,
         reason=payload.reason,
         metadata={"new_status": payload.status.value},
+    )
+    return updated
+
+
+@router.patch("/users/{uid}/verify")
+def admin_verify_user(
+    uid: str,
+    payload: AdminVerificationUpdate,
+    user: Annotated[UserProfile, Depends(require_admin)],
+) -> UserProfile:
+    # Fetch the target user to ensure they exist and are an owner
+    target = user_repo.get_by_uid(uid)
+    if target is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "USER_NOT_FOUND", "message": "User not found"},
+        )
+    if target.role.value != "owner":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": "INVALID_ROLE", "message": "Only owner accounts can be verified by admin"},
+        )
+    updated = user_repo.update_verification(uid, payload.verification_state.value)
+    if updated is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "USER_NOT_FOUND", "message": "User not found"},
+        )
+    admin_log_repo.create(
+        admin_uid=user.uid,
+        action_type="verify_user",
+        target_type="user",
+        target_id=uid,
+        metadata={"verification_state": payload.verification_state.value},
     )
     return updated

@@ -56,3 +56,7 @@ class ProfileComplete(BaseModel):
 class AdminUserStatusUpdate(BaseModel):
     status: UserStatus
     reason: Optional[str] = None
+
+
+class AdminVerificationUpdate(BaseModel):
+    verification_state: VerificationState

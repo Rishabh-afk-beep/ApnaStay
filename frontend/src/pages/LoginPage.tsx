@@ -195,6 +195,7 @@ export function LoginPage({ forceRole }: LoginPageProps) {
   const handleRegistration = async () => {
     setError("");
     if (!name.trim()) { setError("Name is required"); return; }
+    if (!phone.trim()) { setError("Phone number is required"); return; }
     setBusy(true);
     try {
       await register(role, name, { phone, email, college_id: role === "student" ? collegeId : undefined });
@@ -455,7 +456,7 @@ export function LoginPage({ forceRole }: LoginPageProps) {
                     <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your full name" className="input-field mt-2" />
                   </label>
                   <label className="block">
-                    <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)", letterSpacing: "0.05em" }}>Phone Number</span>
+                    <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)", letterSpacing: "0.05em" }}>Phone Number *</span>
                     <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 98765 43210" className="input-field mt-2" />
                   </label>
 

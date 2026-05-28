@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { adminListUsers, adminUpdateUserStatus } from "../lib/api";
+import { adminListUsers, adminUpdateUserStatus, adminVerifyUser } from "../lib/api";
 import { Reveal } from "../components/ui/Reveal";
 import { AnimatedNumber } from "../components/ui/AnimatedNumber";
 
@@ -19,9 +19,39 @@ export function AdminUsersPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-users"] }),
   });
 
+  const verifyMutation = useMutation({
+    mutationFn: ({ uid, verification_state }: { uid: string; verification_state: "verified" | "unverified" }) =>
+      adminVerifyUser(uid, { verification_state }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-users"] }),
+  });
+
   const users = usersQuery.data ?? [];
   const activeCount = users.filter((u) => u.status === "active").length;
   const blockedCount = users.filter((u) => u.status === "blocked").length;
+  const ownerCount = users.filter((u) => u.role === "owner").length;
+  const verifiedOwners = users.filter((u) => u.role === "owner" && u.verification_state === "verified").length;
+
+  const verificationBadge = (user: typeof users[0]) => {
+    if (user.role === "admin" || user.role === "student") {
+      return (
+        <span className="badge text-[10px]" style={{ background: "var(--success-container)", color: "#065f46" }}>
+          ✅ Auto-verified
+        </span>
+      );
+    }
+    if (user.verification_state === "verified") {
+      return (
+        <span className="badge text-[10px]" style={{ background: "var(--success-container)", color: "#065f46" }}>
+          ✅ Verified
+        </span>
+      );
+    }
+    return (
+      <span className="badge text-[10px]" style={{ background: "rgba(217,119,6,0.1)", color: "#92400e" }}>
+        ⏳ Unverified
+      </span>
+    );
+  };
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
@@ -39,6 +69,9 @@ export function AdminUsersPage() {
             </h1>
             <p className="mt-2 text-sm text-slate-300">
               <AnimatedNumber value={users.length} /> users · <AnimatedNumber value={activeCount} /> active · <AnimatedNumber value={blockedCount} /> blocked
+              {ownerCount > 0 && (
+                <span> · <AnimatedNumber value={verifiedOwners} />/<AnimatedNumber value={ownerCount} /> owners verified</span>
+              )}
             </p>
           </div>
         </section>
@@ -46,7 +79,7 @@ export function AdminUsersPage() {
 
       {/* Role filter */}
       <Reveal className="mt-8" delayMs={60}>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <span className="text-sm font-semibold" style={{ color: "var(--on-surface-variant)" }}>Filter by role:</span>
           {["", "student", "owner", "admin"].map((r) => (
             <button
@@ -76,27 +109,37 @@ export function AdminUsersPage() {
           {users.map((user) => (
             <article key={user.uid} className="glass-card p-5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
+                {/* Left: Avatar + Info */}
+                <div className="flex items-center gap-4 min-w-0">
                   <div
-                    className="flex h-11 w-11 items-center justify-center rounded-full text-sm font-black"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-black"
                     style={{ background: "var(--primary-container)", color: "#fff" }}
                   >
                     {(user.name || "U")[0].toUpperCase()}
                   </div>
-                  <div>
-                    <p className="font-bold" style={{ color: "var(--on-surface)" }}>{user.name || "No name set"}</p>
-                    <p className="text-sm" style={{ color: "var(--outline)" }}>
-                      {user.email || user.phone || user.uid.slice(0, 12)}
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-bold truncate" style={{ color: "var(--on-surface)" }}>
+                        {user.name || "No name set"}
+                      </p>
                       <span
-                        className="badge ml-2"
+                        className="badge"
                         style={{ background: "var(--surface-container)", color: "var(--on-surface-variant)" }}
                       >
                         {user.role}
                       </span>
+                      {verificationBadge(user)}
+                    </div>
+                    <p className="text-sm truncate" style={{ color: "var(--outline)" }}>
+                      {user.email || "No email"}
+                      {user.phone && <span className="ml-2">· 📱 {user.phone}</span>}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+
+                {/* Right: Action buttons */}
+                <div className="flex items-center gap-2 flex-wrap shrink-0">
+                  {/* Status badge */}
                   <span
                     className="badge"
                     style={{
@@ -106,6 +149,31 @@ export function AdminUsersPage() {
                   >
                     {user.status}
                   </span>
+
+                  {/* Verify / Revoke for owners only */}
+                  {user.role === "owner" && (
+                    user.verification_state === "verified" ? (
+                      <button
+                        onClick={() => verifyMutation.mutate({ uid: user.uid, verification_state: "unverified" })}
+                        disabled={verifyMutation.isPending}
+                        className="rounded-full px-3.5 py-1.5 text-xs font-bold transition-all hover:scale-105 disabled:opacity-50"
+                        style={{ background: "rgba(217,119,6,0.1)", color: "#92400e" }}
+                      >
+                        ❌ Revoke
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => verifyMutation.mutate({ uid: user.uid, verification_state: "verified" })}
+                        disabled={verifyMutation.isPending}
+                        className="rounded-full px-3.5 py-1.5 text-xs font-bold transition-all hover:scale-105 disabled:opacity-50"
+                        style={{ background: "var(--success-container)", color: "#065f46" }}
+                      >
+                        ✅ Verify
+                      </button>
+                    )
+                  )}
+
+                  {/* Block / Activate */}
                   {user.status === "active" ? (
                     <button
                       onClick={() => statusMutation.mutate({ uid: user.uid, status: "blocked", reason: "Admin action" })}
@@ -125,9 +193,11 @@ export function AdminUsersPage() {
                   )}
                 </div>
               </div>
-              <div className="mt-3 flex gap-4 text-xs" style={{ color: "var(--outline)" }}>
-                <span>Verification: {user.verification_state}</span>
-                {user.created_at && <span>Joined: {new Date(user.created_at).toLocaleDateString()}</span>}
+
+              {/* Bottom info row */}
+              <div className="mt-3 flex flex-wrap gap-4 text-xs" style={{ color: "var(--outline)" }}>
+                {user.created_at && <span>📅 Joined: {new Date(user.created_at).toLocaleDateString()}</span>}
+                {user.uid && <span className="font-mono">UID: {user.uid.slice(0, 12)}…</span>}
               </div>
             </article>
           ))}

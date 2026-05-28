@@ -268,6 +268,11 @@ export async function adminUpdateUserStatus(uid: string, data: { status: string;
   return res.data;
 }
 
+export async function adminVerifyUser(uid: string, data: { verification_state: "verified" | "unverified" }): Promise<UserProfile> {
+  const res = await api.patch<UserProfile>(`/admin/users/${uid}/verify`, data);
+  return res.data;
+}
+
 // Admin Inquiries
 export async function adminListInquiries(): Promise<AdminInquiryOut[]> {
   const res = await api.get<AdminInquiryOut[]>("/admin/inquiries");

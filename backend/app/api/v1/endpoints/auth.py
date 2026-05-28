@@ -89,6 +89,12 @@ def register_user(
     from datetime import datetime, timezone
     now = datetime.now(timezone.utc).isoformat()
 
+    # Auto-verify students and admins; owners need admin verification
+    if payload.role in (UserRole.student, UserRole.admin):
+        verification = VerificationState.verified
+    else:
+        verification = VerificationState.unverified
+
     profile = UserProfile(
         uid=user.uid,
         role=payload.role,
@@ -97,7 +103,8 @@ def register_user(
         phone=payload.phone or user.phone,
         email=payload.email or user.email,
         college_id=payload.college_id,
-        verification_state=VerificationState.unverified,
+        verification_state=verification,
+
         created_at=now,
         updated_at=now,
     )

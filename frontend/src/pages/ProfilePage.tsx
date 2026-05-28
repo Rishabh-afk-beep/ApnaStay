@@ -99,7 +99,7 @@ export function ProfilePage() {
           {[
             { label: "Role",         value: profile?.role || "student",                icon: cfg.icon },
             { label: "Status",       value: profile?.status || "active",               icon: profile?.status === "active" ? "🟢" : "🔴" },
-            { label: "Verification", value: profile?.role === "admin" ? "verified" : (profile?.verification_state || "unverified"), icon: (profile?.role === "admin" || profile?.verification_state === "verified") ? "✅" : "⏳" },
+            { label: "Verification", value: (profile?.role === "admin" || profile?.role === "student") ? "verified" : (profile?.verification_state || "unverified"), icon: (profile?.role === "admin" || profile?.role === "student" || profile?.verification_state === "verified") ? "✅" : "⏳" },
           ].map(({ label, value, icon }) => (
             <div key={label} className="text-center">
               <p className="text-lg">{icon}</p>

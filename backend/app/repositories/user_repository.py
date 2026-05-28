@@ -126,6 +126,10 @@ class UserRepository:
         patch: Dict[str, Any] = {"status": payload.status.value, "updated_at": self._now()}
         return self.update_fields(uid, patch)
 
+    def update_verification(self, uid: str, verification_state: str) -> Optional[UserProfile]:
+        patch: Dict[str, Any] = {"verification_state": verification_state, "updated_at": self._now()}
+        return self.update_fields(uid, patch)
+
 
 def fallback_user_count() -> int:
     return len(_FALLBACK_USERS)
