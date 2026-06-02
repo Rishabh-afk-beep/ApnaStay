@@ -220,11 +220,22 @@ export function LandingPage() {
     navigate("/discover", { state: { city: selectedCity, collegeId: selectedCollege } });
   };
 
+  const [isWaking, setIsWaking] = useState(false);
+
+  useEffect(() => {
+    if (isLoading) {
+      const timer = setTimeout(() => setIsWaking(true), 3000);
+      return () => clearTimeout(timer);
+    } else {
+      setIsWaking(false);
+    }
+  }, [isLoading]);
+
   const liveStats = [
-    { label: "Verified Listings", value: isLoading ? "..." : `${stats?.verified_listings ?? 500}+`, icon: "🏠" },
-    { label: "Colleges Covered", value: isLoading ? "..." : `${stats?.colleges_covered ?? 50}+`, icon: "🎓" },
-    { label: "Students Trust Us", value: isLoading ? "..." : `${(stats?.students_active ?? 10000).toLocaleString()}+`, icon: "💛" },
-    { label: "Cities Active", value: isLoading ? "..." : `${stats?.cities_active ?? 12}+`, icon: "📍" },
+    { label: "Verified Listings", value: isLoading ? null : `${stats?.verified_listings ?? 500}+`, icon: "🏠" },
+    { label: "Colleges Covered", value: isLoading ? null : `${stats?.colleges_covered ?? 50}+`, icon: "🎓" },
+    { label: "Students Trust Us", value: isLoading ? null : `${(stats?.students_active ?? 10000).toLocaleString()}+`, icon: "💛" },
+    { label: "Cities Active", value: isLoading ? null : `${stats?.cities_active ?? 12}+`, icon: "📍" },
   ];
 
   return (
@@ -319,14 +330,14 @@ export function LandingPage() {
           </div>
 
           {/* Stats card */}
-          <div className="animate-rise-delayed glass-card-static p-6">
+          <div className="animate-rise-delayed glass-card-static p-6 flex flex-col h-full">
             <p
               className="mb-5 text-xs font-bold uppercase tracking-widest"
               style={{ color: "var(--outline)", letterSpacing: "0.1em" }}
             >
               At a glance
             </p>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 flex-1">
               {liveStats.map((item) => (
                 <article
                   key={item.label}
@@ -334,15 +345,24 @@ export function LandingPage() {
                   style={{ background: "var(--surface-container-low)" }}
                 >
                   <span className="text-2xl">{item.icon}</span>
-                  <p className="mt-2 text-2xl font-black" style={{ color: "var(--on-surface)" }}>
-                    {item.value}
-                  </p>
+                  {item.value === null ? (
+                    <div className="mt-2 h-8 w-24 rounded skeleton-shimmer" />
+                  ) : (
+                    <p className="mt-2 text-2xl font-black" style={{ color: "var(--on-surface)" }}>
+                      {item.value}
+                    </p>
+                  )}
                   <p className="mt-1 text-xs font-semibold" style={{ color: "var(--outline)" }}>
                     {item.label}
                   </p>
                 </article>
               ))}
             </div>
+            {isWaking && (
+              <p className="mt-4 text-xs font-bold text-center animate-pulse" style={{ color: "var(--primary)" }}>
+                ⏳ Waking up secure servers (takes ~30s on first load)
+              </p>
+            )}
           </div>
         </div>
       </section>
