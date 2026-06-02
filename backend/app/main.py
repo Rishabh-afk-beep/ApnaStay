@@ -32,4 +32,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+def read_root():
+    return {"status": "ApnaStay API is running smoothly!", "docs": "/docs"}
+
 app.include_router(api_router, prefix="/api/v1")
