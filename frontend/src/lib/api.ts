@@ -309,9 +309,7 @@ export async function adminListInquiries(): Promise<AdminInquiryOut[]> {
 export async function uploadImage(file: File): Promise<ImageUploadResponse> {
   const formData = new FormData();
   formData.append("file", file);
-  const res = await api.post<ImageUploadResponse>("/upload/image", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  const res = await api.post<ImageUploadResponse>("/upload/image", formData);
   return res.data;
 }
 
