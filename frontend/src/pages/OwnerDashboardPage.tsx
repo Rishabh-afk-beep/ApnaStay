@@ -17,8 +17,9 @@ import { useAuth } from "../lib/AuthContext";
 import type { InquiryOut } from "../types";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-
+import { AnalyticsTab } from "../components/owner/AnalyticsTab";
+import { InquiryList } from "../components/owner/InquiryList";
+import { Skeleton } from "../components/ui/Skeleton";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 const DefaultIcon = L.icon({
@@ -501,46 +502,7 @@ export function OwnerDashboardPage() {
       </Reveal>
 
       {/* Analytics Graph */}
-      {analyticsQuery.data && (
-        <Reveal className="mt-6" delayMs={60}>
-          <section className="glass-card-static overflow-hidden">
-            <div className="border-b p-6" style={{ borderColor: "var(--glass-border)" }}>
-              <h2 className="text-xl font-black" style={{ color: "var(--on-surface)" }}>Performance Overview (30 Days)</h2>
-              <div className="mt-4 flex gap-6">
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>Total Views</p>
-                  <p className="text-2xl font-black" style={{ color: "var(--primary)" }}><AnimatedNumber value={analyticsQuery.data.total_views} /></p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>Shortlists</p>
-                  <p className="text-2xl font-black" style={{ color: "#eab308" }}><AnimatedNumber value={analyticsQuery.data.total_shortlists} /></p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>Inquiries</p>
-                  <p className="text-2xl font-black" style={{ color: "#22c55e" }}><AnimatedNumber value={analyticsQuery.data.total_inquiries} /></p>
-                </div>
-              </div>
-            </div>
-            <div className="h-72 w-full p-4 pl-0 pt-6">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={analyticsQuery.data.daily_stats}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--outline)" opacity={0.2} vertical={false} />
-                  <XAxis dataKey="date" stroke="var(--outline)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => val.slice(5)} />
-                  <YAxis stroke="var(--outline)" fontSize={12} tickLine={false} axisLine={false} />
-                  <Tooltip 
-                    contentStyle={{ background: "var(--surface-container-high)", border: "none", borderRadius: "12px", color: "var(--on-surface)", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }}
-                    itemStyle={{ fontSize: "12px", fontWeight: "bold" }}
-                  />
-                  <Legend iconType="circle" wrapperStyle={{ fontSize: "12px", paddingTop: "10px" }} />
-                  <Line type="monotone" name="Views" dataKey="views" stroke="var(--primary)" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
-                  <Line type="monotone" name="Shortlists" dataKey="shortlists" stroke="#eab308" strokeWidth={3} dot={false} />
-                  <Line type="monotone" name="Inquiries" dataKey="inquiries" stroke="#22c55e" strokeWidth={3} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </section>
-        </Reveal>
-      )}
+      {analyticsQuery.data && <AnalyticsTab data={analyticsQuery.data} />}
 
       {/* Stats */}
       <Reveal className="mt-6" delayMs={100}>
@@ -1231,7 +1193,7 @@ export function OwnerDashboardPage() {
 
           {propertiesQuery.isLoading && (
             <div className="mt-4 grid gap-4 md:grid-cols-2">
-              {[1, 2, 3].map((i) => <div key={i} className="h-48 skeleton-shimmer rounded-2xl" />)}
+              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}
             </div>
           )}
           {propertiesQuery.isError && (
@@ -1363,41 +1325,7 @@ export function OwnerDashboardPage() {
 
                   {/* Inquiries panel */}
                   {selectedPropertyInquiries === item.property_id && (
-                    <div className="mt-4 space-y-2 rounded-xl p-4" style={{ background: "var(--surface-container-low)" }}>
-                      <h4 className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>
-                        Inquiries ({inquiries.length})
-                      </h4>
-                      {inquiries.length === 0 ? (
-                        <p className="text-sm" style={{ color: "var(--outline)" }}>No inquiries yet for this listing.</p>
-                      ) : (
-                        inquiries.map((inq) => (
-                          <div key={inq.inquiry_id} className="rounded-xl p-4 text-sm"
-                            style={{ background: "var(--surface-container-lowest)" }}>
-                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
-                              <p className="font-bold" style={{ color: "var(--on-surface)" }}>{inq.name}</p>
-                              <div className="flex gap-1.5 shrink-0">
-                                <a href={`tel:${inq.phone}`}
-                                  className="rounded-lg px-2 py-1 text-[10px] font-bold"
-                                  style={{ background: "rgba(59,130,246,0.1)", color: "#2563eb" }}>
-                                  📞 Call
-                                </a>
-                                <a href={`https://wa.me/91${inq.phone}?text=${encodeURIComponent(`Hi ${inq.name}, thanks for your inquiry about "${item.title}" on NearMyColleges!`)}`}
-                                  target="_blank" rel="noopener noreferrer"
-                                  className="rounded-lg px-2 py-1 text-[10px] font-bold"
-                                  style={{ background: "rgba(34,197,94,0.1)", color: "#16a34a" }}>
-                                  💬 WhatsApp
-                                </a>
-                              </div>
-                            </div>
-                            <p className="text-xs mt-0.5" style={{ color: "var(--outline)" }}>{inq.phone}</p>
-                            {inq.message && <p className="mt-1" style={{ color: "var(--on-surface-variant)" }}>{inq.message}</p>}
-                            <p className="mt-1 text-xs" style={{ color: "var(--outline)" }}>
-                              {new Date(inq.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                            </p>
-                          </div>
-                        ))
-                      )}
-                    </div>
+                    <InquiryList inquiries={inquiries} propertyTitle={item.title} />
                   )}
                 </div>
               </article>

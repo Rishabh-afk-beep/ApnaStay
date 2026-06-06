@@ -1,6 +1,6 @@
 import axios from "axios";
+import { auth } from "../auth/firebase";
 import type { PropertyCard, PropertyDetail, PaginatedResponse, CollegeOut, UserProfile, AdminAnalyticsOverview, AdminLogOut, InquiryOut, AdminInquiryOut, ReviewOut, AlertOut, ShortlistOut, RecentViewOut, ImageUploadResponse, OwnerAnalyticsOut } from "../types";
-
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1",
   timeout: 15_000,
@@ -24,6 +24,31 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    // If 401 Unauthorized and we haven't already retried
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        // If we have a Firebase user, force refresh their token
+        if (auth.currentUser) {
+          const newToken = await auth.currentUser.getIdToken(true);
+          setApiToken(newToken);
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          // Retry the original request
+          return api(originalRequest);
+        }
+      } catch (refreshError) {
+        console.error("[NearMyColleges] Token refresh failed:", refreshError);
+        // Optional: Trigger global logout or redirect
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // ── Me ────────────────────────────────────────────────────────────
 

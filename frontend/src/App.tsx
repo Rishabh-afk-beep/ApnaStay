@@ -8,6 +8,8 @@ import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 import { SupportHub } from "./components/ui/SupportHub";
 import { ScrollToTop } from "./components/ui/ScrollToTop";
 import { CookieConsent } from "./components/ui/CookieConsent";
+import { PWAInstallPrompt } from "./components/ui/PWAInstallPrompt";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
 import { LandingPage } from "./pages/LandingPage";
 import { DiscoverPage } from "./pages/DiscoverPage";
@@ -48,13 +50,24 @@ export default function App() {
               {/* Hidden admin login */}
               <Route path="/admin-login" element={<LoginPage forceRole="admin" />} />
 
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/shortlists" element={<ShortlistsPage />} />
-              <Route path="/alerts" element={<AlertsPage />} />
-              <Route path="/owner" element={<OwnerDashboardPage />} />
-              <Route path="/admin" element={<AdminDashboardPage />} />
-              <Route path="/admin/colleges" element={<AdminCollegesPage />} />
-              <Route path="/admin/users" element={<AdminUsersPage />} />
+              {/* Authenticated routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/shortlists" element={<ShortlistsPage />} />
+                <Route path="/alerts" element={<AlertsPage />} />
+              </Route>
+
+              {/* Owner routes */}
+              <Route element={<ProtectedRoute role="owner" />}>
+                <Route path="/owner" element={<OwnerDashboardPage />} />
+              </Route>
+
+              {/* Admin routes */}
+              <Route element={<ProtectedRoute role="admin" />}>
+                <Route path="/admin" element={<AdminDashboardPage />} />
+                <Route path="/admin/colleges" element={<AdminCollegesPage />} />
+                <Route path="/admin/users" element={<AdminUsersPage />} />
+              </Route>
 
               {/* Legal pages */}
               <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
@@ -66,6 +79,7 @@ export default function App() {
             <SiteFooter />
             <SupportHub />
             <CookieConsent />
+            <PWAInstallPrompt />
           </div>
         </ErrorBoundary>
       </AuthProvider>

@@ -15,6 +15,8 @@ const DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
+import { Skeleton } from "../components/ui/Skeleton";
+
 import { ListingCard } from "../components/listings/ListingCard";
 import { Reveal } from "../components/ui/Reveal";
 import { AnimatedNumber } from "../components/ui/AnimatedNumber";
@@ -491,7 +493,7 @@ export function DiscoverPage() {
           {isLoading ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-80 skeleton-shimmer rounded-2xl" />
+                <Skeleton key={i} className="h-80 w-full" />
               ))}
             </div>
           ) : propertiesQuery.isError ? (
