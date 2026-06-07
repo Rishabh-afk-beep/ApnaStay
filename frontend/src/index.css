@@ -103,8 +103,8 @@
   --on-surface: #ffffff; /* Crisp white text */
   --on-surface-variant: #a1a1aa; /* Zinc 400 */
 
-  --outline: rgba(255, 255, 255, 0.15); /* Thin elegant borders */
-  --outline-variant: rgba(255, 255, 255, 0.05); /* Very subtle borders */
+  --outline: rgba(255, 255, 255, 0.5); /* Used for subtitle/label text */
+  --outline-variant: rgba(255, 255, 255, 0.12); /* Subtle borders */
 
   --inverse-surface: #ffffff;
   --inverse-on-surface: #000000;
