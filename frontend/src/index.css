@@ -75,52 +75,52 @@
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* ── Dark mode tokens (Premium OLED/Charcoal Aesthetic) ── */
+/* ── Dark mode tokens (Minimalist Pure Black Aesthetic) ── */
 :root.dark {
-  --primary: #fbbf24; /* Brilliant Amber 400 */
-  --primary-container: #d97706; /* Rich Amber 600 */
-  --primary-fixed: #fef3c7;
-  --primary-fixed-dim: #fde68a;
-  --on-primary: #451a03; /* High contrast dark brown */
-  --on-primary-container: #fffbeb;
+  --primary: #ffffff; /* Bright white */
+  --primary-container: rgba(255, 255, 255, 0.1); 
+  --primary-fixed: #ffffff;
+  --primary-fixed-dim: #f4f4f5;
+  --on-primary: #000000; 
+  --on-primary-container: #ffffff;
 
-  --secondary: #a8a29e;
-  --secondary-container: #292524;
-  --on-secondary: #fafaf9;
+  --secondary: #a1a1aa; /* Zinc 400 */
+  --secondary-container: rgba(255, 255, 255, 0.05); 
+  --on-secondary: #ffffff;
 
-  --tertiary: #fcd34d;
-  --tertiary-container: #b45309;
+  --tertiary: #a1a1aa;
+  --tertiary-container: rgba(255, 255, 255, 0.08);
 
-  --surface: #0c0a09; /* Stone 950 - Luxurious deep black/brown */
-  --surface-container: #1c1917; /* Stone 900 - Sleek card backing */
-  --surface-container-low: #1c1917;
-  --surface-container-high: #292524; /* Stone 800 */
-  --surface-container-highest: #44403c; /* Stone 700 */
-  --surface-container-lowest: #000000; /* True OLED Black */
-  --surface-dim: #0c0a09;
-  --surface-tint: #fbbf24;
+  --surface: #000000; /* Pure Black Background */
+  --surface-container: #050505; /* Almost black */
+  --surface-container-low: #000000;
+  --surface-container-high: #0a0a0a;
+  --surface-container-highest: #121212;
+  --surface-container-lowest: #000000; 
+  --surface-dim: #000000;
+  --surface-tint: #ffffff;
 
-  --on-surface: #fafaf9; /* Crisp Stone 50 white text */
-  --on-surface-variant: #d6d3d1; /* Smooth Stone 300 secondary text */
+  --on-surface: #ffffff; /* Crisp white text */
+  --on-surface-variant: #a1a1aa; /* Zinc 400 */
 
-  --outline: #44403c; /* Subtle Stone 700 outlines */
-  --outline-variant: rgba(255, 255, 255, 0.08); /* Ultra-sleek borders */
+  --outline: rgba(255, 255, 255, 0.15); /* Thin elegant borders */
+  --outline-variant: rgba(255, 255, 255, 0.05); /* Very subtle borders */
 
-  --inverse-surface: #fafaf9;
-  --inverse-on-surface: #0c0a09;
-  --inverse-primary: #855300;
+  --inverse-surface: #ffffff;
+  --inverse-on-surface: #000000;
+  --inverse-primary: #000000;
 
-  --shadow-ambient: 0 16px 48px 0 rgba(0, 0, 0, 0.8);
-  --shadow-hover: 0 24px 60px -8px rgba(251, 191, 36, 0.15); /* Amber glow */
-  --shadow-card: 0 8px 32px -4px rgba(0, 0, 0, 0.6);
+  --shadow-ambient: 0 20px 60px 0 rgba(0, 0, 0, 0.9);
+  --shadow-hover: 0 24px 60px -8px rgba(255, 255, 255, 0.1); /* White glow */
+  --shadow-card: 0 10px 30px -5px rgba(0, 0, 0, 0.8);
 
-  --glass-bg: rgba(28, 25, 23, 0.65); /* Stone 900 glass */
-  --glass-blur: 40px; /* Intense premium blur */
-  --glass-border: rgba(255, 255, 255, 0.06); /* Crisp, subtle light border */
+  --glass-bg: rgba(255, 255, 255, 0.02); /* Ultra transparent glass */
+  --glass-blur: 40px; 
+  --glass-border: rgba(255, 255, 255, 0.1); /* Sharp white glass border */
 
-  --gradient-amber: linear-gradient(135deg, #fbbf24, #d97706);
-  --gradient-hero: radial-gradient(circle at top, #1c1917 0%, #0c0a09 70%, #000000 100%);
-  --gradient-hero-subtle: radial-gradient(circle at top right, rgba(251, 191, 36, 0.1), transparent 50%);
+  --gradient-amber: linear-gradient(135deg, #ffffff, #d4d4d8); /* Monochrome silver/white */
+  --gradient-hero: radial-gradient(circle at top, #0a0a0a 0%, #000000 70%, #000000 100%);
+  --gradient-hero-subtle: radial-gradient(circle at top right, rgba(255, 255, 255, 0.05), transparent 50%);
 
   color: var(--on-surface);
   background: var(--surface);
@@ -152,12 +152,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .section-dark {
-  background: linear-gradient(135deg, #1c1917 0%, #292524 50%, #0c0a09 100%);
+  background: radial-gradient(circle at top, #0a0a0a 0%, #000000 100%);
   border-radius: 2rem;
   padding: 2rem;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8);
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 @media (min-width: 768px) {
@@ -244,14 +244,14 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 9999px;
   padding: 14px 32px;
   font-size: 0.875rem;
-  border: none;
+  border: 1px solid var(--glass-border);
   cursor: pointer;
   transition: all 200ms ease;
 }
 
 .btn-secondary:hover {
-  background: var(--primary-fixed-dim);
-  color: var(--on-primary-container);
+  background: var(--outline-variant);
+  color: var(--on-surface);
   transform: translateY(-1px);
 }
 
@@ -599,11 +599,11 @@ img[loading] {
 }
 
 .section-dark {
-  background: #0c0a09;
-  color: #f8fafc;
+  background: #000000;
+  color: #ffffff;
   border-radius: 28px;
   padding: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 @media (min-width: 768px) {
   .section-dark {
