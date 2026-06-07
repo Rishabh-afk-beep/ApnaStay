@@ -34,7 +34,7 @@ export default function App() {
       <ThemeProvider>
         <AuthProvider>
           <ErrorBoundary>
-          <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+          <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-black dark:text-white">
             <NavBar />
             <Routes>
               <Route path="/" element={<LandingPage />} />

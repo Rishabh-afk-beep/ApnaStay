@@ -169,7 +169,7 @@ export function DiscoverPage() {
       <div
         className="relative overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f1f3d 100%)",
+          background: "var(--gradient-hero)",
           padding: "3rem 1.5rem 2rem",
         }}
       >
@@ -181,16 +181,16 @@ export function DiscoverPage() {
 
         <div className="relative mx-auto max-w-6xl">
           <Reveal>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-400">
+            <p className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: "var(--tertiary)" }}>
               🏠 Student Housing
             </p>
-            <h1 className="mt-2 text-4xl font-black text-white md:text-5xl" style={{ letterSpacing: "-0.03em" }}>
+            <h1 className="mt-2 text-4xl font-black md:text-5xl" style={{ letterSpacing: "-0.03em", color: "var(--on-surface)" }}>
               Discover Your<br />
               <span style={{ background: "var(--gradient-amber)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                 Perfect PG
               </span>
             </h1>
-            <p className="mt-3 text-sm text-slate-300 max-w-lg">
+            <p className="mt-3 text-sm max-w-lg" style={{ color: "var(--on-surface-variant)" }}>
               Browse {total > 0 ? total : "all"} verified listings near top colleges. Filter by budget, amenities, and distance to find your ideal home away from home.
             </p>
           </Reveal>
@@ -243,8 +243,9 @@ export function DiscoverPage() {
                   onClick={() => setFiltersExpanded(!filtersExpanded)}
                   className="flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition-all"
                   style={{
-                    background: filtersExpanded ? "var(--primary)" : "var(--surface-container)",
-                    color: filtersExpanded ? "#fff" : "var(--on-surface)",
+                    background: filtersExpanded ? "var(--primary)" : "var(--surface-container-high)",
+                    color: filtersExpanded ? "var(--on-primary)" : "var(--on-surface)",
+                    border: filtersExpanded ? "none" : "1px solid var(--outline)",
                   }}
                 >
                   {filtersExpanded ? "▲ Collapse" : "▼ More Filters"}

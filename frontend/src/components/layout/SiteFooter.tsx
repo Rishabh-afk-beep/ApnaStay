@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-24 relative overflow-hidden" style={{ background: "#090d16", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+    <footer className="mt-24 relative overflow-hidden" style={{ background: "var(--surface-container)", borderTop: "1px solid var(--outline-variant)" }}>
       {/* Ambient glow blobs */}
       <div className="pointer-events-none absolute -left-32 -top-32 h-64 w-64 rounded-full opacity-10" style={{ background: "var(--primary)", filter: "blur(80px)" }} />
       <div className="pointer-events-none absolute -right-20 bottom-0 h-48 w-48 rounded-full opacity-10" style={{ background: "var(--primary-container)", filter: "blur(60px)" }} />
@@ -22,7 +22,7 @@ export function SiteFooter() {
               </span>
               <span className="text-xl font-black tracking-tight text-white">NearMyColleges</span>
             </div>
-            <p className="mt-4 max-w-xs text-sm leading-7" style={{ color: "rgba(255,255,255,0.45)" }}>
+            <p className="mt-4 max-w-xs text-sm leading-7" style={{ color: "rgba(255,255,255,0.7)" }}>
               India's most trusted student housing platform. Find verified PGs, flats &amp; hostels near your campus — zero broker fees.
             </p>
 
@@ -101,10 +101,10 @@ export function SiteFooter() {
 
         {/* ── Bottom bar ── */}
         <div className="mt-6 flex flex-col items-center justify-between gap-3 text-center sm:flex-row sm:text-left">
-          <p className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>
+          <p className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>
             © {new Date().getFullYear()} NearMyColleges · Curated student living. All rights reserved.
           </p>
-          <div className="flex gap-5 text-xs flex-wrap justify-center sm:justify-end" style={{ color: "rgba(255,255,255,0.3)" }}>
+          <div className="flex gap-5 text-xs flex-wrap justify-center sm:justify-end" style={{ color: "rgba(255,255,255,0.5)" }}>
               <Link to="/privacy-policy" className="transition-colors hover:text-white/60">Privacy Policy</Link>
               <Link to="/terms-of-service" className="transition-colors hover:text-white/60">Terms of Service</Link>
               <a href="mailto:support@nearmycolleges.in" className="transition-colors hover:text-white/60">Contact Support</a>
@@ -121,7 +121,7 @@ function FooterCol({ title, children }: { title: string; children: React.ReactNo
     <div>
       <h4
         className="mb-4 text-[10px] font-black uppercase tracking-[0.15em]"
-        style={{ color: "rgba(255,255,255,0.35)" }}
+        style={{ color: "rgba(255,255,255,0.6)" }}
       >
         {title}
       </h4>
@@ -135,9 +135,9 @@ function FooterLink({ to, children }: { to: string; children: React.ReactNode })
     <Link
       to={to}
       className="group flex items-center gap-2 text-sm transition-all"
-      style={{ color: "rgba(255,255,255,0.5)" }}
+      style={{ color: "rgba(255,255,255,0.7)" }}
       onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "#fff")}
-      onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.5)")}
+      onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.7)")}
     >
       {children}
     </Link>
