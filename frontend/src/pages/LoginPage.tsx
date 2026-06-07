@@ -370,7 +370,7 @@ export function LoginPage({ forceRole }: LoginPageProps) {
                       onClick={() => { setMode(m); setError(""); }}
                       className="flex-1 rounded-full px-4 py-2.5 text-sm font-bold transition-all"
                       style={mode === m
-                        ? { background: role === "owner" ? "linear-gradient(135deg, #065f46, #10b981)" : "var(--gradient-amber)", color: "#fff" }
+                        ? { background: role === "owner" ? "linear-gradient(135deg, #065f46, #10b981)" : "var(--gradient-amber)", color: branding.textColor }
                         : { color: "var(--on-surface-variant)" }}>
                       {m === "signin" ? "Sign In" : "Sign Up"}
                     </button>
@@ -417,8 +417,8 @@ export function LoginPage({ forceRole }: LoginPageProps) {
                   </label>
 
                   <button onClick={handleEmailAuth} disabled={busy || !email || !password}
-                    className="w-full rounded-full py-3.5 text-sm font-bold text-white transition-all disabled:opacity-50"
-                    style={{ background: role === "owner" ? "linear-gradient(135deg, #065f46, #10b981)" : "var(--gradient-amber)" }}>
+                    className="w-full rounded-full py-3.5 text-sm font-bold transition-all disabled:opacity-50"
+                    style={{ background: role === "owner" ? "linear-gradient(135deg, #065f46, #10b981)" : "var(--gradient-amber)", color: branding.textColor }}>
                     {busy ? "Please wait..." : mode === "signin" ? "Sign In" : "Create Account"}
                   </button>
 
