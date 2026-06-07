@@ -16,13 +16,13 @@ export function SiteFooter() {
             <div className="flex items-center gap-3">
               <span
                 className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-base font-black shadow-lg"
-                style={{ background: "var(--gradient-amber)", color: "#fff" }}
+                style={{ background: "var(--gradient-amber)", color: "var(--on-primary)" }}
               >
                 N
               </span>
-              <span className="text-xl font-black tracking-tight text-white">NearMyColleges</span>
+              <span className="text-xl font-black tracking-tight" style={{ color: "var(--on-surface)" }}>NearMyColleges</span>
             </div>
-            <p className="mt-4 max-w-xs text-sm leading-7" style={{ color: "rgba(255,255,255,0.7)" }}>
+            <p className="mt-4 max-w-xs text-sm leading-7" style={{ color: "var(--on-surface-variant)" }}>
               India's most trusted student housing platform. Find verified PGs, flats &amp; hostels near your campus — zero broker fees.
             </p>
 
@@ -32,7 +32,7 @@ export function SiteFooter() {
                 <span
                   key={badge}
                   className="rounded-full px-3 py-1 text-[10px] font-bold"
-                  style={{ background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.55)", border: "1px solid rgba(255,255,255,0.1)" }}
+                  style={{ background: "var(--surface-container-high)", color: "var(--on-surface-variant)", border: "1px solid var(--outline-variant)" }}
                 >
                   {badge}
                 </span>
@@ -54,7 +54,7 @@ export function SiteFooter() {
               <a
                 href="tel:+918152916235"
                 className="flex h-9 w-9 items-center justify-center rounded-xl transition-all hover:scale-110"
-                style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }}
+                style={{ background: "var(--surface-container-high)", color: "var(--on-surface-variant)" }}
                 title="Call us"
               >
                 📞
@@ -62,7 +62,7 @@ export function SiteFooter() {
               <a
                 href="mailto:support@nearmycolleges.in"
                 className="flex h-9 w-9 items-center justify-center rounded-xl transition-all hover:scale-110"
-                style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }}
+                style={{ background: "var(--surface-container-high)", color: "var(--on-surface-variant)" }}
                 title="Email"
               >
                 ✉️
@@ -97,17 +97,17 @@ export function SiteFooter() {
         </div>
 
         {/* ── Divider ── */}
-        <div className="mt-12 h-px w-full" style={{ background: "rgba(255,255,255,0.07)" }} />
+        <div className="mt-12 h-px w-full" style={{ background: "var(--glass-border)" }} />
 
         {/* ── Bottom bar ── */}
         <div className="mt-6 flex flex-col items-center justify-between gap-3 text-center sm:flex-row sm:text-left">
-          <p className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>
+          <p className="text-xs" style={{ color: "var(--on-surface-variant)" }}>
             © {new Date().getFullYear()} NearMyColleges · Curated student living. All rights reserved.
           </p>
-          <div className="flex gap-5 text-xs flex-wrap justify-center sm:justify-end" style={{ color: "rgba(255,255,255,0.5)" }}>
-              <Link to="/privacy-policy" className="transition-colors hover:text-white/60">Privacy Policy</Link>
-              <Link to="/terms-of-service" className="transition-colors hover:text-white/60">Terms of Service</Link>
-              <a href="mailto:support@nearmycolleges.in" className="transition-colors hover:text-white/60">Contact Support</a>
+          <div className="flex gap-5 text-xs flex-wrap justify-center sm:justify-end" style={{ color: "var(--on-surface-variant)" }}>
+              <Link to="/privacy-policy" className="transition-colors hover:opacity-70">Privacy Policy</Link>
+              <Link to="/terms-of-service" className="transition-colors hover:opacity-70">Terms of Service</Link>
+              <a href="mailto:support@nearmycolleges.in" className="transition-colors hover:opacity-70">Contact Support</a>
           </div>
         </div>
       </div>
@@ -121,7 +121,7 @@ function FooterCol({ title, children }: { title: string; children: React.ReactNo
     <div>
       <h4
         className="mb-4 text-[10px] font-black uppercase tracking-[0.15em]"
-        style={{ color: "rgba(255,255,255,0.6)" }}
+        style={{ color: "var(--outline)" }}
       >
         {title}
       </h4>
@@ -135,9 +135,9 @@ function FooterLink({ to, children }: { to: string; children: React.ReactNode })
     <Link
       to={to}
       className="group flex items-center gap-2 text-sm transition-all"
-      style={{ color: "rgba(255,255,255,0.7)" }}
-      onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "#fff")}
-      onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.7)")}
+      style={{ color: "var(--on-surface-variant)" }}
+      onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--on-surface)")}
+      onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--on-surface-variant)")}
     >
       {children}
     </Link>
