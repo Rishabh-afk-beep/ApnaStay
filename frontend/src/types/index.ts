@@ -26,8 +26,10 @@ export interface PropertyMetadata {
   bhk_type?: string;
   furnishing?: string;
   floor?: number;
+  total_floors?: number;
   lift?: boolean;
   society_name?: string;
+  num_bathrooms?: number;
   size_sqft?: number;
   allowed_use_type?: string;
   maintenance_charge?: number;
@@ -41,6 +43,8 @@ export interface PropertyMetadata {
   community_events?: boolean;
   coworking?: boolean;
   min_stay_duration?: string;
+  parking_type?: string;
+  water_supply?: string;
 }
 
 export interface PropertyCard {
@@ -80,6 +84,14 @@ export interface PropertyDetail extends PropertyCard {
   room_options: RoomOption[];
   metadata?: PropertyMetadata;
   college_ids: string[];
+  owner_contact?: string;
+  owner_whatsapp?: string;
+  video_tour_url?: string;
+  available_from?: string;
+  nearby_landmarks?: string;
+  maintenance_charge?: number;
+  notice_period_days?: number;
+  preferred_tenant?: string;
 }
 
 // ── College ───────────────────────────────────────────────────────
