@@ -18,6 +18,7 @@ const ROLE_BRANDING: Record<RoleType, {
   label: string; icon: string; desc: string;
   heroTitle: string; heroSub: string;
   gradient: string;
+  textColor: string;
   stats: { value: string; label: string }[];
 }> = {
   student: {
@@ -27,6 +28,7 @@ const ROLE_BRANDING: Record<RoleType, {
     heroTitle: "Find your perfect\nstudent home",
     heroSub: "as Student",
     gradient: "var(--gradient-amber)",
+    textColor: "var(--on-primary)",
     stats: [
       { value: "500+", label: "Verified Listings" },
       { value: "50+", label: "Colleges" },
@@ -40,6 +42,7 @@ const ROLE_BRANDING: Record<RoleType, {
     heroTitle: "Reach thousands\nof students",
     heroSub: "as Property Owner",
     gradient: "linear-gradient(135deg, #065f46, #10b981)",
+    textColor: "#ffffff",
     stats: [
       { value: "3x", label: "Faster Occupancy" },
       { value: "Direct", label: "Student Contact" },
@@ -52,6 +55,7 @@ const ROLE_BRANDING: Record<RoleType, {
     heroTitle: "Admin Console",
     heroSub: "Authorized personnel only",
     gradient: "linear-gradient(135deg, #1e293b, #334155)",
+    textColor: "#ffffff",
     stats: [],
   },
 };
@@ -222,7 +226,7 @@ export function LoginPage({ forceRole }: LoginPageProps) {
             <h1 className="mt-3 text-4xl font-black" style={{ color: "var(--on-surface)" }}>
               How would you like to use NearMyColleges?
             </h1>
-            <p className="mt-3 text-sm" style={{ color: "var(--outline)" }}>
+            <p className="mt-3 text-sm" style={{ color: "var(--on-surface-variant)" }}>
               Choose your account type to get started
             </p>
           </Reveal>
@@ -243,7 +247,7 @@ export function LoginPage({ forceRole }: LoginPageProps) {
                 <h2 className="mt-5 text-2xl font-black" style={{ color: "var(--on-surface)" }}>
                   I&apos;m a Student
                 </h2>
-                <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--outline)" }}>
+                <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--on-surface-variant)" }}>
                   Search for PGs, flats, hostels, and single rooms near your college.
                   Save listings, set alerts, and contact owners directly.
                 </p>
@@ -267,7 +271,7 @@ export function LoginPage({ forceRole }: LoginPageProps) {
                 <h2 className="mt-5 text-2xl font-black" style={{ color: "var(--on-surface)" }}>
                   I&apos;m a Property Owner
                 </h2>
-                <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--outline)" }}>
+                <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--on-surface-variant)" }}>
                   List your PG, hostel, or flat. Manage availability, receive inquiries,
                   and connect with students looking for accommodation.
                 </p>
@@ -301,13 +305,13 @@ export function LoginPage({ forceRole }: LoginPageProps) {
               {branding.icon}
             </span>
             <h1 className="mt-6 text-3xl font-black leading-tight md:text-4xl"
-              style={{ color: "#fff", whiteSpace: "pre-line" }}>
+              style={{ color: branding.textColor, whiteSpace: "pre-line" }}>
               {branding.heroTitle}
             </h1>
-            <p className="mt-2 text-lg font-bold" style={{ color: "rgba(255,255,255,0.65)" }}>
+            <p className="mt-2 text-lg font-bold" style={{ color: branding.textColor, opacity: 0.65 }}>
               {branding.heroSub}
             </p>
-            <p className="mt-3 max-w-sm text-sm font-medium" style={{ color: "rgba(255,255,255,0.60)" }}>
+            <p className="mt-3 max-w-sm text-sm font-medium" style={{ color: branding.textColor, opacity: 0.60 }}>
               {isAdmin
                 ? "This login is restricted to pre-authorized administrators."
                 : branding.desc}
@@ -316,8 +320,8 @@ export function LoginPage({ forceRole }: LoginPageProps) {
               <div className="mt-8 flex gap-6">
                 {branding.stats.map((s) => (
                   <div key={s.label}>
-                    <p className="text-2xl font-black" style={{ color: "#fff" }}>{s.value}</p>
-                    <p className="text-xs font-semibold" style={{ color: "rgba(255,255,255,0.50)" }}>{s.label}</p>
+                    <p className="text-2xl font-black" style={{ color: branding.textColor }}>{s.value}</p>
+                    <p className="text-xs font-semibold" style={{ color: branding.textColor, opacity: 0.50 }}>{s.label}</p>
                   </div>
                 ))}
               </div>
@@ -326,7 +330,7 @@ export function LoginPage({ forceRole }: LoginPageProps) {
               <div className="mt-8 flex items-center gap-3">
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-full text-sm"
                   style={{ background: "rgba(239,68,68,0.2)", color: "#fca5a5" }}>🔒</span>
-                <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em" }}>
+                <p className="text-xs font-bold uppercase tracking-widest" style={{ color: branding.textColor, opacity: 0.35, letterSpacing: "0.1em" }}>
                   Restricted Access
                 </p>
               </div>
@@ -352,7 +356,7 @@ export function LoginPage({ forceRole }: LoginPageProps) {
             {/* Back link for non-admin */}
             {!isAdmin && (
               <Link to="/login" className="mb-5 inline-flex items-center gap-1 text-sm font-semibold"
-                style={{ color: "var(--outline)" }}>
+                style={{ color: "var(--on-surface-variant)" }}>
                 ← Choose different role
               </Link>
             )}
@@ -379,7 +383,7 @@ export function LoginPage({ forceRole }: LoginPageProps) {
 
                 {/* Role-specific benefit message */}
                 {!isAdmin && (
-                  <p className="mt-2 text-sm" style={{ color: "var(--outline)" }}>
+                  <p className="mt-2 text-sm" style={{ color: "var(--on-surface-variant)" }}>
                     {role === "student"
                       ? "Access listings, save favorites, and set alerts for new rooms near your campus."
                       : "Publish properties, track inquiries, and manage availability from your dashboard."}
@@ -395,13 +399,13 @@ export function LoginPage({ forceRole }: LoginPageProps) {
 
                 <div className="mt-5 space-y-4">
                   <label className="block">
-                    <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)", letterSpacing: "0.05em" }}>Email</span>
+                    <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--on-surface-variant)", letterSpacing: "0.05em" }}>Email</span>
                     <input type="email" placeholder="you@example.com" value={email}
                       onChange={(e) => setEmail(e.target.value)} className="input-field mt-2" />
                   </label>
                   <label className="block">
                     <div className="flex items-end justify-between">
-                      <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)", letterSpacing: "0.05em" }}>Password</span>
+                      <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--on-surface-variant)", letterSpacing: "0.05em" }}>Password</span>
                       {mode === "signin" && (
                         <button type="button" onClick={handleResetPassword} disabled={busy} className="text-xs font-bold transition-all hover:opacity-80 disabled:opacity-50" style={{ color: role === "owner" ? "#10b981" : "var(--primary)" }}>
                           Forgot password?
@@ -420,7 +424,7 @@ export function LoginPage({ forceRole }: LoginPageProps) {
 
                   <div className="flex items-center gap-3 py-1">
                     <div className="h-px flex-1" style={{ background: "var(--glass-border)" }} />
-                    <span className="text-xs font-bold uppercase" style={{ color: "var(--outline)" }}>or</span>
+                    <span className="text-xs font-bold uppercase" style={{ color: "var(--on-surface-variant)" }}>or</span>
                     <div className="h-px flex-1" style={{ background: "var(--glass-border)" }} />
                   </div>
 
@@ -452,17 +456,17 @@ export function LoginPage({ forceRole }: LoginPageProps) {
 
                 <div className="mt-5 space-y-4">
                   <label className="block">
-                    <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)", letterSpacing: "0.05em" }}>Full Name *</span>
+                    <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--on-surface-variant)", letterSpacing: "0.05em" }}>Full Name *</span>
                     <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your full name" className="input-field mt-2" />
                   </label>
                   <label className="block">
-                    <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)", letterSpacing: "0.05em" }}>Phone Number *</span>
+                    <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--on-surface-variant)", letterSpacing: "0.05em" }}>Phone Number *</span>
                     <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 98765 43210" className="input-field mt-2" />
                   </label>
 
                   {role === "student" && (
                     <label className="block">
-                      <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)", letterSpacing: "0.05em" }}>Select Your College (Optional)</span>
+                      <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--on-surface-variant)", letterSpacing: "0.05em" }}>Select Your College (Optional)</span>
                       <select value={collegeId} onChange={(e) => setCollegeId(e.target.value)} className="input-field mt-2">
                         <option value="">— I'll select later —</option>
                         {(collegesQuery.data ?? []).map((c) => (
@@ -503,7 +507,7 @@ export function LoginPage({ forceRole }: LoginPageProps) {
                   </button>
 
                   <button onClick={handleBackToSignIn}
-                    className="w-full text-center text-sm font-semibold" style={{ color: "var(--outline)" }}>
+                    className="w-full text-center text-sm font-semibold" style={{ color: "var(--on-surface-variant)" }}>
                     ← Back to sign in
                   </button>
                 </div>
