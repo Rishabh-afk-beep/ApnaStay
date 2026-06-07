@@ -32,7 +32,17 @@ class Settings(BaseSettings):
     def cors_origins(self) -> List[str]:
         if self.allowed_origins.strip() == "*":
             return ["*"]
-        return [origin.strip() for origin in self.allowed_origins.split(",") if origin.strip()]
+        origins = [origin.strip() for origin in self.allowed_origins.split(",") if origin.strip()]
+        # Ensure both www and non-www variants are always included
+        expanded: List[str] = []
+        for o in origins:
+            expanded.append(o)
+            if "nearmycolleges.in" in o:
+                if "://www." in o:
+                    expanded.append(o.replace("://www.", "://"))
+                else:
+                    expanded.append(o.replace("://", "://www."))
+        return list(dict.fromkeys(expanded))  # dedupe while preserving order
 
     def admin_emails(self) -> Set[str]:
         if not self.admin_allowed_emails.strip():

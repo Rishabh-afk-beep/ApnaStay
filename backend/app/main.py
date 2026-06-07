@@ -24,10 +24,14 @@ app = FastAPI(
     openapi_url="/openapi.json" if settings.app_env != "production" else None,
 )
 
+_origins = settings.cors_origins()
+_is_wildcard = _origins == ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins(),
-    allow_credentials=True,
+    allow_origins=_origins,
+    allow_origin_regex=r"https?://(www\.)?nearmycolleges\.in" if not _is_wildcard else None,
+    allow_credentials=not _is_wildcard,
     allow_methods=["*"],
     allow_headers=["*"],
 )
