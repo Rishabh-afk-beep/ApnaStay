@@ -75,52 +75,52 @@
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* ── Dark mode tokens ── */
+/* ── Dark mode tokens (Premium OLED/Charcoal Aesthetic) ── */
 :root.dark {
-  --primary: #ffb95f;
-  --primary-container: #F59E0B; /* Vibrant golden-amber accent for stars and highlights */
-  --primary-fixed: #ffddb8;
-  --primary-fixed-dim: #ffb95f;
-  --on-primary: #442b00;
-  --on-primary-container: #1e1100; /* High-contrast dark brown on glowing gold bg */
+  --primary: #fbbf24; /* Brilliant Amber 400 */
+  --primary-container: #d97706; /* Rich Amber 600 */
+  --primary-fixed: #fef3c7;
+  --primary-fixed-dim: #fde68a;
+  --on-primary: #451a03; /* High contrast dark brown */
+  --on-primary-container: #fffbeb;
 
-  --secondary: #cbd5e1;
-  --secondary-container: #334155;
-  --on-secondary: #0f172a;
+  --secondary: #a8a29e;
+  --secondary-container: #292524;
+  --on-secondary: #fafaf9;
 
-  --tertiary: #ffb77d;
-  --tertiary-container: #ff9837;
+  --tertiary: #fcd34d;
+  --tertiary-container: #b45309;
 
-  --surface: #0a0f1d; /* Elegant deep obsidian slate */
-  --surface-container: #131b2e; /* Stunning deep blue-slate card backings */
-  --surface-container-low: #0f172a;
-  --surface-container-high: #1e293b;
-  --surface-container-highest: #334155;
-  --surface-container-lowest: #05070f;
-  --surface-dim: #0a0f1d;
-  --surface-tint: #ffb95f;
+  --surface: #0c0a09; /* Stone 950 - Luxurious deep black/brown */
+  --surface-container: #1c1917; /* Stone 900 - Sleek card backing */
+  --surface-container-low: #1c1917;
+  --surface-container-high: #292524; /* Stone 800 */
+  --surface-container-highest: #44403c; /* Stone 700 */
+  --surface-container-lowest: #000000; /* True OLED Black */
+  --surface-dim: #0c0a09;
+  --surface-tint: #fbbf24;
 
-  --on-surface: #f8fafc; /* Crisp slate-50 high-contrast white text */
-  --on-surface-variant: #cbd5e1; /* Smooth slate-300 secondary text */
+  --on-surface: #fafaf9; /* Crisp Stone 50 white text */
+  --on-surface-variant: #d6d3d1; /* Smooth Stone 300 secondary text */
 
-  --outline: #64748b; /* Slate-500 outlines */
-  --outline-variant: #334155; /* Slate-700 borders */
+  --outline: #44403c; /* Subtle Stone 700 outlines */
+  --outline-variant: rgba(255, 255, 255, 0.08); /* Ultra-sleek borders */
 
-  --inverse-surface: #f8fafc;
-  --inverse-on-surface: #0f172a;
+  --inverse-surface: #fafaf9;
+  --inverse-on-surface: #0c0a09;
   --inverse-primary: #855300;
 
-  --shadow-ambient: 0 16px 48px 0 rgba(0, 0, 0, 0.5);
-  --shadow-hover: 0 24px 60px -8px rgba(245, 158, 11, 0.25);
-  --shadow-card: 0 8px 32px -4px rgba(0, 0, 0, 0.4);
+  --shadow-ambient: 0 16px 48px 0 rgba(0, 0, 0, 0.8);
+  --shadow-hover: 0 24px 60px -8px rgba(251, 191, 36, 0.15); /* Amber glow */
+  --shadow-card: 0 8px 32px -4px rgba(0, 0, 0, 0.6);
 
-  --glass-bg: rgba(15, 23, 42, 0.75);
-  --glass-blur: 24px;
-  --glass-border: rgba(245, 158, 11, 0.15); /* Glowing golden-amber glass border! */
+  --glass-bg: rgba(28, 25, 23, 0.65); /* Stone 900 glass */
+  --glass-blur: 40px; /* Intense premium blur */
+  --glass-border: rgba(255, 255, 255, 0.06); /* Crisp, subtle light border */
 
-  --gradient-amber: linear-gradient(135deg, #ffb95f, #F59E0B);
-  --gradient-hero: linear-gradient(135deg, #050814 0%, #0f172a 60%, #1e1b4b 100%); /* Gorgeous obsidian-indigo gradient */
-  --gradient-hero-subtle: linear-gradient(160deg, rgba(245, 158, 11, 0.08) 0%, rgba(255, 185, 95, 0.04) 50%, transparent 100%);
+  --gradient-amber: linear-gradient(135deg, #fbbf24, #d97706);
+  --gradient-hero: radial-gradient(circle at top, #1c1917 0%, #0c0a09 70%, #000000 100%);
+  --gradient-hero-subtle: radial-gradient(circle at top right, rgba(251, 191, 36, 0.1), transparent 50%);
 
   color: var(--on-surface);
   background: var(--surface);
@@ -152,11 +152,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .section-dark {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #050b14 100%);
+  background: linear-gradient(135deg, #1c1917 0%, #292524 50%, #0c0a09 100%);
   border-radius: 2rem;
   padding: 2rem;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
   color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 @media (min-width: 768px) {
@@ -598,7 +599,7 @@ img[loading] {
 }
 
 .section-dark {
-  background: #0f172a;
+  background: #0c0a09;
   color: #f8fafc;
   border-radius: 28px;
   padding: 24px;
