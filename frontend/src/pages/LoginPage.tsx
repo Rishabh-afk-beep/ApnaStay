@@ -27,8 +27,8 @@ const ROLE_BRANDING: Record<RoleType, {
     desc: "Find PGs, rooms, and hostels near your campus",
     heroTitle: "Find your perfect\nstudent home",
     heroSub: "as Student",
-    gradient: "var(--gradient-amber)",
-    textColor: "var(--on-primary)",
+    gradient: "var(--surface-container)",
+    textColor: "var(--on-surface)",
     stats: [
       { value: "500+", label: "Verified Listings" },
       { value: "50+", label: "Colleges" },
@@ -41,8 +41,8 @@ const ROLE_BRANDING: Record<RoleType, {
     desc: "List your PG, hostel, or flat for students",
     heroTitle: "Reach thousands\nof students",
     heroSub: "as Property Owner",
-    gradient: "linear-gradient(135deg, #065f46, #10b981)",
-    textColor: "#ffffff",
+    gradient: "var(--surface-container)",
+    textColor: "var(--on-surface)",
     stats: [
       { value: "3x", label: "Faster Occupancy" },
       { value: "Direct", label: "Student Contact" },
@@ -54,8 +54,8 @@ const ROLE_BRANDING: Record<RoleType, {
     desc: "Moderate listings, manage colleges and users",
     heroTitle: "Admin Console",
     heroSub: "Authorized personnel only",
-    gradient: "linear-gradient(135deg, #1e293b, #334155)",
-    textColor: "#ffffff",
+    gradient: "var(--surface-container)",
+    textColor: "var(--on-surface)",
     stats: [],
   },
 };
@@ -301,7 +301,7 @@ export function LoginPage({ forceRole }: LoginPageProps) {
         <div className="relative flex flex-col justify-center p-10" style={{ background: branding.gradient }}>
           <div className="relative z-10">
             <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl text-2xl"
-              style={{ background: "rgba(255,255,255,0.25)", backdropFilter: "blur(12px)" }}>
+              style={{ background: "var(--surface-container-highest)", border: "1px solid var(--outline-variant)" }}>
               {branding.icon}
             </span>
             <h1 className="mt-6 text-3xl font-black leading-tight md:text-4xl"
@@ -370,7 +370,7 @@ export function LoginPage({ forceRole }: LoginPageProps) {
                       onClick={() => { setMode(m); setError(""); }}
                       className="flex-1 rounded-full px-4 py-2.5 text-sm font-bold transition-all"
                       style={mode === m
-                        ? { background: role === "owner" ? "linear-gradient(135deg, #065f46, #10b981)" : "var(--gradient-amber)", color: branding.textColor }
+                        ? { background: "var(--primary)", color: "var(--on-primary)" }
                         : { color: "var(--on-surface-variant)" }}>
                       {m === "signin" ? "Sign In" : "Sign Up"}
                     </button>
@@ -418,7 +418,7 @@ export function LoginPage({ forceRole }: LoginPageProps) {
 
                   <button onClick={handleEmailAuth} disabled={busy || !email || !password}
                     className="w-full rounded-full py-3.5 text-sm font-bold transition-all disabled:opacity-50"
-                    style={{ background: role === "owner" ? "linear-gradient(135deg, #065f46, #10b981)" : "var(--gradient-amber)", color: branding.textColor }}>
+                    style={{ background: "var(--primary)", color: "var(--on-primary)" }}>
                     {busy ? "Please wait..." : mode === "signin" ? "Sign In" : "Create Account"}
                   </button>
 
