@@ -248,6 +248,48 @@ export function PropertyDetailPage() {
             </div>
           </Reveal>
 
+          {/* Quick Info Chips */}
+          <Reveal delayMs={140}>
+            <div className="flex flex-wrap gap-2">
+              {property.gender && property.gender !== "any" && (
+                <span className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold"
+                  style={{ background: "var(--surface-container-low)", color: "var(--on-surface-variant)" }}>
+                  {property.gender === "male" ? "👦" : property.gender === "female" ? "👧" : "👥"} {property.gender === "male" ? "Boys Only" : property.gender === "female" ? "Girls Only" : "Co-ed"}
+                </span>
+              )}
+              {property.food_available && (
+                <span className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold"
+                  style={{ background: "var(--surface-container-low)", color: "var(--on-surface-variant)" }}>
+                  🍽️ Food Included
+                </span>
+              )}
+              {property.preferred_tenant && property.preferred_tenant !== "any" && (
+                <span className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold"
+                  style={{ background: "var(--surface-container-low)", color: "var(--on-surface-variant)" }}>
+                  🎯 Preferred: {property.preferred_tenant.replace(/_/g, " ")}
+                </span>
+              )}
+              {property.available_from && (
+                <span className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold"
+                  style={{ background: "var(--surface-container-low)", color: "var(--on-surface-variant)" }}>
+                  📅 Available from {property.available_from}
+                </span>
+              )}
+              {property.maintenance_charge != null && property.maintenance_charge > 0 && (
+                <span className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold"
+                  style={{ background: "var(--surface-container-low)", color: "var(--on-surface-variant)" }}>
+                  🔧 Maintenance: ₹{property.maintenance_charge.toLocaleString()}/mo
+                </span>
+              )}
+              {property.notice_period_days != null && property.notice_period_days > 0 && (
+                <span className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold"
+                  style={{ background: "var(--surface-container-low)", color: "var(--on-surface-variant)" }}>
+                  📝 {property.notice_period_days} days notice
+                </span>
+              )}
+            </div>
+          </Reveal>
+
           {property.description && (
             <Reveal delayMs={160}>
               <div className="glass-card-static p-6">
@@ -257,59 +299,142 @@ export function PropertyDetailPage() {
             </Reveal>
           )}
 
-          {property.metadata && Object.keys(property.metadata).length > 0 && (
-            <Reveal delayMs={180}>
-              <div className="glass-card-static p-6">
-                <h2 className="font-black" style={{ color: "var(--on-surface)" }}>Key Details</h2>
-                <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
-                  {Object.entries(property.metadata).map(([key, value]) => {
-                    if (value == null || value === "") return null;
-                    const formatKey = (k: string) => k.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
-                    const formatVal = (v: unknown) => typeof v === "boolean" ? (v ? "Yes" : "No") : String(v);
-                    
-                    return (
-                      <div key={key}>
-                        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>
-                          {formatKey(key)}
-                        </p>
-                        <p className="mt-1 text-sm font-semibold capitalize" style={{ color: "var(--on-surface-variant)" }}>
-                          {formatVal(value)}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </Reveal>
-          )}
-
-
-          <Reveal delayMs={210}>
+          {/* Key Details — comprehensive grid */}
+          <Reveal delayMs={180}>
             <div className="glass-card-static p-6">
-              <h2 className="font-black" style={{ color: "var(--on-surface)" }}>Amenities</h2>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {property.amenities.map((a) => (
-                  <span
-                    key={a}
-                    className="rounded-full px-4 py-2 text-sm font-semibold"
-                    style={{ background: "var(--surface-container-low)", color: "var(--on-surface-variant)" }}
-                  >
-                    {a.replace(/_/g, " ")}
-                  </span>
-                ))}
+              <h2 className="font-black" style={{ color: "var(--on-surface)" }}>Key Details</h2>
+              <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                {/* Top-level fields */}
+                {property.gender && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>Gender</p>
+                    <p className="mt-1 text-sm font-semibold capitalize" style={{ color: "var(--on-surface-variant)" }}>
+                      {property.gender === "any" ? "Co-ed (Any)" : property.gender === "male" ? "Boys Only" : "Girls Only"}
+                    </p>
+                  </div>
+                )}
+                {property.food_available && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>Food</p>
+                    <p className="mt-1 text-sm font-semibold" style={{ color: "var(--on-surface-variant)" }}>Included ✅</p>
+                  </div>
+                )}
+                {property.maintenance_charge != null && property.maintenance_charge > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>Maintenance</p>
+                    <p className="mt-1 text-sm font-semibold" style={{ color: "var(--on-surface-variant)" }}>₹{property.maintenance_charge.toLocaleString()}/mo</p>
+                  </div>
+                )}
+                {property.notice_period_days != null && property.notice_period_days > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>Notice Period</p>
+                    <p className="mt-1 text-sm font-semibold" style={{ color: "var(--on-surface-variant)" }}>{property.notice_period_days} days</p>
+                  </div>
+                )}
+                {property.available_from && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>Available From</p>
+                    <p className="mt-1 text-sm font-semibold" style={{ color: "var(--on-surface-variant)" }}>{property.available_from}</p>
+                  </div>
+                )}
+                {property.preferred_tenant && property.preferred_tenant !== "any" && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>Preferred Tenant</p>
+                    <p className="mt-1 text-sm font-semibold capitalize" style={{ color: "var(--on-surface-variant)" }}>{property.preferred_tenant.replace(/_/g, " ")}</p>
+                  </div>
+                )}
+
+                {/* Metadata fields */}
+                {property.metadata && Object.entries(property.metadata).map(([key, value]) => {
+                  if (value == null || value === "") return null;
+                  const ICONS: Record<string, string> = {
+                    furnishing: "🛋️", floor: "🏢", total_floors: "🏗️", lift: "🛗", society_name: "🏘️",
+                    num_bathrooms: "🚿", bathroom_type: "🚽", kitchen_access: "🍳", size_sqft: "📐",
+                    parking_type: "🅿️", water_supply: "💧", mess_timing: "⏰", gate_timing: "🚪",
+                    warden_contact: "📞", curfew_time: "🌙", warden_on_site: "👮", total_capacity: "👥",
+                    study_hall: "📚", community_events: "🎉", coworking: "💻", min_stay_duration: "📆",
+                  };
+                  const formatKey = (k: string) => k.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+                  const formatVal = (v: unknown) => typeof v === "boolean" ? (v ? "Yes" : "No") : String(v);
+                  return (
+                    <div key={key}>
+                      <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>
+                        {ICONS[key] || "📋"} {formatKey(key)}
+                      </p>
+                      <p className="mt-1 text-sm font-semibold capitalize" style={{ color: "var(--on-surface-variant)" }}>
+                        {formatVal(value)}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </Reveal>
 
+          {/* Amenities */}
+          <Reveal delayMs={210}>
+            <div className="glass-card-static p-6">
+              <h2 className="font-black" style={{ color: "var(--on-surface)" }}>Amenities</h2>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {property.amenities.map((a) => {
+                  const AMENITY_ICONS: Record<string, string> = {
+                    wifi: "📶", food: "🍽️", ac: "❄️", parking: "🅿️", laundry: "🧺",
+                    gym: "💪", cctv: "📹", geyser: "🚿", power_backup: "⚡", study_room: "📚",
+                    terrace: "🌅", security: "🛡️", garden: "🌿", swimming_pool: "🏊",
+                  };
+                  return (
+                    <span
+                      key={a}
+                      className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold"
+                      style={{ background: "var(--surface-container-low)", color: "var(--on-surface-variant)" }}
+                    >
+                      {AMENITY_ICONS[a] || "✨"} {a.replace(/_/g, " ")}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          </Reveal>
+
+          {/* Food */}
           {property.food_available && property.food_menu && (
             <Reveal delayMs={260}>
               <div className="glass-card-static p-6">
-                <h2 className="font-black" style={{ color: "var(--on-surface)" }}>🍽️ Food</h2>
+                <h2 className="font-black" style={{ color: "var(--on-surface)" }}>🍽️ Food Menu</h2>
                 <p className="mt-3 text-sm leading-7" style={{ color: "var(--on-surface-variant)" }}>{property.food_menu}</p>
               </div>
             </Reveal>
           )}
 
+          {/* Nearby Landmarks */}
+          {property.nearby_landmarks && (
+            <Reveal delayMs={270}>
+              <div className="glass-card-static p-6">
+                <h2 className="font-black" style={{ color: "var(--on-surface)" }}>📍 Nearby Landmarks</h2>
+                <p className="mt-3 text-sm leading-7" style={{ color: "var(--on-surface-variant)" }}>{property.nearby_landmarks}</p>
+              </div>
+            </Reveal>
+          )}
+
+          {/* Video Tour */}
+          {property.video_tour_url && (
+            <Reveal delayMs={280}>
+              <div className="glass-card-static p-6">
+                <h2 className="font-black" style={{ color: "var(--on-surface)" }}>🎬 Video Tour</h2>
+                <a
+                  href={property.video_tour_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition-transform hover:scale-[1.02]"
+                  style={{ background: "var(--primary-container)", color: "var(--on-primary-container)" }}
+                >
+                  ▶️ Watch Video Tour
+                </a>
+              </div>
+            </Reveal>
+          )}
+
+          {/* House Rules */}
           {property.rules && (
             <Reveal delayMs={310}>
               <div className="glass-card-static p-6">
@@ -458,6 +583,28 @@ export function PropertyDetailPage() {
                   >
                     {shortlistMutation.isSuccess ? "✓ Shortlisted" : "♥ Save to Shortlist"}
                   </button>
+
+                  {/* Owner Contact Buttons */}
+                  {property.owner_contact && (
+                    <a
+                      href={`tel:+91${property.owner_contact}`}
+                      className="flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-sm font-bold transition hover:scale-[1.02]"
+                      style={{ background: "var(--surface-container-low)", color: "var(--on-surface)", border: "1px solid var(--glass-border)" }}
+                    >
+                      📞 Call Owner
+                    </a>
+                  )}
+                  {property.owner_whatsapp && (
+                    <a
+                      href={`https://wa.me/91${property.owner_whatsapp}?text=${encodeURIComponent(`Hi, I saw "${property.title}" on NearMyColleges and I'm interested.`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-sm font-bold transition hover:scale-[1.02]"
+                      style={{ background: "rgba(34, 197, 94, 0.08)", color: "#16a34a", border: "1px solid rgba(34, 197, 94, 0.2)" }}
+                    >
+                      💬 WhatsApp Owner
+                    </a>
+                  )}
                   {/* Commission notice */}
                   <div
                     className="rounded-2xl p-4 text-xs leading-5"

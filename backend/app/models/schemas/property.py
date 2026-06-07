@@ -22,8 +22,10 @@ class PropertyMetadata(BaseModel):
     bhk_type: Optional[str] = None
     furnishing: Optional[str] = None
     floor: Optional[int] = None
+    total_floors: Optional[int] = None
     lift: Optional[bool] = None
     society_name: Optional[str] = None
+    num_bathrooms: Optional[int] = None
     # Shop fields
     size_sqft: Optional[int] = None
     allowed_use_type: Optional[str] = None
@@ -41,6 +43,9 @@ class PropertyMetadata(BaseModel):
     community_events: Optional[bool] = None
     coworking: Optional[bool] = None
     min_stay_duration: Optional[str] = None
+    # Common extras
+    parking_type: Optional[str] = None
+    water_supply: Optional[str] = None
 
 
 class PropertyCard(BaseModel):
@@ -80,6 +85,15 @@ class PropertyDetail(PropertyCard):
     room_options: List[RoomOption] = Field(default_factory=list)
     metadata: Optional[PropertyMetadata] = None
     college_ids: List[str] = Field(default_factory=list)
+    # Owner-provided contact & extras
+    owner_contact: Optional[str] = None
+    owner_whatsapp: Optional[str] = None
+    video_tour_url: Optional[str] = None
+    available_from: Optional[str] = None
+    nearby_landmarks: Optional[str] = None
+    maintenance_charge: Optional[int] = None
+    notice_period_days: Optional[int] = None
+    preferred_tenant: Optional[str] = None
 
 
 class PropertySearchQuery(BaseModel):
@@ -116,6 +130,15 @@ class OwnerPropertyCreate(BaseModel):
     cover_image_url: Optional[str] = None
     room_options: List[RoomOption] = Field(default_factory=list)
     metadata: Optional[PropertyMetadata] = None
+    # Owner-provided contact & extras
+    owner_contact: Optional[str] = None
+    owner_whatsapp: Optional[str] = None
+    video_tour_url: Optional[str] = None
+    available_from: Optional[str] = None
+    nearby_landmarks: Optional[str] = None
+    maintenance_charge: Optional[int] = None
+    notice_period_days: Optional[int] = None
+    preferred_tenant: Optional[str] = None
 
 
 class OwnerPropertyUpdate(BaseModel):
@@ -138,3 +161,13 @@ class OwnerPropertyUpdate(BaseModel):
     cover_image_url: Optional[str] = None
     room_options: Optional[List[RoomOption]] = None
     metadata: Optional[PropertyMetadata] = None
+    # Owner-provided contact & extras
+    owner_contact: Optional[str] = None
+    owner_whatsapp: Optional[str] = None
+    video_tour_url: Optional[str] = None
+    available_from: Optional[str] = None
+    nearby_landmarks: Optional[str] = None
+    maintenance_charge: Optional[int] = None
+    notice_period_days: Optional[int] = None
+    preferred_tenant: Optional[str] = None
+
