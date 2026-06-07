@@ -228,14 +228,14 @@ export function AdminDashboardPage() {
             <Link
               to="/admin/colleges"
               className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all hover:scale-[1.03]"
-              style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.8)", border: "1px solid rgba(255,255,255,0.12)" }}
+              style={{ background: "rgba(255,255,255,0.08)", color: "#ffffff", border: "1px solid rgba(255,255,255,0.12)" }}
             >
               🎓 Manage Colleges
             </Link>
             <Link
               to="/admin/users"
               className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all hover:scale-[1.03]"
-              style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.8)", border: "1px solid rgba(255,255,255,0.12)" }}
+              style={{ background: "rgba(255,255,255,0.08)", color: "#ffffff", border: "1px solid rgba(255,255,255,0.12)" }}
             >
               👥 Manage Users
             </Link>
@@ -698,10 +698,11 @@ export function AdminDashboardPage() {
               >
                 <div>
                   <span className="font-bold" style={{ color: "var(--on-surface)" }}>{log.action_type}</span>
-                  <span style={{ color: "var(--outline)" }}> on {log.target_type} </span>
-                  <span className="font-mono text-xs" style={{ color: "var(--outline)" }}>{log.target_id.slice(0, 16)}</span>
+                  <span style={{ color: "var(--on-surface-variant)" }}> on {log.target_type} </span>
+                  <span className="font-mono text-xs" style={{ color: "var(--on-surface-variant)" }}>{log.target_id.slice(0, 16)}</span>
                 </div>
-                <span className="text-xs" style={{ color: "var(--outline)" }}>{new Date(log.created_at).toLocaleDateString()}</span>
+                <span className="text-xs font-medium" style={{ color: "var(--on-surface-variant)" }}>{new Date(log.created_at).toLocaleDateString()}</span>
+
               </div>
             ))}
           </div>

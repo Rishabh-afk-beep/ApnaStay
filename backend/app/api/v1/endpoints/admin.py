@@ -1,6 +1,6 @@
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, BackgroundTasks
 
 from app.api.deps import require_admin
 from app.models.schemas.admin_log import AdminLogOut
@@ -129,9 +129,13 @@ def analytics_overview(user: Annotated[UserProfile, Depends(require_admin)]) -> 
 
 
 @router.get("/inquiries")
-def admin_list_inquiries(user: Annotated[UserProfile, Depends(require_admin)]) -> list[AdminInquiryOut]:
+def admin_list_inquiries(
+    user: Annotated[UserProfile, Depends(require_admin)],
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=50, ge=1, le=100),
+) -> list[AdminInquiryOut]:
     _ = user
-    inquiries = engagement_repo.list_all_inquiries()
+    inquiries = engagement_repo.list_all_inquiries(skip=skip, limit=limit)
     decorated = []
     
     for inq in inquiries:
@@ -168,8 +172,13 @@ def admin_list_inquiries(user: Annotated[UserProfile, Depends(require_admin)]) -
 # ── Audit logs ──────────────────────────────────────────────────────
 
 @router.get("/logs")
-def admin_logs(user: Annotated[UserProfile, Depends(require_admin)]) -> list[AdminLogOut]:
+def admin_logs(
+    user: Annotated[UserProfile, Depends(require_admin)],
+    background_tasks: BackgroundTasks
+) -> list[AdminLogOut]:
     _ = user
+    # Clean up logs older than 20 days automatically
+    background_tasks.add_task(admin_log_repo.cleanup_old_logs, days=20)
     return admin_log_repo.list_logs(limit=100)
 
 
@@ -247,9 +256,11 @@ def admin_list_users(
     user: Annotated[UserProfile, Depends(require_admin)],
     role: Optional[str] = None,
     status_filter: Optional[str] = Query(default=None, alias="status"),
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=50, ge=1, le=100),
 ) -> list[UserProfile]:
     _ = user
-    return user_repo.list_all(role=role, status=status_filter)
+    return user_repo.list_all(role=role, status=status_filter, skip=skip, limit=limit)
 
 
 @router.patch("/users/{uid}/status")
