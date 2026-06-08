@@ -25,17 +25,25 @@ export function PrivacyPolicyPage() {
     >
       {/* ── Header ── */}
       <Reveal>
-        <div className="section-dark relative overflow-hidden mb-10">
+        <div
+          className="relative overflow-hidden mb-10 rounded-[2rem] p-8 md:p-12 shadow-sm"
+          style={{ background: "var(--surface-container-high)", border: "1px solid var(--outline-variant)" }}
+        >
           <div
             className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full opacity-20"
             style={{ background: "var(--primary-fixed-dim)", filter: "blur(60px)" }}
           />
           <div className="relative z-10">
-            <p className="text-xs font-bold uppercase tracking-[0.15em] text-amber-400">
+            <p
+              className="text-xs font-bold uppercase tracking-[0.15em]"
+              style={{ color: "var(--primary)" }}
+            >
               Legal
             </p>
-            <h1 className="mt-2 text-3xl font-black text-white">Privacy Policy</h1>
-            <p className="mt-2 text-sm text-slate-300">
+            <h1 className="mt-2 text-3xl font-black" style={{ color: "var(--on-surface)" }}>
+              Privacy Policy
+            </h1>
+            <p className="mt-2 text-sm" style={{ color: "var(--on-surface-variant)" }}>
               Last updated: {lastUpdated}
             </p>
           </div>
