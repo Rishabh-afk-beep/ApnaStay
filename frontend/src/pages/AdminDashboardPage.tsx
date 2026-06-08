@@ -255,7 +255,7 @@ export function AdminDashboardPage() {
             <article
               key={stat.label}
               className="relative overflow-hidden rounded-2xl p-5 transition-all hover:scale-[1.02]"
-              style={{ background: stat.color, border: "1px solid var(--glass-border)", boxShadow: "var(--shadow-ambient)" }}
+              style={{ background: "var(--surface-container)", border: "1px solid var(--outline-variant)", boxShadow: "var(--shadow-ambient)" }}
             >
               <div
                 className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl text-xl"
@@ -296,7 +296,7 @@ export function AdminDashboardPage() {
             <article
               key={stat.label}
               className="relative overflow-hidden rounded-2xl p-5 transition-all hover:scale-[1.02]"
-              style={{ background: stat.color, border: "1px solid var(--glass-border)", boxShadow: "var(--shadow-ambient)" }}
+              style={{ background: "var(--surface-container)", border: "1px solid var(--outline-variant)", boxShadow: "var(--shadow-ambient)" }}
             >
               <div
                 className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl text-xl"
