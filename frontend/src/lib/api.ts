@@ -307,9 +307,15 @@ export async function adminListInquiries(): Promise<AdminInquiryOut[]> {
 // ── Upload ────────────────────────────────────────────────────────
 
 export async function uploadImage(file: File): Promise<ImageUploadResponse> {
+  // Prevent uploads larger than 5MB to avoid backend/load-balancer 413 errors (which manifest as CORS errors)
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error("File too large. Please upload an image smaller than 5MB.");
+  }
   const formData = new FormData();
   formData.append("file", file);
-  const res = await api.post<ImageUploadResponse>("/upload/image", formData);
+  const res = await api.post<ImageUploadResponse>("/upload/image", formData, {
+    timeout: 60000, // 60 seconds (override global 15s timeout for large uploads)
+  });
   return res.data;
 }
 

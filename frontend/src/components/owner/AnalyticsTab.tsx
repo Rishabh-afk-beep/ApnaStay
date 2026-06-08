@@ -28,8 +28,8 @@ export function AnalyticsTab({ data }: AnalyticsTabProps) {
             </div>
           </div>
         </div>
-        <div className="h-72 w-full p-4 pl-0 pt-6">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-72 w-full p-4 pl-0 pt-6" style={{ minWidth: 0, minHeight: 0 }}>
+          <ResponsiveContainer width="99%" height="100%" minHeight={1}>
             <LineChart data={data.daily_stats}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--outline)" opacity={0.2} vertical={false} />
               <XAxis dataKey="date" stroke="var(--outline)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val: string) => val.slice(5)} />

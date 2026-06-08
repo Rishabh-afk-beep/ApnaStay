@@ -283,7 +283,9 @@ export function OwnerDashboardPage() {
       try {
         const result = await uploadImage(file);
         urls.push(result.url);
-      } catch { /* skip failed */ }
+      } catch (err: any) {
+        alert(`Failed to upload ${file.name}: ${err.message || "Unknown error"}`);
+      }
     }
     setImageUrls(urls);
     setUploadingImages(false);
