@@ -436,7 +436,7 @@ export function LandingPage() {
               className="mt-6 inline-flex rounded-full px-8 py-4 text-sm font-black transition hover:scale-[1.02]"
               style={{
                 background: "var(--primary-fixed-dim)",
-                color: "var(--on-primary-container)",
+                color: "var(--on-primary)",
               }}
             >
               Open Discover Page →

@@ -428,7 +428,7 @@ export function DiscoverPage() {
                           className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-all duration-200 hover:scale-105 active:scale-95"
                           style={{
                             background: active ? "var(--primary)" : "var(--surface-container)",
-                            color: active ? "#fff" : "var(--on-surface-variant)",
+                            color: active ? "var(--on-primary)" : "var(--on-surface-variant)",
                             border: active ? "none" : "1px solid var(--glass-border)",
                           }}
                         >
@@ -468,7 +468,7 @@ export function DiscoverPage() {
                 className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold transition-all"
                 style={
                   viewMode === "grid"
-                    ? { background: "var(--primary)", color: "#fff" }
+                    ? { background: "var(--primary)", color: "var(--on-primary)" }
                     : { color: "var(--on-surface-variant)" }
                 }
               >
@@ -479,7 +479,7 @@ export function DiscoverPage() {
                 className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold transition-all"
                 style={
                   viewMode === "map"
-                    ? { background: "var(--primary)", color: "#fff" }
+                    ? { background: "var(--primary)", color: "var(--on-primary)" }
                     : { color: "var(--on-surface-variant)" }
                 }
               >
@@ -561,8 +561,8 @@ export function DiscoverPage() {
                       className="h-9 w-9 rounded-full text-sm font-bold transition-all"
                       style={
                         page === p
-                          ? { background: "var(--gradient-amber)", color: "#fff" }
-                          : { background: "var(--surface-container)", color: "var(--on-surface-variant)" }
+                          ? { background: "var(--gradient-amber)", color: "var(--on-primary)" }
+                          : { background: "var(--surface-container-low)", color: "var(--on-surface)" }
                       }
                     >
                       {p}
