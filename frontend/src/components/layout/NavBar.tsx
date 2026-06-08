@@ -94,8 +94,8 @@ export function NavBar() {
               to="/profile"
               className="ml-2 flex h-9 w-9 items-center justify-center rounded-full text-sm font-black transition-all hover:scale-105"
               style={{
-                background: "var(--primary-fixed)",
-                color: "var(--on-primary-container)",
+                background: "var(--gradient-amber)",
+                color: "var(--on-primary)",
               }}
             >
               {(profile?.name || "U")[0].toUpperCase()}

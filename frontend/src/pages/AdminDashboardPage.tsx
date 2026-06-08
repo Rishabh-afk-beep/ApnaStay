@@ -179,7 +179,7 @@ export function AdminDashboardPage() {
       <Reveal>
         <section
           className="relative overflow-hidden rounded-3xl p-6 md:p-10"
-          style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0c1a2e 100%)", boxShadow: "0 25px 60px rgba(0,0,0,0.35)" }}
+          style={{ background: "var(--surface-container-high)", border: "1px solid var(--outline-variant)", boxShadow: "var(--shadow-ambient)" }}
         >
           {/* Animated ambient glows */}
           <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full opacity-20 animate-float"
@@ -200,25 +200,25 @@ export function AdminDashboardPage() {
                 <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
                 Moderation + Analytics
               </div>
-              <h1 className="text-4xl font-black text-white" style={{ letterSpacing: "-0.02em" }}>Admin Dashboard</h1>
-              <p className="mt-2 max-w-lg text-sm leading-6" style={{ color: "rgba(255,255,255,0.5)" }}>
+              <h1 className="text-4xl font-black" style={{ color: "var(--on-surface)", letterSpacing: "-0.02em" }}>Admin Dashboard</h1>
+              <p className="mt-2 max-w-lg text-sm leading-6" style={{ color: "var(--on-surface-variant)" }}>
                 Track supply health, approve owner inventory, and monitor trust signals across the marketplace.
               </p>
             </div>
             {/* Admin identity pill */}
             <div
               className="flex items-center gap-3 rounded-2xl px-5 py-4 flex-shrink-0"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(12px)" }}
+              style={{ background: "var(--surface-container)", border: "1px solid var(--outline-variant)", backdropFilter: "blur(12px)" }}
             >
               <div
-                className="flex h-12 w-12 items-center justify-center rounded-xl text-lg font-black text-white"
-                style={{ background: "var(--gradient-amber)" }}
+                className="flex h-12 w-12 items-center justify-center rounded-xl text-lg font-black"
+                style={{ background: "var(--gradient-amber)", color: "var(--on-primary)" }}
               >
                 {(profile?.name || "A")[0]}
               </div>
               <div>
-                <p className="text-sm font-black text-white">{profile?.name || "Admin"}</p>
-                <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>⚙️ Administrator</p>
+                <p className="text-sm font-black" style={{ color: "var(--on-surface)" }}>{profile?.name || "Admin"}</p>
+                <p className="text-[11px]" style={{ color: "var(--outline)" }}>⚙️ Administrator</p>
               </div>
             </div>
           </div>
@@ -228,14 +228,14 @@ export function AdminDashboardPage() {
             <Link
               to="/admin/colleges"
               className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all hover:scale-[1.03]"
-              style={{ background: "rgba(255,255,255,0.08)", color: "#ffffff", border: "1px solid rgba(255,255,255,0.12)" }}
+              style={{ background: "var(--surface-container)", color: "var(--on-surface)", border: "1px solid var(--outline-variant)" }}
             >
               🎓 Manage Colleges
             </Link>
             <Link
               to="/admin/users"
               className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all hover:scale-[1.03]"
-              style={{ background: "rgba(255,255,255,0.08)", color: "#ffffff", border: "1px solid rgba(255,255,255,0.12)" }}
+              style={{ background: "var(--surface-container)", color: "var(--on-surface)", border: "1px solid var(--outline-variant)" }}
             >
               👥 Manage Users
             </Link>
