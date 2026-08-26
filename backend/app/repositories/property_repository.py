@@ -200,7 +200,7 @@ class PropertyRepository:
                 dict(item)
                 for item in _FALLBACK_PROPERTIES.values()
                 if item.get("primary_college_id") == primary_college_id
-                and item.get("status", "hidden") == "live"
+                and item.get("visibility_status", "hidden") == "live"
             ]
             if property_type:
                 items = [i for i in items if i.get("property_type") == property_type]
@@ -209,7 +209,7 @@ class PropertyRepository:
             return [self._to_card(i) for i in items]
 
         # Query Firestore using the new unified schema
-        query = client.collection("properties").where(filter=firestore_v1.FieldFilter("status", "==", "live"))
+        query = client.collection("properties").where(filter=firestore_v1.FieldFilter("visibility_status", "==", "live"))
         docs = list(query.stream())
 
         results = []
@@ -231,7 +231,7 @@ class PropertyRepository:
             items = [
                 dict(item)
                 for item in _FALLBACK_PROPERTIES.values()
-                if item.get("status", "hidden") == "live"
+                if item.get("visibility_status", "hidden") == "live"
             ]
             if property_type:
                 items = [i for i in items if i.get("property_type") == property_type]
@@ -240,7 +240,7 @@ class PropertyRepository:
             return [self._to_card(i) for i in items]
 
         # Firestore: fetch all live properties
-        query = client.collection("properties").where(filter=firestore_v1.FieldFilter("status", "==", "live"))
+        query = client.collection("properties").where(filter=firestore_v1.FieldFilter("visibility_status", "==", "live"))
         docs = list(query.stream())
 
         results = []
