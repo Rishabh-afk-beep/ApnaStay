@@ -138,7 +138,7 @@ export function PropertyDetailPage() {
   const mainImage = property.image_urls?.[0] || property.cover_image_url || "";
 
   return (
-    <main className="min-h-screen" style={{ background: "var(--surface)" }}>
+    <main className="mx-auto max-w-6xl px-4 sm:px-6 py-8 min-h-screen" style={{ background: "var(--surface)" }}>
       <Helmet>
         <title>{property.title} | NearMyColleges</title>
         <meta name="description" content={property.description || `View details for ${property.title} on NearMyColleges.`} />
