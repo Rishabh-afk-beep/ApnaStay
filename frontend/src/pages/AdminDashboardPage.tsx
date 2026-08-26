@@ -460,7 +460,7 @@ export function AdminDashboardPage() {
                 } 
                 value={filterSearch} 
                 onChange={e => setFilterSearch(e.target.value)} 
-                className="input-field w-full pl-12 pr-4 py-3 !rounded-2xl transition-shadow focus:ring-2 focus:ring-amber-500/20"
+                className="input-field w-full !pl-12 pr-4 py-3 !rounded-2xl transition-shadow focus:ring-2 focus:ring-amber-500/20"
                 style={{ background: "var(--surface-container-low)" }}
               />
             </div>
