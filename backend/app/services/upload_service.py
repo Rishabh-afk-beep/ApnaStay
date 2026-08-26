@@ -1,4 +1,3 @@
-import asyncio
 import logging
 
 import cloudinary
@@ -24,21 +23,9 @@ def _configure_cloudinary() -> bool:
     return True
 
 
-def _sync_upload(contents: bytes, folder: str) -> dict:
-    """Run the blocking Cloudinary upload (called inside a thread)."""
-    return cloudinary.uploader.upload(
-        contents,
-        folder=folder,
-        resource_type="image",
-        transformation=[
-            {"width": 1200, "height": 900, "crop": "limit", "quality": "auto"},
-        ],
-    )
-
-
 async def upload_image(file: UploadFile, folder: str = "apnastay") -> ImageUploadResponse:
     if not _configure_cloudinary():
-        # Return a placeholder when Cloudinary is not configured
+        logger.warning("Cloudinary not configured — returning placeholder")
         return ImageUploadResponse(
             url=f"https://placehold.co/800x600/f59e0b/ffffff?text={file.filename or 'image'}",
             public_id=f"dev/{file.filename or 'placeholder'}",
@@ -48,11 +35,21 @@ async def upload_image(file: UploadFile, folder: str = "apnastay") -> ImageUploa
         )
 
     contents = await file.read()
+    if len(contents) == 0:
+        raise HTTPException(status_code=400, detail="Empty file received")
+
+    logger.info(f"Uploading {file.filename} ({len(contents)} bytes) to Cloudinary...")
+
     try:
-        # Run the blocking Cloudinary SDK call in a thread so it doesn't
-        # block the FastAPI event loop or cause worker timeouts on Render.
-        loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(None, _sync_upload, contents, folder)
+        result = cloudinary.uploader.upload(
+            contents,
+            folder=folder,
+            resource_type="image",
+            transformation=[
+                {"width": 1200, "height": 900, "crop": "limit", "quality": "auto"},
+            ],
+        )
+        logger.info(f"Upload success: {result.get('public_id')}")
         return ImageUploadResponse(
             url=result["secure_url"],
             public_id=result["public_id"],
@@ -61,5 +58,10 @@ async def upload_image(file: UploadFile, folder: str = "apnastay") -> ImageUploa
             format=result["format"],
         )
     except Exception as e:
-        logger.error(f"Cloudinary upload failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Image upload failed: {str(e)}")
+        error_msg = str(e)
+        logger.error(f"Cloudinary upload FAILED: {error_msg}")
+        # Surface the real error so we can debug
+        raise HTTPException(
+            status_code=500,
+            detail=f"Cloudinary error: {error_msg}"
+        )
