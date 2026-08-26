@@ -348,7 +348,7 @@ class PropertyRepository:
             current = doc.to_dict()
             if current.get("owner_uid") != owner_uid:
                 return None
-            patch = {k: v for k, v in payload.model_dump().items() if v is not None}
+            patch = payload.model_dump(exclude_unset=True)
             # Handle nested models
             if "room_options" in patch and patch["room_options"] is not None:
                 patch["room_options"] = [ro if isinstance(ro, dict) else ro.model_dump() for ro in patch["room_options"]]
@@ -364,7 +364,7 @@ class PropertyRepository:
             return None
         if current.get("owner_uid") != owner_uid:
             return None
-        patch = {k: v for k, v in payload.model_dump().items() if v is not None}
+        patch = payload.model_dump(exclude_unset=True)
         if "room_options" in patch and patch["room_options"] is not None:
             patch["room_options"] = [ro if isinstance(ro, dict) else ro.model_dump() for ro in patch["room_options"]]
         if "metadata" in patch and patch["metadata"] is not None:
