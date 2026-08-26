@@ -20,6 +20,7 @@ import { AnimatedNumber } from "../components/ui/AnimatedNumber";
 import {
   adminApprove,
   adminFeature,
+  adminUnfeature,
   adminHide,
   adminReject,
   adminListProperties,
@@ -88,14 +89,53 @@ export function AdminDashboardPage() {
   });
 
   const moderationMutation = useMutation({
-    mutationFn: async ({ action, propertyId }: { action: "approve" | "reject" | "hide" | "feature" | "delete"; propertyId: string }) => {
+    mutationFn: async ({ action, propertyId }: { action: "approve" | "reject" | "hide" | "feature" | "unfeature" | "delete"; propertyId: string }) => {
       if (action === "approve") await adminApprove(propertyId);
       else if (action === "reject") await adminReject(propertyId);
       else if (action === "hide") await adminHide(propertyId);
       else if (action === "delete") await adminDeleteProperty(propertyId);
+      else if (action === "unfeature") await adminUnfeature(propertyId);
       else await adminFeature(propertyId);
     },
-    onSuccess: () => {
+    onMutate: async ({ action, propertyId }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["admin-pending"] });
+      await queryClient.cancelQueries({ queryKey: ["admin-properties"] });
+
+      // Snapshot the previous value
+      const previousPending = queryClient.getQueryData(["admin-pending"]);
+      const previousProperties = queryClient.getQueryData(["admin-properties"]);
+
+      // Optimistically update to the new value
+      const updateList = (old: PropertyCard[] | undefined) => {
+        if (!old) return old;
+        if (action === "delete") {
+          return old.filter((p) => p.property_id !== propertyId);
+        }
+        return old.map((p) => {
+          if (p.property_id === propertyId) {
+            const updates: Partial<PropertyCard> = {};
+            if (action === "approve") { updates.approval_status = "approved"; updates.visibility_status = "live"; }
+            if (action === "reject") { updates.approval_status = "rejected"; updates.visibility_status = "hidden"; }
+            if (action === "hide") { updates.visibility_status = "hidden"; }
+            if (action === "feature") { updates.featured = true; }
+            if (action === "unfeature") { updates.featured = false; }
+            return { ...p, ...updates };
+          }
+          return p;
+        });
+      };
+
+      queryClient.setQueryData(["admin-pending"], updateList);
+      queryClient.setQueryData(["admin-properties"], updateList);
+
+      return { previousPending, previousProperties };
+    },
+    onError: (err, newTodo, context) => {
+      if (context?.previousPending) queryClient.setQueryData(["admin-pending"], context.previousPending);
+      if (context?.previousProperties) queryClient.setQueryData(["admin-properties"], context.previousProperties);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-pending"] });
       queryClient.invalidateQueries({ queryKey: ["admin-properties"] });
       queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
@@ -570,7 +610,7 @@ export function AdminDashboardPage() {
                           {isLive && (
                             <>
                               <button
-                                onClick={() => moderationMutation.mutate({ action: "feature", propertyId: item.property_id })}
+                                onClick={() => moderationMutation.mutate({ action: item.featured ? "unfeature" : "feature", propertyId: item.property_id })}
                                 className={`rounded-xl px-3 py-2 text-xs font-bold transition-all ${item.featured ? "bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/40 dark:text-amber-400" : "bg-amber-50 text-amber-600 hover:bg-amber-100 dark:bg-amber-950/20 dark:text-amber-500"}`}
                               >
                                 {item.featured ? "★ Unfeature" : "☆ Feature"}

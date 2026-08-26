@@ -252,6 +252,11 @@ export async function adminFeature(propertyId: string): Promise<PropertyCard> {
   return res.data;
 }
 
+export async function adminUnfeature(propertyId: string): Promise<PropertyCard> {
+  const res = await api.patch<PropertyCard>(`/admin/properties/${propertyId}/unfeature`);
+  return res.data;
+}
+
 export async function getAdminAnalytics(): Promise<AdminAnalyticsOverview> {
   const res = await api.get<AdminAnalyticsOverview>("/admin/analytics/overview");
   return res.data;

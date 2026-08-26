@@ -120,6 +120,19 @@ def feature_property(property_id: str, user: Annotated[UserProfile, Depends(requ
     return updated
 
 
+@router.patch("/properties/{property_id}/unfeature")
+def unfeature_property(property_id: str, user: Annotated[UserProfile, Depends(require_admin)]) -> PropertyCard:
+    updated = _require_updated(repo.set_moderation_state(property_id, featured=False))
+    admin_log_repo.create(
+        admin_uid=user.uid,
+        action_type="unfeature_property",
+        target_type="property",
+        target_id=property_id,
+        metadata={"featured": False},
+    )
+    return updated
+
+
 # ── Analytics ───────────────────────────────────────────────────────
 
 @router.get("/analytics/overview")
