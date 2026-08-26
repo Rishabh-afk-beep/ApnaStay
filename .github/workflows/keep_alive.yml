@@ -10,8 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping Backend API
-        env:
-          BACKEND_URL: ${{ secrets.RENDER_BACKEND_URL || 'https://pgliving-backend.onrender.com' }}
         run: |
-          echo "Pinging backend at $BACKEND_URL/api/v1/health/stats"
-          curl -f -s "$BACKEND_URL/api/v1/health/stats" || echo "Ping failed or URL is incorrect. Make sure you set RENDER_BACKEND_URL in GitHub Secrets."
+          echo "Pinging backend at https://api.nearmycolleges.in/api/v1/health"
+          curl -f -s --max-time 30 "https://api.nearmycolleges.in/api/v1/health" || echo "Ping failed"
+          echo ""
+          echo "Pinging Render direct URL as backup"
+          curl -f -s --max-time 30 "https://pgliving-backend.onrender.com/api/v1/health" || echo "Render ping failed"

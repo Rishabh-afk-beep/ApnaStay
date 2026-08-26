@@ -10,7 +10,7 @@ from app.services.upload_service import upload_image
 router = APIRouter()
 
 
-@router.post("/image")
+@router.post("/photo")
 async def upload_image_endpoint(
     file: UploadFile = File(...),
     user: Annotated[UserProfile, None] = Depends(get_current_user),

@@ -200,8 +200,7 @@ class PropertyRepository:
                 dict(item)
                 for item in _FALLBACK_PROPERTIES.values()
                 if item.get("primary_college_id") == primary_college_id
-                and item.get("approval_status") == "approved"
-                and item.get("visibility_status") == "live"
+                and item.get("status", "hidden") == "live"
             ]
             if property_type:
                 items = [i for i in items if i.get("property_type") == property_type]
@@ -209,37 +208,14 @@ class PropertyRepository:
                 items = [i for i in items if i.get("gender") in (gender, "any", None)]
             return [self._to_card(i) for i in items]
 
-        # Query Firestore — support both schemas:
-        # Old: primary_college_id + approval_status + visibility_status
-        # New (seeded): nearest_college_id + status
+        # Query Firestore using the new unified schema
         query = client.collection("properties").where(filter=firestore_v1.FieldFilter("status", "==", "live"))
         docs = list(query.stream())
 
-        # Also try the old schema
-        query2 = (
-            client.collection("properties")
-            .where(filter=firestore_v1.FieldFilter("approval_status", "==", "approved"))
-            .where(filter=firestore_v1.FieldFilter("visibility_status", "==", "live"))
-        )
-        docs2 = list(query2.stream())
-
-        # Merge and deduplicate
-        seen = set()
-        all_docs = []
-        for doc in docs + docs2:
-            if doc.id not in seen:
-                seen.add(doc.id)
-                all_docs.append(doc)
-
         results = []
-        for doc in all_docs:
+        for doc in docs:
             data = doc.to_dict()
-            # Check college match (either field)
-            college_match = (
-                data.get("primary_college_id") == primary_college_id
-                or data.get("nearest_college_id") == primary_college_id
-            )
-            if not college_match:
+            if data.get("primary_college_id") != primary_college_id:
                 continue
             if property_type and data.get("property_type") != property_type:
                 continue
@@ -249,14 +225,13 @@ class PropertyRepository:
         return results
 
     def search_all_live(self, property_type: Optional[str] = None, gender: Optional[str] = None) -> List[PropertyCard]:
-        """Return all live/approved properties regardless of college — for global discovery."""
+        """Return all live properties regardless of college — for global discovery."""
         client = get_firestore_client()
         if client is None:
             items = [
                 dict(item)
                 for item in _FALLBACK_PROPERTIES.values()
-                if item.get("approval_status") == "approved"
-                and item.get("visibility_status") == "live"
+                if item.get("status", "hidden") == "live"
             ]
             if property_type:
                 items = [i for i in items if i.get("property_type") == property_type]
@@ -267,22 +242,9 @@ class PropertyRepository:
         # Firestore: fetch all live properties
         query = client.collection("properties").where(filter=firestore_v1.FieldFilter("status", "==", "live"))
         docs = list(query.stream())
-        query2 = (
-            client.collection("properties")
-            .where(filter=firestore_v1.FieldFilter("approval_status", "==", "approved"))
-            .where(filter=firestore_v1.FieldFilter("visibility_status", "==", "live"))
-        )
-        docs2 = list(query2.stream())
-
-        seen = set()
-        all_docs = []
-        for doc in docs + docs2:
-            if doc.id not in seen:
-                seen.add(doc.id)
-                all_docs.append(doc)
 
         results = []
-        for doc in all_docs:
+        for doc in docs:
             data = doc.to_dict()
             if property_type and data.get("property_type") != property_type:
                 continue

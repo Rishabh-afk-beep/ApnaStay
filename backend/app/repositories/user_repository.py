@@ -100,7 +100,9 @@ class UserRepository:
         current.update(patch)
         return UserProfile(**current)
 
-    def list_all(self, role: Optional[str] = None, status: Optional[str] = None) -> List[UserProfile]:
+    def list_all(
+        self, role: Optional[str] = None, status: Optional[str] = None, skip: int = 0, limit: int = 50
+    ) -> List[UserProfile]:
         client = get_firestore_client()
         if client is None:
             users = list(_FALLBACK_USERS.values())
@@ -108,19 +110,18 @@ class UserRepository:
                 users = [u for u in users if u.get("role") == role]
             if status:
                 users = [u for u in users if u.get("status") == status]
-            return [UserProfile(**u) for u in users]
+            return [UserProfile(**u) for u in users[skip : skip + limit]]
 
         query = client.collection("users")
         if role:
             query = query.where("role", "==", role)
-        docs = query.stream()
-        users = []
-        for doc in docs:
-            data = doc.to_dict()
-            if status and data.get("status") != status:
-                continue
-            users.append(UserProfile(**data))
-        return users
+        
+        # Note: If status filter is frequently used with role, a composite index will be needed in Firestore.
+        if status:
+            query = query.where("status", "==", status)
+            
+        docs = query.offset(skip).limit(limit).stream()
+        return [UserProfile(**doc.to_dict()) for doc in docs]
 
     def update_status(self, uid: str, payload: AdminUserStatusUpdate) -> Optional[UserProfile]:
         patch: Dict[str, Any] = {"status": payload.status.value, "updated_at": self._now()}

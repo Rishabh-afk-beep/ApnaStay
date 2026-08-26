@@ -12,4 +12,4 @@ api_router.include_router(reviews.router, prefix="/properties", tags=["reviews"]
 api_router.include_router(engagement.router, tags=["engagement"])
 api_router.include_router(owner_properties.router, prefix="/owner/properties", tags=["owner-properties"])
 api_router.include_router(admin.router, prefix="/admin", tags=["admin"])
-api_router.include_router(upload.router, prefix="/upload", tags=["upload"])
+api_router.include_router(upload.router, prefix="/media", tags=["media"])

@@ -313,7 +313,7 @@ export async function uploadImage(file: File): Promise<ImageUploadResponse> {
   }
   const formData = new FormData();
   formData.append("file", file);
-  const res = await api.post<ImageUploadResponse>("/upload/image", formData, {
+  const res = await api.post<ImageUploadResponse>("/media/photo", formData, {
     timeout: 60000, // 60 seconds (override global 15s timeout for large uploads)
   });
   return res.data;

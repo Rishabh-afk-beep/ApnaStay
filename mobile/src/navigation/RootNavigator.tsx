@@ -11,12 +11,16 @@ import { DiscoverScreen } from "../screens/DiscoverScreen";
 import { PropertyDetailScreen } from "../screens/PropertyDetailScreen";
 import { ShortlistsScreen } from "../screens/ShortlistsScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
+import { AlertsScreen } from "../screens/AlertsScreen";
+import { OwnerDashboardScreen } from "../screens/OwnerDashboardScreen";
 import { Colors } from "../theme/colors";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function MainTabs() {
+  const { profile } = useAuth();
+  
   return (
     <Tab.Navigator
       screenOptions={{
@@ -36,25 +40,48 @@ function MainTabs() {
         },
       }}
     >
-      <Tab.Screen
-        name="Discover"
-        component={DiscoverScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="search" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Shortlists"
-        component={ShortlistsScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="heart" size={size} color={color} />
-          ),
-          tabBarLabel: "Saved",
-        }}
-      />
+      {profile?.role === "owner" ? (
+        <Tab.Screen
+          name="Dashboard"
+          component={OwnerDashboardScreen}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="home" size={size} color={color} />
+            ),
+          }}
+        />
+      ) : (
+        <>
+          <Tab.Screen
+            name="Discover"
+            component={DiscoverScreen}
+            options={{
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="search" size={size} color={color} />
+              ),
+            }}
+          />
+          <Tab.Screen
+            name="Alerts"
+            component={AlertsScreen}
+            options={{
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="notifications" size={size} color={color} />
+              ),
+            }}
+          />
+          <Tab.Screen
+            name="Shortlists"
+            component={ShortlistsScreen}
+            options={{
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="heart" size={size} color={color} />
+              ),
+              tabBarLabel: "Saved",
+            }}
+          />
+        </>
+      )}
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
