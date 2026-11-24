@@ -14,6 +14,7 @@ class ReviewOut(BaseModel):
     review_id: str
     property_id: str
     user_uid: str
+    user_name: str = "Verified Student"
     rating: int
     title: Optional[str] = None
     comment: Optional[str] = None

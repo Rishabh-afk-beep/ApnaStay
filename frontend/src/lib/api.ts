@@ -1,6 +1,27 @@
 import axios from "axios";
 import { auth } from "../auth/firebase";
-import type { PropertyCard, PropertyDetail, PaginatedResponse, CollegeOut, UserProfile, AdminAnalyticsOverview, AdminLogOut, InquiryOut, AdminInquiryOut, ReviewOut, AlertOut, ShortlistOut, RecentViewOut, ImageUploadResponse, OwnerAnalyticsOut } from "../types";
+import type {
+  PropertyCard,
+  PropertyDetail,
+  PaginatedResponse,
+  CollegeOut,
+  CollegeCreatePayload,
+  CollegeUpdatePayload,
+  UserProfile,
+  AdminAnalyticsOverview,
+  AdminLogOut,
+  InquiryOut,
+  AdminInquiryOut,
+  ReviewOut,
+  AlertOut,
+  ShortlistOut,
+  RecentViewOut,
+  ImageUploadResponse,
+  OwnerAnalyticsOut,
+  OwnerPropertyCreatePayload,
+  OwnerPropertyUpdatePayload,
+} from "../types";
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1",
   timeout: 15_000,
@@ -29,26 +50,37 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    // If 401 Unauthorized and we haven't already retried
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        // If we have a Firebase user, force refresh their token
         if (auth.currentUser) {
           const newToken = await auth.currentUser.getIdToken(true);
           setApiToken(newToken);
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          // Retry the original request
           return api(originalRequest);
         }
       } catch (refreshError) {
         console.error("[NearMyColleges] Token refresh failed:", refreshError);
-        // Optional: Trigger global logout or redirect
       }
     }
     return Promise.reject(error);
   }
 );
+
+// ── Error helper ──────────────────────────────────────────────────
+
+export function getApiErrorMessage(err: unknown, fallback = "Something went wrong"): string {
+  if (axios.isAxiosError(err)) {
+    const detail = err.response?.data?.detail;
+    if (typeof detail === "string") return detail;
+    if (detail && typeof detail === "object" && "message" in detail && typeof detail.message === "string") {
+      return detail.message;
+    }
+    if (err.message) return err.message;
+  }
+  if (err instanceof Error) return err.message;
+  return fallback;
+}
 
 // ── Me ────────────────────────────────────────────────────────────
 
@@ -57,7 +89,13 @@ export async function getMe(): Promise<UserProfile> {
   return res.data;
 }
 
-export async function registerUser(data: { role: string; name: string; phone?: string; email?: string; college_id?: string }): Promise<{ uid: string; role: string; name: string; message: string }> {
+export async function registerUser(data: {
+  role: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  college_id?: string;
+}): Promise<{ uid: string; role: string; name: string; message: string }> {
   const res = await api.post("/auth/register", data);
   return res.data;
 }
@@ -67,7 +105,12 @@ export async function updateMe(data: Partial<UserProfile>): Promise<UserProfile>
   return res.data;
 }
 
-export async function completeProfile(data: { name: string; phone: string; email?: string; college_id?: string }): Promise<UserProfile> {
+export async function completeProfile(data: {
+  name: string;
+  phone: string;
+  email?: string;
+  college_id?: string;
+}): Promise<UserProfile> {
   const res = await api.post<UserProfile>("/me/complete-profile", data);
   return res.data;
 }
@@ -136,7 +179,10 @@ export async function submitReview(propertyId: string, data: { rating: number; c
 
 // ── Engagement: Inquiries ─────────────────────────────────────────
 
-export async function submitInquiry(propertyId: string, data: { name: string; phone: string; message: string }): Promise<InquiryOut> {
+export async function submitInquiry(
+  propertyId: string,
+  data: { name: string; phone: string; message: string }
+): Promise<InquiryOut> {
   const res = await api.post<InquiryOut>(`/properties/${propertyId}/inquiries`, data);
   return res.data;
 }
@@ -170,7 +216,12 @@ export async function listRecentViews(): Promise<RecentViewOut[]> {
 
 // ── Engagement: Alerts ────────────────────────────────────────────
 
-export async function createAlert(data: { college_id: string; radius_km?: number; property_type?: string; budget_max?: number }): Promise<AlertOut> {
+export async function createAlert(data: {
+  college_id: string;
+  radius_km?: number;
+  property_type?: string;
+  budget_max?: number;
+}): Promise<AlertOut> {
   const res = await api.post<AlertOut>("/me/alerts", data);
   return res.data;
 }
@@ -186,7 +237,7 @@ export async function deleteAlert(alertId: string): Promise<void> {
 
 // ── Owner ─────────────────────────────────────────────────────────
 
-export async function createOwnerProperty(data: any): Promise<PropertyDetail> {
+export async function createOwnerProperty(data: OwnerPropertyCreatePayload): Promise<PropertyDetail> {
   const res = await api.post<PropertyDetail>("/owner/properties", data);
   return res.data;
 }
@@ -196,13 +247,16 @@ export async function listOwnerProperties(): Promise<PropertyDetail[]> {
   return res.data;
 }
 
-export async function updateOwnerProperty(propertyId: string, data: any): Promise<PropertyDetail> {
+export async function updateOwnerProperty(
+  propertyId: string,
+  data: OwnerPropertyUpdatePayload
+): Promise<PropertyDetail> {
   const res = await api.patch<PropertyDetail>(`/owner/properties/${propertyId}`, data);
   return res.data;
 }
 
-export async function deleteOwnerProperty(propertyId: string): Promise<any> {
-  const res = await api.delete(`/owner/properties/${propertyId}`);
+export async function deleteOwnerProperty(propertyId: string): Promise<{ message: string }> {
+  const res = await api.delete<{ message: string }>(`/owner/properties/${propertyId}`);
   return res.data;
 }
 
@@ -273,12 +327,12 @@ export async function adminListColleges(): Promise<CollegeOut[]> {
   return res.data;
 }
 
-export async function adminCreateCollege(data: { name: string; short_name?: string; address?: string; city: string; state: string; latitude: number; longitude: number }): Promise<CollegeOut> {
+export async function adminCreateCollege(data: CollegeCreatePayload): Promise<CollegeOut> {
   const res = await api.post<CollegeOut>("/admin/colleges", data);
   return res.data;
 }
 
-export async function adminUpdateCollege(collegeId: string, data: any): Promise<CollegeOut> {
+export async function adminUpdateCollege(collegeId: string, data: CollegeUpdatePayload): Promise<CollegeOut> {
   const res = await api.patch<CollegeOut>(`/admin/colleges/${collegeId}`, data);
   return res.data;
 }
@@ -293,12 +347,18 @@ export async function adminListUsers(role?: string, status?: string): Promise<Us
   return res.data;
 }
 
-export async function adminUpdateUserStatus(uid: string, data: { status: string; reason?: string }): Promise<UserProfile> {
+export async function adminUpdateUserStatus(
+  uid: string,
+  data: { status: string; reason?: string }
+): Promise<UserProfile> {
   const res = await api.patch<UserProfile>(`/admin/users/${uid}/status`, data);
   return res.data;
 }
 
-export async function adminVerifyUser(uid: string, data: { verification_state: "verified" | "unverified" }): Promise<UserProfile> {
+export async function adminVerifyUser(
+  uid: string,
+  data: { verification_state: "verified" | "unverified" }
+): Promise<UserProfile> {
   const res = await api.patch<UserProfile>(`/admin/users/${uid}/verify`, data);
   return res.data;
 }
@@ -312,7 +372,6 @@ export async function adminListInquiries(): Promise<AdminInquiryOut[]> {
 // ── Upload ────────────────────────────────────────────────────────
 
 export async function uploadImage(file: File): Promise<ImageUploadResponse> {
-  // Prevent uploads larger than 5MB to avoid backend/load-balancer 413 errors (which manifest as CORS errors)
   if (file.size > 5 * 1024 * 1024) {
     throw new Error("File too large. Please upload an image smaller than 5MB.");
   }
@@ -323,18 +382,14 @@ export async function uploadImage(file: File): Promise<ImageUploadResponse> {
       timeout: 60000,
     });
     return res.data;
-  } catch (error: any) {
-    if (error.response?.data?.detail) {
-      throw new Error(error.response.data.detail);
-    }
-    throw error;
+  } catch (error: unknown) {
+    throw new Error(getApiErrorMessage(error, "Image upload failed"));
   }
 }
 
 // ── Cloudinary Dynamic Image Optimization ──
 export function getOptimizedImageUrl(url: string, width = 600, height = 400): string {
   if (!url || typeof url !== "string") return "";
-  if (!url.includes("cloudinary.com")) return url;
-  // Automatically injects responsive widths, responsive heights, fill crop, auto quality, and auto format support
+  if (!url.includes("cloudinary.com") || url.includes("/upload/w_")) return url;
   return url.replace("/upload/", `/upload/w_${width},h_${height},c_fill,q_auto,f_auto/`);
 }

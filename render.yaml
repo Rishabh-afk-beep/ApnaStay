@@ -8,7 +8,7 @@ services:
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: APP_NAME
-        value: ApnaStay API
+        value: NearMyColleges API
       - key: APP_ENV
         value: production
       - key: FIREBASE_PROJECT_ID

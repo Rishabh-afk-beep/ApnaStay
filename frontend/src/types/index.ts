@@ -94,6 +94,41 @@ export interface PropertyDetail extends PropertyCard {
   preferred_tenant?: string;
 }
 
+export interface OwnerPropertyCreatePayload {
+  title: string;
+  property_type: string;
+  primary_college_id: string;
+  description?: string;
+  address_text: string;
+  latitude: number;
+  longitude: number;
+  rent_min: number;
+  rent_max: number;
+  security_deposit: number;
+  amenities: string[];
+  gender?: string;
+  food_available: boolean;
+  food_menu?: string;
+  rules?: string;
+  image_urls: string[];
+  cover_image_url?: string;
+  room_options?: RoomOption[];
+  metadata?: PropertyMetadata;
+  owner_contact?: string;
+  owner_whatsapp?: string;
+  video_tour_url?: string;
+  available_from?: string;
+  nearby_landmarks?: string;
+  maintenance_charge?: number;
+  notice_period_days?: number;
+  preferred_tenant?: string;
+}
+
+export type OwnerPropertyUpdatePayload = Partial<OwnerPropertyCreatePayload> & {
+  availability_status?: string;
+  distance_km?: number;
+};
+
 // ── College ───────────────────────────────────────────────────────
 
 export interface CollegeOut {
@@ -109,6 +144,20 @@ export interface CollegeOut {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface CollegeCreatePayload {
+  name: string;
+  short_name?: string;
+  address?: string;
+  city: string;
+  state: string;
+  latitude: number;
+  longitude: number;
+}
+
+export type CollegeUpdatePayload = Partial<CollegeCreatePayload> & {
+  status?: string;
+};
 
 // ── User ──────────────────────────────────────────────────────────
 
@@ -133,9 +182,10 @@ export interface ReviewOut {
   review_id: string;
   property_id: string;
   user_uid: string;
-  user_name: string;
+  user_name?: string;
   rating: number;
-  comment: string;
+  title?: string;
+  comment?: string;
   created_at: string;
 }
 
@@ -144,10 +194,12 @@ export interface ReviewOut {
 export interface InquiryOut {
   inquiry_id: string;
   property_id: string;
-  user_uid?: string;
+  owner_uid?: string;
+  student_uid?: string;
   name: string;
   phone: string;
-  message: string;
+  message?: string;
+  source?: string;
   created_at: string;
 }
 
@@ -167,14 +219,14 @@ export interface AdminInquiryOut {
 }
 
 export interface ShortlistOut {
-  shortlist_id: string;
+  shortlist_id?: string;
   property_id: string;
   user_uid: string;
   created_at: string;
 }
 
 export interface RecentViewOut {
-  view_id: string;
+  view_id?: string;
   property_id: string;
   user_uid: string;
   viewed_at: string;

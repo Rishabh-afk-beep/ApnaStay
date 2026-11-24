@@ -47,7 +47,7 @@ export function AdminUsersPage() {
       );
     }
     return (
-      <span className="badge text-[10px]" style={{ background: "rgba(217,119,6,0.1)", color: "#92400e" }}>
+      <span className="badge text-[10px] bg-amber-500/15 text-amber-700 dark:text-amber-300">
         ⏳ Unverified
       </span>
     );
@@ -156,8 +156,7 @@ export function AdminUsersPage() {
                       <button
                         onClick={() => verifyMutation.mutate({ uid: user.uid, verification_state: "unverified" })}
                         disabled={verifyMutation.isPending}
-                        className="rounded-full px-3.5 py-1.5 text-xs font-bold transition-all hover:scale-105 disabled:opacity-50"
-                        style={{ background: "rgba(217,119,6,0.1)", color: "#92400e" }}
+                        className="rounded-full px-3.5 py-1.5 text-xs font-bold transition-all hover:scale-105 disabled:opacity-50 bg-amber-500/15 text-amber-700 dark:text-amber-300"
                       >
                         ❌ Revoke
                       </button>

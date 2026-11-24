@@ -16,12 +16,14 @@ const DefaultIcon = L.icon({
   tooltipAnchor: [16, -28],
 });
 L.Marker.prototype.options.icon = DefaultIcon;
-import { searchProperties, getPropertyDetail, getPropertyReviews, submitInquiry, submitReview, addShortlist, recordView, getOptimizedImageUrl } from "../lib/api";
+import { searchProperties, getPropertyDetail, getPropertyReviews, submitInquiry, submitReview, addShortlist, removeShortlist, listShortlists, recordView, getOptimizedImageUrl } from "../lib/api";
 import { Helmet } from "react-helmet-async";
 import { Reveal } from "../components/ui/Reveal";
 import { ListingCard } from "../components/listings/ListingCard";
 import { useAuth } from "../lib/AuthContext";
 import { Link } from "react-router-dom";
+import { Icon } from "../lib/icons";
+import type { PropertyCard } from "../types";
 
 export function PropertyDetailPage() {
   const { propertyId } = useParams<{ propertyId: string }>();
@@ -74,19 +76,39 @@ export function PropertyDetailPage() {
     mutationFn: () => submitReview(propertyId!, reviewForm),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["property-reviews", propertyId] });
+      queryClient.invalidateQueries({ queryKey: ["property-detail", propertyId] });
       setShowReviewForm(false);
       setReviewForm({ rating: 5, comment: "" });
     },
   });
 
-  const shortlistMutation = useMutation({
-    mutationFn: () => addShortlist(propertyId!),
+  const shortlistsQuery = useQuery({
+    queryKey: ["shortlists"],
+    queryFn: listShortlists,
+    enabled: isLoggedIn,
   });
 
-  // Record view on mount
+  const isShortlisted = Boolean(
+    shortlistsQuery.data?.some((s) => s.property_id === propertyId)
+  );
+
+  const shortlistMutation = useMutation({
+    mutationFn: async (currentlySaved: boolean) => {
+      if (currentlySaved) {
+        await removeShortlist(propertyId!);
+      } else {
+        await addShortlist(propertyId!);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shortlists"] });
+    },
+  });
+
+  // Record view on mount for authenticated users only
   useEffect(() => {
-    if (propertyId) recordView(propertyId).catch(() => {});
-  }, [propertyId]);
+    if (propertyId && isLoggedIn) recordView(propertyId).catch(() => {});
+  }, [propertyId, isLoggedIn]);
 
   // Map
   useEffect(() => {
@@ -106,7 +128,7 @@ export function PropertyDetailPage() {
 
   const property = propertyQuery.data;
   const reviews = reviewsQuery.data ?? [];
-  const similarProperties = similarPropertiesQuery.data?.items.filter((p: any) => p.property_id !== propertyId).slice(0, 3) ?? [];
+  const similarProperties = similarPropertiesQuery.data?.items.filter((p: PropertyCard) => p.property_id !== propertyId).slice(0, 3) ?? [];
 
   if (propertyQuery.isLoading) {
     return (
@@ -124,7 +146,7 @@ export function PropertyDetailPage() {
     return (
       <main className="mx-auto max-w-5xl px-6 py-20 text-center">
         <div className="rounded-3xl p-32" style={{ background: "var(--surface-container-low)" }}>
-          <p className="text-6xl">😕</p>
+          <Icon name="frown" className="w-16 h-16 mx-auto opacity-60 text-slate-400" />
           <h1 className="mt-6 text-3xl font-black" style={{ color: "var(--on-surface)" }}>Property Not Found</h1>
           <p className="mt-4 text-slate-500">This property may have been removed or the link is invalid.</p>
         </div>
@@ -186,7 +208,7 @@ export function PropertyDetailPage() {
             className="flex h-64 items-center justify-center rounded-3xl"
             style={{ background: "linear-gradient(135deg, var(--surface-container) 0%, var(--surface-container-high) 100%)" }}
           >
-            <span className="text-6xl opacity-50">🏠</span>
+            <Icon name="home" className="w-16 h-16 opacity-50 text-slate-400" />
           </div>
         )}
       </Reveal>
@@ -251,40 +273,46 @@ export function PropertyDetailPage() {
           {/* Quick Info Chips */}
           <Reveal delayMs={140}>
             <div className="flex flex-wrap gap-2">
+              {property.distance_km != null && (
+                <span className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold"
+                  style={{ background: "var(--surface-container-low)", color: "var(--on-surface-variant)" }}>
+                  <Icon name="map_pin" className="w-3.5 h-3.5 text-current" /> {property.distance_km < 1 ? `${Math.round(property.distance_km * 1000)} m` : `${property.distance_km.toFixed(1)} km`} to college
+                </span>
+              )}
               {property.gender && property.gender !== "any" && (
                 <span className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold"
                   style={{ background: "var(--surface-container-low)", color: "var(--on-surface-variant)" }}>
-                  {property.gender === "male" ? "👦" : property.gender === "female" ? "👧" : "👥"} {property.gender === "male" ? "Boys Only" : property.gender === "female" ? "Girls Only" : "Co-ed"}
+                  <Icon name={property.gender === "male" ? "user" : property.gender === "female" ? "user" : "users"} className="w-3.5 h-3.5 text-current" /> {property.gender === "male" ? "Boys Only" : property.gender === "female" ? "Girls Only" : "Co-ed"}
                 </span>
               )}
               {property.food_available && (
                 <span className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold"
                   style={{ background: "var(--surface-container-low)", color: "var(--on-surface-variant)" }}>
-                  🍽️ Food Included
+                  <Icon name="food" className="w-3.5 h-3.5 text-current" /> Food Included
                 </span>
               )}
               {property.preferred_tenant && property.preferred_tenant !== "any" && (
                 <span className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold"
                   style={{ background: "var(--surface-container-low)", color: "var(--on-surface-variant)" }}>
-                  🎯 Preferred: {property.preferred_tenant.replace(/_/g, " ")}
+                  <Icon name="target" className="w-3.5 h-3.5 text-current" /> Preferred: {property.preferred_tenant.replace(/_/g, " ")}
                 </span>
               )}
               {property.available_from && (
                 <span className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold"
                   style={{ background: "var(--surface-container-low)", color: "var(--on-surface-variant)" }}>
-                  📅 Available from {property.available_from}
+                  <Icon name="calendar" className="w-3.5 h-3.5 text-current" /> Available from {property.available_from}
                 </span>
               )}
               {property.maintenance_charge != null && property.maintenance_charge > 0 && (
                 <span className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold"
                   style={{ background: "var(--surface-container-low)", color: "var(--on-surface-variant)" }}>
-                  🔧 Maintenance: ₹{property.maintenance_charge.toLocaleString()}/mo
+                  <Icon name="wrench" className="w-3.5 h-3.5 text-current" /> Maintenance: ₹{property.maintenance_charge.toLocaleString()}/mo
                 </span>
               )}
               {property.notice_period_days != null && property.notice_period_days > 0 && (
                 <span className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold"
                   style={{ background: "var(--surface-container-low)", color: "var(--on-surface-variant)" }}>
-                  📝 {property.notice_period_days} days notice
+                  <Icon name="file_text" className="w-3.5 h-3.5 text-current" /> {property.notice_period_days} days notice
                 </span>
               )}
             </div>
@@ -347,19 +375,12 @@ export function PropertyDetailPage() {
                 {/* Metadata fields */}
                 {property.metadata && Object.entries(property.metadata).map(([key, value]) => {
                   if (value == null || value === "") return null;
-                  const ICONS: Record<string, string> = {
-                    furnishing: "🛋️", floor: "🏢", total_floors: "🏗️", lift: "🛗", society_name: "🏘️",
-                    num_bathrooms: "🚿", bathroom_type: "🚽", kitchen_access: "🍳", size_sqft: "📐",
-                    parking_type: "🅿️", water_supply: "💧", mess_timing: "⏰", gate_timing: "🚪",
-                    warden_contact: "📞", curfew_time: "🌙", warden_on_site: "👮", total_capacity: "👥",
-                    study_hall: "📚", community_events: "🎉", coworking: "💻", min_stay_duration: "📆",
-                  };
                   const formatKey = (k: string) => k.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
                   const formatVal = (v: unknown) => typeof v === "boolean" ? (v ? "Yes" : "No") : String(v);
                   return (
                     <div key={key}>
-                      <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>
-                        {ICONS[key] || "📋"} {formatKey(key)}
+                      <p className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5" style={{ color: "var(--outline)" }}>
+                        <Icon name={key} className="w-3.5 h-3.5 text-current" /> {formatKey(key)}
                       </p>
                       <p className="mt-1 text-sm font-semibold capitalize" style={{ color: "var(--on-surface-variant)" }}>
                         {formatVal(value)}
@@ -377,18 +398,13 @@ export function PropertyDetailPage() {
               <h2 className="font-black" style={{ color: "var(--on-surface)" }}>Amenities</h2>
               <div className="mt-4 flex flex-wrap gap-2">
                 {property.amenities.map((a) => {
-                  const AMENITY_ICONS: Record<string, string> = {
-                    wifi: "📶", food: "🍽️", ac: "❄️", parking: "🅿️", laundry: "🧺",
-                    gym: "💪", cctv: "📹", geyser: "🚿", power_backup: "⚡", study_room: "📚",
-                    terrace: "🌅", security: "🛡️", garden: "🌿", swimming_pool: "🏊",
-                  };
                   return (
                     <span
                       key={a}
                       className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold"
                       style={{ background: "var(--surface-container-low)", color: "var(--on-surface-variant)" }}
                     >
-                      {AMENITY_ICONS[a] || "✨"} {a.replace(/_/g, " ")}
+                      <Icon name={a} className="w-4 h-4 text-current" /> {a.replace(/_/g, " ")}
                     </span>
                   );
                 })}
@@ -400,7 +416,9 @@ export function PropertyDetailPage() {
           {property.food_available && property.food_menu && (
             <Reveal delayMs={260}>
               <div className="glass-card-static p-6">
-                <h2 className="font-black" style={{ color: "var(--on-surface)" }}>🍽️ Food Menu</h2>
+                <h2 className="font-black" style={{ color: "var(--on-surface)" }}>
+                  <Icon name="food" className="inline w-5 h-5 mr-1.5 align-text-bottom text-current" /> Food Menu
+                </h2>
                 <p className="mt-3 text-sm leading-7" style={{ color: "var(--on-surface-variant)" }}>{property.food_menu}</p>
               </div>
             </Reveal>
@@ -410,7 +428,9 @@ export function PropertyDetailPage() {
           {property.nearby_landmarks && (
             <Reveal delayMs={270}>
               <div className="glass-card-static p-6">
-                <h2 className="font-black" style={{ color: "var(--on-surface)" }}>📍 Nearby Landmarks</h2>
+                <h2 className="font-black" style={{ color: "var(--on-surface)" }}>
+                  <Icon name="map_pin" className="inline w-5 h-5 mr-1.5 align-text-bottom text-current" /> Nearby Landmarks
+                </h2>
                 <p className="mt-3 text-sm leading-7" style={{ color: "var(--on-surface-variant)" }}>{property.nearby_landmarks}</p>
               </div>
             </Reveal>
@@ -420,7 +440,9 @@ export function PropertyDetailPage() {
           {property.video_tour_url && (
             <Reveal delayMs={280}>
               <div className="glass-card-static p-6">
-                <h2 className="font-black" style={{ color: "var(--on-surface)" }}>🎬 Video Tour</h2>
+                <h2 className="font-black" style={{ color: "var(--on-surface)" }}>
+                  <Icon name="video" className="inline w-5 h-5 mr-1.5 align-text-bottom text-current" /> Video Tour
+                </h2>
                 <a
                   href={property.video_tour_url}
                   target="_blank"
@@ -428,7 +450,7 @@ export function PropertyDetailPage() {
                   className="mt-3 inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition-transform hover:scale-[1.02]"
                   style={{ background: "var(--primary-container)", color: "var(--on-primary-container)" }}
                 >
-                  ▶️ Watch Video Tour
+                  <Icon name="play" className="inline w-4 h-4 mr-1.5 text-current" /> Watch Video Tour
                 </a>
               </div>
             </Reveal>
@@ -438,7 +460,9 @@ export function PropertyDetailPage() {
           {property.rules && (
             <Reveal delayMs={310}>
               <div className="glass-card-static p-6">
-                <h2 className="font-black" style={{ color: "var(--on-surface)" }}>📋 House Rules</h2>
+                <h2 className="font-black" style={{ color: "var(--on-surface)" }}>
+                  <Icon name="clipboard" className="inline w-5 h-5 mr-1.5 align-text-bottom text-current" /> House Rules
+                </h2>
                 <p className="mt-3 text-sm leading-7" style={{ color: "var(--on-surface-variant)" }}>{property.rules}</p>
               </div>
             </Reveal>
@@ -491,7 +515,7 @@ export function PropertyDetailPage() {
               className="mt-3 block w-full rounded-2xl py-3 text-center text-sm font-bold transition-transform hover:scale-[1.02]"
               style={{ background: "var(--primary-container)", color: "var(--on-primary-container)" }}
             >
-              🗺️ Open for Directions
+              <Icon name="map" className="inline w-4 h-4 mr-1.5 text-current" /> Open for Directions
             </a>
           </Reveal>
 
@@ -516,7 +540,7 @@ export function PropertyDetailPage() {
                         key={star}
                         onClick={() => setReviewForm({ ...reviewForm, rating: star })}
                         className="text-2xl transition-transform hover:scale-110"
-                        style={{ color: star <= reviewForm.rating ? "var(--primary-container)" : "var(--surface-container-high)" }}
+                        style={{ color: star <= reviewForm.rating ? "#F59E0B" : "var(--outline-variant)" }}
                       >
                         ★
                       </button>
@@ -543,10 +567,10 @@ export function PropertyDetailPage() {
                 {reviews.map((r) => (
                   <div key={r.review_id} className="rounded-xl p-4" style={{ background: "var(--surface-container-low)" }}>
                     <div className="flex items-center justify-between">
-                      <span className="font-bold" style={{ color: "var(--on-surface)" }}>{r.user_name}</span>
+                      <span className="font-bold" style={{ color: "var(--on-surface)" }}>{r.user_name || "Verified Student"}</span>
                       <div className="flex">
                         {Array.from({ length: r.rating }).map((_, i) => (
-                          <span key={i} style={{ color: "var(--primary-container)" }}>★</span>
+                          <span key={i} style={{ color: "#F59E0B" }}>★</span>
                         ))}
                       </div>
                     </div>
@@ -574,14 +598,14 @@ export function PropertyDetailPage() {
                     onClick={() => setShowInquiry(true)}
                     className="btn-primary w-full"
                   >
-                    📩 Send Inquiry
+                    <Icon name="message" className="inline w-4 h-4 mr-1.5" /> Send Inquiry
                   </button>
                   <button
-                    onClick={() => shortlistMutation.mutate()}
+                    onClick={() => shortlistMutation.mutate(isShortlisted)}
                     disabled={shortlistMutation.isPending}
                     className="btn-ghost w-full"
                   >
-                    {shortlistMutation.isSuccess ? "✓ Shortlisted" : "♥ Save to Shortlist"}
+                    {isShortlisted ? "✓ Shortlisted (Remove)" : "♥ Save to Shortlist"}
                   </button>
 
                   {/* Owner Contact Buttons */}
@@ -591,7 +615,7 @@ export function PropertyDetailPage() {
                       className="flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-sm font-bold transition hover:scale-[1.02]"
                       style={{ background: "var(--surface-container-low)", color: "var(--on-surface)", border: "1px solid var(--glass-border)" }}
                     >
-                      📞 Call Owner
+                      <Icon name="phone" className="w-4 h-4 text-current" /> Call Owner
                     </a>
                   )}
                   {property.owner_whatsapp && (
@@ -602,7 +626,7 @@ export function PropertyDetailPage() {
                       className="flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-sm font-bold transition hover:scale-[1.02]"
                       style={{ background: "rgba(34, 197, 94, 0.08)", color: "#16a34a", border: "1px solid rgba(34, 197, 94, 0.2)" }}
                     >
-                      💬 WhatsApp Owner
+                      <Icon name="message" className="w-4 h-4 text-current" /> WhatsApp Owner
                     </a>
                   )}
                   {/* Commission notice */}
@@ -610,7 +634,9 @@ export function PropertyDetailPage() {
                     className="rounded-2xl p-4 text-xs leading-5"
                     style={{ background: "var(--surface-container-low)", color: "var(--outline)" }}
                   >
-                    <p className="font-bold mb-1" style={{ color: "var(--on-surface-variant)" }}>📌 Platform Commission</p>
+                    <p className="font-bold mb-1 flex items-center gap-1.5" style={{ color: "var(--on-surface-variant)" }}>
+                      <Icon name="info" className="w-4 h-4" /> Platform Commission
+                    </p>
                     <p>
                       If you finalise this property through NearMyColleges, a platform commission fee
                       is charged to the owner. No extra charges for you!
@@ -625,7 +651,7 @@ export function PropertyDetailPage() {
                     style={{ background: "var(--surface-container-low)", border: "1.5px dashed var(--outline-variant)" }}
                   >
                     <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full text-2xl" style={{ background: "var(--surface-container-high)" }}>
-                      🔒
+                      <Icon name="security" className="w-6 h-6 text-slate-500" />
                     </div>
                     <div>
                       <p className="text-sm font-black" style={{ color: "var(--on-surface)" }}>Contact Locked</p>
@@ -637,7 +663,7 @@ export function PropertyDetailPage() {
                       to="/login"
                       className="btn-primary block w-full text-center"
                     >
-                      🔑 Login to Contact Owner
+                      <Icon name="user" className="inline w-4 h-4 mr-1.5" /> Login to Contact Owner
                     </Link>
                   </div>
 
@@ -647,21 +673,21 @@ export function PropertyDetailPage() {
                     style={{ background: "var(--surface-container)", border: "1px solid var(--glass-border)" }}
                   >
                     <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>What you get after login</p>
-                    {[
-                      "📩 Send direct inquiry to owner",
-                      "♥ Save to shortlist",
-                      "💬 Get a response within 24 hours",
-                      "🛡️ Platform-verified listing",
-                    ].map((item) => (
-                      <p key={item} className="text-xs" style={{ color: "var(--on-surface-variant)" }}>{item}</p>
-                    ))}
+                    <div className="space-y-1 mt-2">
+                      <p className="text-xs flex items-center gap-2" style={{ color: "var(--on-surface-variant)" }}><Icon name="message" className="w-3.5 h-3.5" /> Send direct inquiry to owner</p>
+                      <p className="text-xs flex items-center gap-2" style={{ color: "var(--on-surface-variant)" }}><Icon name="heart" className="w-3.5 h-3.5" /> Save to shortlist</p>
+                      <p className="text-xs flex items-center gap-2" style={{ color: "var(--on-surface-variant)" }}><Icon name="message" className="w-3.5 h-3.5" /> Get a response within 24 hours</p>
+                      <p className="text-xs flex items-center gap-2" style={{ color: "var(--on-surface-variant)" }}><Icon name="security" className="w-3.5 h-3.5" /> Platform-verified listing</p>
+                    </div>
                   </div>
 
                   <div
                     className="rounded-2xl p-4 text-xs leading-5"
                     style={{ background: "var(--surface-container-low)", color: "var(--outline)" }}
                   >
-                    <p className="font-bold mb-1" style={{ color: "var(--on-surface-variant)" }}>📌 Platform Commission</p>
+                    <p className="font-bold mb-1 flex items-center gap-1.5" style={{ color: "var(--on-surface-variant)" }}>
+                      <Icon name="info" className="w-4 h-4" /> Platform Commission
+                    </p>
                     <p>
                       A platform commission fee is charged to the owner when a deal is finalised.
                       This service is completely free for students!
@@ -675,14 +701,14 @@ export function PropertyDetailPage() {
                 href={`https://wa.me/918152916235?text=${encodeURIComponent(`Hi, I saw "${property.title}" on NearMyColleges and I'm interested. Can you help me with more details?`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full rounded-full py-3.5 text-center text-sm font-bold transition"
+                className="block w-full rounded-full py-3.5 text-center text-sm font-bold transition flex items-center justify-center gap-2"
                 style={{
                   background: "rgba(34, 197, 94, 0.08)",
                   color: "#16a34a",
                   border: "1px solid rgba(34, 197, 94, 0.2)",
                 }}
               >
-                💬 WhatsApp Support
+                <Icon name="message" className="w-4 h-4 text-current" /> WhatsApp Support
               </a>
             </div>
           </Reveal>
@@ -698,7 +724,7 @@ export function PropertyDetailPage() {
             Other {property.property_type.replace(/_/g, " ")} options nearby you might like
           </p>
           <div className="grid gap-6 md:grid-cols-3">
-            {similarProperties.map((listing: any) => (
+            {similarProperties.map((listing: PropertyCard) => (
               <ListingCard key={listing.property_id} listing={listing} />
             ))}
           </div>

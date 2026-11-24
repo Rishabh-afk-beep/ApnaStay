@@ -1,8 +1,7 @@
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
-from uuid import uuid4
 
-from app.models.schemas.user import AdminUserStatusUpdate, UserProfile, UserRole, UserStatus, VerificationState
+from app.models.schemas.user import AdminUserStatusUpdate, UserProfile, UserStatus
 from app.repositories.firestore_client import get_firestore_client
 
 
@@ -13,7 +12,7 @@ _FALLBACK_USERS: Dict[str, Dict[str, Any]] = {
         "status": "active",
         "name": "Admin User",
         "phone": "9000000001",
-        "email": "admin@apnastay.in",
+        "email": "admin@nearmycolleges.in",
         "verification_state": "verified",
         "created_at": "2026-01-01T00:00:00+00:00",
         "updated_at": "2026-01-01T00:00:00+00:00",
@@ -24,7 +23,7 @@ _FALLBACK_USERS: Dict[str, Dict[str, Any]] = {
         "status": "active",
         "name": "Owner Demo",
         "phone": "9000000002",
-        "email": "owner@apnastay.in",
+        "email": "owner@nearmycolleges.in",
         "verification_state": "verified",
         "created_at": "2026-01-01T00:00:00+00:00",
         "updated_at": "2026-01-01T00:00:00+00:00",
@@ -35,7 +34,7 @@ _FALLBACK_USERS: Dict[str, Dict[str, Any]] = {
         "status": "active",
         "name": "Student Demo",
         "phone": "9000000003",
-        "email": "student@apnastay.in",
+        "email": "student@nearmycolleges.in",
         "college_id": "sample-college-1",
         "verification_state": "verified",
         "created_at": "2026-01-01T00:00:00+00:00",
@@ -61,6 +60,28 @@ class UserRepository:
         if not doc.exists:
             return None
         return UserProfile(**doc.to_dict())
+
+    def get_many_by_uids(self, uids: List[str]) -> Dict[str, UserProfile]:
+        unique_uids = [u for u in dict.fromkeys(uids) if u]
+        if not unique_uids:
+            return {}
+
+        client = get_firestore_client()
+        if client is None:
+            result: Dict[str, UserProfile] = {}
+            for uid in unique_uids:
+                data = _FALLBACK_USERS.get(uid)
+                if data:
+                    result[uid] = UserProfile(**data)
+            return result
+
+        refs = [client.collection("users").document(uid) for uid in unique_uids]
+        result = {}
+        for doc in client.get_all(refs):
+            if doc.exists:
+                profile = UserProfile(**doc.to_dict())
+                result[profile.uid] = profile
+        return result
 
     def upsert(self, profile: UserProfile) -> UserProfile:
         now = self._now()
@@ -115,11 +136,9 @@ class UserRepository:
         query = client.collection("users")
         if role:
             query = query.where("role", "==", role)
-        
-        # Note: If status filter is frequently used with role, a composite index will be needed in Firestore.
         if status:
             query = query.where("status", "==", status)
-            
+
         docs = query.offset(skip).limit(limit).stream()
         return [UserProfile(**doc.to_dict()) for doc in docs]
 

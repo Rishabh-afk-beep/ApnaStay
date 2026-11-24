@@ -1,25 +1,36 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Heart, Home, MapPin, User, Utensils, Star, Flame, Sparkles } from "lucide-react";
 
 import type { PropertyCard } from "../../types";
-import { addShortlist, removeShortlist, getOptimizedImageUrl, getPropertyDetail } from "../../lib/api";
-import { useState } from "react";
+import { addShortlist, removeShortlist, listShortlists, getOptimizedImageUrl, getPropertyDetail } from "../../lib/api";
+import { useAuth } from "../../lib/AuthContext";
 
 export function ListingCard({ listing }: { listing: PropertyCard }) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [shortlisted, setShortlisted] = useState(false);
+  const { firebaseUser } = useAuth();
+
+  const shortlistsQuery = useQuery({
+    queryKey: ["shortlists"],
+    queryFn: listShortlists,
+    enabled: Boolean(firebaseUser),
+    staleTime: 60_000,
+  });
+
+  const shortlisted = Boolean(
+    shortlistsQuery.data?.some((s) => s.property_id === listing.property_id)
+  );
 
   const shortlistMutation = useMutation({
-    mutationFn: async () => {
-      if (shortlisted) {
+    mutationFn: async (currentlySaved: boolean) => {
+      if (currentlySaved) {
         await removeShortlist(listing.property_id);
       } else {
         await addShortlist(listing.property_id);
       }
     },
     onSuccess: () => {
-      setShortlisted(!shortlisted);
       queryClient.invalidateQueries({ queryKey: ["shortlists"] });
     },
   });
@@ -38,7 +49,11 @@ export function ListingCard({ listing }: { listing: PropertyCard }) {
 
   const handleShortlistClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    shortlistMutation.mutate();
+    if (!firebaseUser) {
+      navigate("/login");
+      return;
+    }
+    shortlistMutation.mutate(shortlisted);
   };
 
   return (
@@ -68,6 +83,7 @@ export function ListingCard({ listing }: { listing: PropertyCard }) {
           />
           <button
             onClick={handleShortlistClick}
+            disabled={shortlistMutation.isPending}
             className={`absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-lg transition-all duration-300 hover:scale-110 active:scale-95 ${shortlisted ? "animate-heart-pop text-red-500 scale-105" : "text-white"}`}
             style={{
               background: "var(--glass-bg)",
@@ -76,28 +92,28 @@ export function ListingCard({ listing }: { listing: PropertyCard }) {
             }}
             aria-label="Toggle shortlist"
           >
-            {shortlisted ? "❤️" : "🤍"}
+            <Heart className={`w-5 h-5 ${shortlisted ? "fill-current" : ""}`} />
           </button>
           {listing.featured ? (
             <span
               className="absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm"
               style={{ background: "var(--gradient-amber)", color: "var(--on-primary)" }}
             >
-              ✦ Featured
+              <Sparkles className="w-3 h-3 inline mr-1 fill-current" /> Featured
             </span>
           ) : listing.rating_avg >= 4.5 && listing.review_count >= 2 ? (
             <span
               className="absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm"
               style={{ background: "var(--success)", color: "var(--on-primary)" }}
             >
-              ⭐ Top Rated
+              <Star className="w-3 h-3 inline mr-1 fill-current" /> Top Rated
             </span>
           ) : listing.review_count >= 5 ? (
             <span
               className="absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm"
               style={{ background: "var(--error)", color: "var(--on-primary)" }}
             >
-              🔥 High Demand
+              <Flame className="w-3 h-3 inline mr-1 fill-current" /> High Demand
             </span>
           ) : null}
           {/* Bottom rent overlay */}
@@ -115,9 +131,10 @@ export function ListingCard({ listing }: { listing: PropertyCard }) {
             background: "linear-gradient(135deg, var(--surface-container) 0%, var(--surface-container-high) 100%)",
           }}
         >
-          <span className="text-5xl opacity-60">🏠</span>
+          <Home className="w-12 h-12 opacity-60 text-white" />
           <button
             onClick={handleShortlistClick}
+            disabled={shortlistMutation.isPending}
             className={`absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-lg transition-all duration-300 hover:scale-110 active:scale-95 ${shortlisted ? "animate-heart-pop text-red-500 scale-105" : "text-white"}`}
             style={{
               background: "var(--glass-bg)",
@@ -126,28 +143,28 @@ export function ListingCard({ listing }: { listing: PropertyCard }) {
             }}
             aria-label="Toggle shortlist"
           >
-            {shortlisted ? "❤️" : "🤍"}
+            <Heart className={`w-5 h-5 ${shortlisted ? "fill-current" : ""}`} />
           </button>
           {listing.featured ? (
             <span
               className="absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm"
               style={{ background: "var(--gradient-amber)", color: "var(--on-primary)" }}
             >
-              ✦ Featured
+              <Sparkles className="w-3 h-3 inline mr-1 fill-current" /> Featured
             </span>
           ) : listing.rating_avg >= 4.5 && listing.review_count >= 2 ? (
             <span
               className="absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm"
               style={{ background: "var(--success)", color: "var(--on-primary)" }}
             >
-              ⭐ Top Rated
+              <Star className="w-3 h-3 inline mr-1 fill-current" /> Top Rated
             </span>
           ) : listing.review_count >= 5 ? (
             <span
               className="absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm"
               style={{ background: "var(--error)", color: "var(--on-primary)" }}
             >
-              🔥 High Demand
+              <Flame className="w-3 h-3 inline mr-1 fill-current" /> High Demand
             </span>
           ) : null}
           {/* Bottom rent overlay */}
@@ -181,25 +198,25 @@ export function ListingCard({ listing }: { listing: PropertyCard }) {
         <div className="mt-3 flex flex-wrap items-center gap-3 text-sm" style={{ color: "var(--on-surface-variant)" }}>
           {listing.distance_km != null && (
             <span className="flex items-center gap-1.5 font-semibold">
-              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full text-xs" style={{ background: "var(--surface-container)" }}>📍</span>
-              {listing.distance_km} km
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full" style={{ background: "var(--surface-container)" }}><MapPin className="w-3.5 h-3.5" /></span>
+              {listing.distance_km < 1 ? `${Math.round(listing.distance_km * 1000)} m` : `${listing.distance_km.toFixed(1)} km`}
             </span>
           )}
           {listing.gender && listing.gender !== "any" && (
             <span className="flex items-center gap-1.5 font-semibold">
-              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full text-xs" style={{ background: "var(--surface-container)" }}>{listing.gender === "male" ? "♂" : "♀"}</span>
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full" style={{ background: "var(--surface-container)" }}><User className="w-3.5 h-3.5" /></span>
               {listing.gender}
             </span>
           )}
           {listing.food_available && (
             <span className="flex items-center gap-1.5 font-semibold">
-              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full text-xs" style={{ background: "var(--surface-container)" }}>🍽️</span>
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full" style={{ background: "var(--surface-container)" }}><Utensils className="w-3.5 h-3.5" /></span>
               Food
             </span>
           )}
           {listing.rating_avg > 0 && (
             <span className="flex items-center gap-1.5 font-semibold" style={{ color: "var(--primary)" }}>
-              ★ {listing.rating_avg.toFixed(1)}
+              <Star className="w-3.5 h-3.5 fill-current" /> {listing.rating_avg.toFixed(1)}
               <span style={{ color: "var(--outline)" }}>({listing.review_count})</span>
             </span>
           )}

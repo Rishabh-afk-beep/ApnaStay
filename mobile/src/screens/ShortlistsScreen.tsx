@@ -109,7 +109,7 @@ export function ShortlistsScreen({ navigation }: any) {
       ) : (
         <FlatList
           data={shortlistsQuery.data ?? []}
-          keyExtractor={(item) => item.shortlist_id}
+          keyExtractor={(item) => item.shortlist_id || item.property_id}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
             <ShortlistItem

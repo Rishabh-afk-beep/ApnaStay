@@ -1,21 +1,22 @@
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 
 from app.api.deps import require_admin
+from app.api.v1.endpoints.colleges import clear_colleges_cache
 from app.models.schemas.admin_log import AdminLogOut
 from app.models.schemas.analytics import AdminAnalyticsOverview
 from app.models.schemas.college import CollegeCreate, CollegeOut, CollegeUpdate
+from app.models.schemas.engagement import AdminInquiryOut
 from app.models.schemas.property import PropertyCard
 from app.models.schemas.user import AdminUserStatusUpdate, AdminVerificationUpdate, UserProfile
-from app.models.schemas.engagement import AdminInquiryOut
 from app.repositories.admin_log_repository import AdminLogRepository
 from app.repositories.analytics_repository import AnalyticsRepository
 from app.repositories.college_repository import CollegeRepository
+from app.repositories.engagement_repository import EngagementRepository
 from app.repositories.property_repository import PropertyRepository
 from app.repositories.user_repository import UserRepository
-from app.repositories.engagement_repository import EngagementRepository
-from app.api.v1.endpoints.colleges import clear_colleges_cache
+from app.services.cache_service import CacheService
 
 router = APIRouter()
 repo = PropertyRepository()
@@ -24,6 +25,13 @@ admin_log_repo = AdminLogRepository()
 college_repo = CollegeRepository()
 user_repo = UserRepository()
 engagement_repo = EngagementRepository()
+cache = CacheService()
+
+
+def _invalidate_property_caches(property_id: str) -> None:
+    cache.delete(f"cache:property:{property_id}")
+    cache.delete("cache:public:stats")
+    cache.invalidate_pattern("cache:search:*")
 
 
 # ── Listing moderation ──────────────────────────────────────────────
@@ -55,8 +63,8 @@ def delete_property(property_id: str, user: Annotated[UserProfile, Depends(requi
         target_id=property_id,
         metadata={},
     )
+    _invalidate_property_caches(property_id)
     return {"success": True}
-
 
 
 def _require_updated(item: PropertyCard | None) -> PropertyCard:
@@ -78,6 +86,7 @@ def approve_property(property_id: str, user: Annotated[UserProfile, Depends(requ
         target_id=property_id,
         metadata={"approval_status": "approved", "visibility_status": "live"},
     )
+    _invalidate_property_caches(property_id)
     return updated
 
 
@@ -91,6 +100,7 @@ def reject_property(property_id: str, user: Annotated[UserProfile, Depends(requi
         target_id=property_id,
         metadata={"approval_status": "rejected", "visibility_status": "hidden"},
     )
+    _invalidate_property_caches(property_id)
     return updated
 
 
@@ -104,6 +114,7 @@ def hide_property(property_id: str, user: Annotated[UserProfile, Depends(require
         target_id=property_id,
         metadata={"visibility_status": "hidden"},
     )
+    _invalidate_property_caches(property_id)
     return updated
 
 
@@ -117,6 +128,7 @@ def feature_property(property_id: str, user: Annotated[UserProfile, Depends(requ
         target_id=property_id,
         metadata={"featured": True},
     )
+    _invalidate_property_caches(property_id)
     return updated
 
 
@@ -130,6 +142,7 @@ def unfeature_property(property_id: str, user: Annotated[UserProfile, Depends(re
         target_id=property_id,
         metadata={"featured": False},
     )
+    _invalidate_property_caches(property_id)
     return updated
 
 
@@ -149,20 +162,22 @@ def admin_list_inquiries(
 ) -> list[AdminInquiryOut]:
     _ = user
     inquiries = engagement_repo.list_all_inquiries(skip=skip, limit=limit)
+    if not inquiries:
+        return []
+
+    # Batch-fetch unique properties and owners to avoid N+1 Firestore RPCs
+    props_map = repo.get_many_by_ids([inq.property_id for inq in inquiries])
+    owners_map = user_repo.get_many_by_uids([inq.owner_uid for inq in inquiries if inq.owner_uid])
+
     decorated = []
-    
     for inq in inquiries:
-        prop = repo.get_by_id(inq.property_id)
+        prop = props_map.get(inq.property_id)
         prop_title = prop.title if prop else "Unknown PG / Deleted"
-        
-        owner_name = "Unknown Owner"
-        owner_email = "No Email"
-        if inq.owner_uid:
-            owner = user_repo.get_by_uid(inq.owner_uid)
-            if owner:
-                owner_name = owner.name or "Unnamed Owner"
-                owner_email = owner.email or "No Email"
-                
+
+        owner = owners_map.get(inq.owner_uid) if inq.owner_uid else None
+        owner_name = (owner.name or "Unnamed Owner") if owner else "Unknown Owner"
+        owner_email = (owner.email or "No Email") if owner else "No Email"
+
         decorated.append(
             AdminInquiryOut(
                 inquiry_id=inq.inquiry_id,
@@ -187,10 +202,9 @@ def admin_list_inquiries(
 @router.get("/logs")
 def admin_logs(
     user: Annotated[UserProfile, Depends(require_admin)],
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks,
 ) -> list[AdminLogOut]:
     _ = user
-    # Clean up logs older than 20 days automatically
     background_tasks.add_task(admin_log_repo.cleanup_old_logs, days=20)
     return admin_log_repo.list_logs(limit=100)
 
@@ -215,7 +229,8 @@ def admin_create_college(
         target_type="college",
         target_id=college.college_id,
     )
-    clear_colleges_cache()  # Clear memory cache on create
+    clear_colleges_cache()
+    cache.delete("cache:public:stats")
     return college
 
 
@@ -237,7 +252,8 @@ def admin_update_college(
         target_type="college",
         target_id=college_id,
     )
-    clear_colleges_cache()  # Clear memory cache on update
+    clear_colleges_cache()
+    cache.delete("cache:public:stats")
     return updated
 
 
@@ -258,7 +274,8 @@ def admin_delete_college(
         target_type="college",
         target_id=college_id,
     )
-    clear_colleges_cache()  # Clear memory cache on delete
+    clear_colleges_cache()
+    cache.delete("cache:public:stats")
     return {"message": "College deleted"}
 
 
@@ -305,7 +322,6 @@ def admin_verify_user(
     payload: AdminVerificationUpdate,
     user: Annotated[UserProfile, Depends(require_admin)],
 ) -> UserProfile:
-    # Fetch the target user to ensure they exist and are an owner
     target = user_repo.get_by_uid(uid)
     if target is None:
         raise HTTPException(

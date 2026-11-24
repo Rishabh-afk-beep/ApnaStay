@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     app_host: str = Field(default="0.0.0.0", alias="APP_HOST")
     app_port: int = Field(default=8000, alias="APP_PORT")
     allowed_origins: str = Field(default="*", alias="ALLOWED_ORIGINS")
+    redis_url: str = Field(default="", alias="REDIS_URL")
 
     firebase_project_id: str = Field(default="", alias="FIREBASE_PROJECT_ID")
     google_application_credentials: str = Field(default="", alias="GOOGLE_APPLICATION_CREDENTIALS")

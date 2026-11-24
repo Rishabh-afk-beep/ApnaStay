@@ -1,4 +1,4 @@
-Write-Host "Starting ApnaStay backend + frontend..."
+Write-Host "Starting NearMyColleges backend + frontend..."
 
 if (!(Test-Path "backend/.env")) {
   Copy-Item "backend/.env.example" "backend/.env"

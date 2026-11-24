@@ -253,7 +253,7 @@ export function PropertyDetailScreen({ route, navigation }: any) {
             {reviewsQuery.data?.slice(0, 5).map((r) => (
               <View key={r.review_id} style={styles.reviewCard}>
                 <View style={styles.reviewHeader}>
-                  <Text style={styles.reviewerName}>{r.user_name}</Text>
+                  <Text style={styles.reviewerName}>{r.user_name || "Verified Student"}</Text>
                   <View style={styles.reviewStars}>
                     {[1, 2, 3, 4, 5].map((s) => (
                       <Ionicons

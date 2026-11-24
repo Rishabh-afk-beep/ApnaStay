@@ -1,7 +1,6 @@
-import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 
 from app.api.deps import get_current_user, get_optional_user
 from app.models.schemas.engagement import (
@@ -22,6 +21,7 @@ from app.services.notification_service import send_inquiry_notification
 router = APIRouter()
 engagement_repo = EngagementRepository()
 property_repo = PropertyRepository()
+user_repo = UserRepository()
 
 
 @router.post("/properties/{property_id}/shortlist")
@@ -64,8 +64,6 @@ def list_recent_views(user: Annotated[UserProfile, Depends(get_current_user)]) -
     return engagement_repo.list_recent_views(user.uid)
 
 
-user_repo = UserRepository()
-
 @router.post("/properties/{property_id}/inquiries")
 def create_inquiry(
     property_id: str,
@@ -85,17 +83,17 @@ def create_inquiry(
         student_uid=user.uid if user else None,
         payload=payload,
     )
-    # Offload the SMS/WhatsApp alert notification process to a background thread
-    owner = user_repo.get_by_uid(property_item.owner_uid)
+
+    owner = user_repo.get_by_uid(property_item.owner_uid) if property_item.owner_uid else None
     owner_phone = owner.phone if owner else None
-    
+
     background_tasks.add_task(
-        send_inquiry_notification, 
+        send_inquiry_notification,
         owner_phone=owner_phone,
         property_title=property_item.title,
         inquiry_name=payload.name,
         inquiry_phone=payload.phone,
-        inquiry_message=payload.message
+        inquiry_message=payload.message or "",
     )
     return inquiry
 

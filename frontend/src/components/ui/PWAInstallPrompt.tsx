@@ -52,7 +52,7 @@ export function PWAInstallPrompt() {
   if (!needRefresh && !showInstallPrompt) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-[9999] md:bottom-8 md:left-auto md:right-8 md:w-96">
+    <div className="fixed bottom-4 left-4 right-4 z-[9998] md:bottom-6 md:left-6 md:right-auto md:w-96">
       <div className="flex flex-col gap-3 rounded-2xl p-4 shadow-2xl outline outline-1 backdrop-blur-md"
            style={{ background: "var(--glass-bg)", outlineColor: "var(--glass-border)" }}>
         

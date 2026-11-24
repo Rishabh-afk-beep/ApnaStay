@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import {
   GoogleAuthProvider,
   RecaptchaVerifier,
@@ -35,6 +35,7 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be inside AuthProvider");
@@ -108,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await createUserWithEmailAndPassword(auth, email, password);
   };
 
-  const register = async (role: string, name: string, extra?: { phone?: string; email?: string; college_id?: string }) => {
+  const register = useCallback(async (role: string, name: string, extra?: { phone?: string; email?: string; college_id?: string }) => {
     if (!firebaseUser) throw new Error("Must be signed in first");
     const token = await firebaseUser.getIdToken();
     setApiToken(token);
@@ -131,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       setProfile(null);
     }
-  };
+  }, [firebaseUser]);
 
   const logout = async () => {
     try { await signOut(auth); } catch { /* ignore */ }

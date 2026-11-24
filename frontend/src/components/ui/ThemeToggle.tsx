@@ -1,5 +1,4 @@
 import { useTheme } from "../../lib/ThemeContext";
-import { useEffect, useState } from "react";
 
 export function ThemeToggle() {
   const { setTheme, resolvedTheme } = useTheme();

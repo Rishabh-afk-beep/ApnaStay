@@ -23,7 +23,7 @@ export function CookieConsent() {
   const handleDecline = () => {
     localStorage.setItem(COOKIE_CONSENT_KEY, "declined");
     // Disable Google Analytics if user declines
-    (window as any)["ga-disable-G-E71Q1LTXJQ"] = true;
+    (window as unknown as Record<string, unknown>)["ga-disable-G-E71Q1LTXJQ"] = true;
     setVisible(false);
   };
 

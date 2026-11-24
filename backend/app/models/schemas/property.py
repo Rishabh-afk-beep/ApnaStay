@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -143,16 +143,18 @@ class OwnerPropertyCreate(BaseModel):
 
 class OwnerPropertyUpdate(BaseModel):
     title: Optional[str] = None
+    property_type: Optional[str] = None
+    primary_college_id: Optional[str] = None
     description: Optional[str] = None
     address_text: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+    distance_km: Optional[float] = None
     rent_min: Optional[int] = None
     rent_max: Optional[int] = None
     security_deposit: Optional[int] = None
     amenities: Optional[List[str]] = None
     availability_status: Optional[str] = None
-    visibility_status: Optional[str] = None
     gender: Optional[str] = None
     food_available: Optional[bool] = None
     food_menu: Optional[str] = None
@@ -170,4 +172,3 @@ class OwnerPropertyUpdate(BaseModel):
     maintenance_charge: Optional[int] = None
     notice_period_days: Optional[int] = None
     preferred_tenant: Optional[str] = None
-

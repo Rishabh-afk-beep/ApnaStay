@@ -38,12 +38,14 @@ class AdminInquiryOut(BaseModel):
 
 
 class ShortlistOut(BaseModel):
+    shortlist_id: Optional[str] = None
     user_uid: str
     property_id: str
     created_at: str
 
 
 class RecentViewOut(BaseModel):
+    view_id: Optional[str] = None
     user_uid: str
     property_id: str
     viewed_at: str

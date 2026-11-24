@@ -6,6 +6,8 @@ import { listShortlists, removeShortlist, getPropertyDetail } from "../lib/api";
 import { Reveal } from "../components/ui/Reveal";
 import { AnimatedNumber } from "../components/ui/AnimatedNumber";
 import { ListingCard } from "../components/listings/ListingCard";
+import type { PropertyDetail } from "../types";
+import { CheckCircle, XCircle, Scaling, ClipboardList, Home, Star } from "lucide-react";
 
 export function ShortlistsPage() {
   const queryClient = useQueryClient();
@@ -17,14 +19,16 @@ export function ShortlistsPage() {
   const items = shortlistQuery.data ?? [];
 
   const propertyQueries = useQueries({
-    queries: items.map(item => ({
+    queries: items.map((item) => ({
       queryKey: ["property-detail", item.property_id],
       queryFn: () => getPropertyDetail(item.property_id),
       staleTime: 60000,
     })),
   });
 
-  const properties = propertyQueries.map(q => q.data).filter(Boolean) as any[];
+  const properties = propertyQueries
+    .map((q) => q.data)
+    .filter((p): p is PropertyDetail => Boolean(p));
 
   const removeMutation = useMutation({
     mutationFn: (propertyId: string) => removeShortlist(propertyId),
@@ -51,7 +55,7 @@ export function ShortlistsPage() {
             >
               Your Collection
             </p>
-            <h1 className="mt-2 text-3xl font-black" style={{ color: "var(--on-primary)" }}>
+            <h1 className="mt-2 text-3xl font-black text-white">
               Saved Listings
             </h1>
             <p className="mt-2 text-sm" style={{ color: "rgba(255,255,255,0.75)" }}>
@@ -75,7 +79,7 @@ export function ShortlistsPage() {
             className="rounded-3xl p-12 text-center"
             style={{ background: "var(--surface-container-low)" }}
           >
-            <p className="text-5xl">🏠</p>
+            <Home className="w-12 h-12 mx-auto text-slate-400" />
             <p className="mt-4 text-xl font-black" style={{ color: "var(--on-surface)" }}>
               No saved listings yet
             </p>
@@ -88,30 +92,32 @@ export function ShortlistsPage() {
           </div>
         )}
 
-        <div className="mb-6 mt-8 flex justify-end">
-          <div className="flex rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
-            <button
-              onClick={() => setViewMode("list")}
-              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
-                viewMode === "list"
-                  ? "bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white"
-                  : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
-              }`}
-            >
-              📋 Standard View
-            </button>
-            <button
-              onClick={() => setViewMode("compare")}
-              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
-                viewMode === "compare"
-                  ? "bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white"
-                  : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
-              }`}
-            >
-              ⚖️ Compare View
-            </button>
+        {items.length > 0 && (
+          <div className="mb-6 mt-8 flex justify-end">
+            <div className="flex rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+              <button
+                onClick={() => setViewMode("list")}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+                  viewMode === "list"
+                    ? "bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white"
+                    : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
+                }`}
+              >
+                <ClipboardList className="w-4 h-4" /> Standard View
+              </button>
+              <button
+                onClick={() => setViewMode("compare")}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+                  viewMode === "compare"
+                    ? "bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white"
+                    : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
+                }`}
+              >
+                <Scaling className="w-4 h-4" /> Compare View
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {viewMode === "list" ? (
           <div className="mt-5 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -125,10 +131,10 @@ export function ShortlistsPage() {
               <thead style={{ background: "var(--surface-container-high)" }}>
                 <tr>
                   <th className="p-4 font-black">Feature</th>
-                  {properties.map(p => (
+                  {properties.map((p) => (
                     <th key={p.property_id} className="p-4 font-black w-64">
                       {p.title}
-                      <button 
+                      <button
                         onClick={() => removeMutation.mutate(p.property_id)}
                         className="ml-2 text-red-500 text-xs font-normal underline"
                       >
@@ -141,31 +147,67 @@ export function ShortlistsPage() {
               <tbody className="divide-y" style={{ borderColor: "var(--surface-container-high)" }}>
                 <tr>
                   <td className="p-4 font-bold opacity-70">Type</td>
-                  {properties.map(p => <td key={p.property_id} className="p-4 font-bold">{p.property_type.replace("_", " ")}</td>)}
+                  {properties.map((p) => (
+                    <td key={p.property_id} className="p-4 font-bold capitalize">
+                      {p.property_type.replace(/_/g, " ")}
+                    </td>
+                  ))}
                 </tr>
                 <tr>
                   <td className="p-4 font-bold opacity-70">Rent/Mo</td>
-                  {properties.map(p => <td key={p.property_id} className="p-4 text-emerald-600 font-black dark:text-emerald-400">₹{p.rent_min} - ₹{p.rent_max}</td>)}
+                  {properties.map((p) => (
+                    <td key={p.property_id} className="p-4 text-emerald-600 font-black dark:text-emerald-400">
+                      ₹{p.rent_min.toLocaleString()} - ₹{p.rent_max.toLocaleString()}
+                    </td>
+                  ))}
                 </tr>
                 <tr>
                   <td className="p-4 font-bold opacity-70">Deposit</td>
-                  {properties.map(p => <td key={p.property_id} className="p-4">₹{p.security_deposit}</td>)}
+                  {properties.map((p) => (
+                    <td key={p.property_id} className="p-4">₹{p.security_deposit.toLocaleString()}</td>
+                  ))}
                 </tr>
                 <tr>
                   <td className="p-4 font-bold opacity-70">Rating</td>
-                  {properties.map(p => <td key={p.property_id} className="p-4">{p.rating_avg > 0 ? `⭐ ${p.rating_avg}` : "No ratings"}</td>)}
+                  {properties.map((p) => (
+                    <td key={p.property_id} className="p-4">
+                      {p.rating_avg > 0 ? (
+                        <span className="flex items-center gap-1">
+                          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" /> {p.rating_avg.toFixed(1)}
+                        </span>
+                      ) : (
+                        "No ratings"
+                      )}
+                    </td>
+                  ))}
                 </tr>
                 <tr>
                   <td className="p-4 font-bold opacity-70">Gender</td>
-                  {properties.map(p => <td key={p.property_id} className="p-4">{p.metadata?.gender || "Any"}</td>)}
+                  {properties.map((p) => (
+                    <td key={p.property_id} className="p-4 capitalize">
+                      {p.gender || p.metadata?.gender || "Any"}
+                    </td>
+                  ))}
                 </tr>
                 <tr>
                   <td className="p-4 font-bold opacity-70">Food</td>
-                  {properties.map(p => <td key={p.property_id} className="p-4">{p.food_available ? "✅ Yes" : "❌ No"}</td>)}
+                  {properties.map((p) => (
+                    <td key={p.property_id} className="p-4">
+                      {p.food_available ? (
+                        <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                          <CheckCircle className="w-3.5 h-3.5" /> Yes
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-red-500">
+                          <XCircle className="w-3.5 h-3.5" /> No
+                        </span>
+                      )}
+                    </td>
+                  ))}
                 </tr>
                 <tr>
                   <td className="p-4 font-bold opacity-70">Actions</td>
-                  {properties.map(p => (
+                  {properties.map((p) => (
                     <td key={p.property_id} className="p-4">
                       <Link to={`/properties/${p.property_id}`} className="btn-primary text-xs w-full block text-center py-2">
                         View Detailed

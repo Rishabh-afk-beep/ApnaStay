@@ -265,7 +265,7 @@ export function LandingPage() {
               style={{ color: "var(--on-surface)", letterSpacing: "-0.02em" }}
             >
               Find your next place near campus{" "}
-              <span style={{ color: "var(--primary-container)" }}>without the broker chaos.</span>
+              <span style={{ color: "#F59E0B" }}>without the broker chaos.</span>
             </h1>
             <p className="mt-5 max-w-xl text-lg leading-8" style={{ color: "var(--on-surface-variant)" }}>
               NearMyColleges helps students discover nearby PGs, flats, hostels, single rooms, and co-living options with

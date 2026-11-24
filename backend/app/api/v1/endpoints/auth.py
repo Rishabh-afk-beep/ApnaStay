@@ -1,5 +1,5 @@
 import logging
-import os
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -21,7 +21,7 @@ class RegisterRequest(BaseModel):
     name: str
     phone: Optional[str] = None
     email: Optional[str] = None
-    college_id: Optional[str] = None  # required for students
+    college_id: Optional[str] = None
 
 
 class RegisterResponse(BaseModel):
@@ -37,18 +37,20 @@ def register_user(
     user: UserProfile = Depends(get_current_user),
 ) -> RegisterResponse:
     """
-    Register a new user with a role after Firebase auth.
-    The Firebase user already exists — this sets their role in the DB
-    and sets Firebase custom claims so future tokens carry the role.
+    Register a user with a role after Firebase auth.
+    Sets their role in the DB and updates Firebase custom claims.
     """
-    # Check if user already registered with a role
     existing = user_repo.get_by_uid(user.uid)
     if existing:
+        if existing.status == UserStatus.blocked:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={"code": "USER_BLOCKED", "message": "Account is suspended"},
+            )
         # If registering as admin and email is whitelisted, allow role upgrade
         if payload.role == UserRole.admin:
-            pass  # Fall through to admin whitelist check + re-registration below
+            pass
         elif existing.role != UserRole.student:
-            # Already registered with a non-student role — just return
             return RegisterResponse(
                 uid=existing.uid,
                 role=existing.role.value,
@@ -63,62 +65,50 @@ def register_user(
             detail={"code": "COLLEGE_REQUIRED", "message": "Students must select a college"},
         )
 
-    # ── Admin whitelist enforcement ──
-    # Only emails explicitly listed in ADMIN_ALLOWED_EMAILS can register as admin.
-    # Everyone else is rejected outright.
+    # Admin whitelist enforcement
     if payload.role == UserRole.admin:
-        # Collect email from all possible sources
         existing_email = existing.email if existing else None
         user_email = (payload.email or user.email or existing_email or "").strip().lower()
         allowed = get_settings().admin_emails()
-        logger.info("[Admin Register] Email being checked: '%s'", user_email)
-        logger.info("[Admin Register] Allowed emails: %s", allowed)
-        logger.info("[Admin Register] payload.email='%s', user.email='%s', existing_email='%s'",
-                     payload.email, user.email, existing_email)
+        logger.info("[Admin Register] Checking authorization for '%s'", user_email)
         if not user_email or user_email not in allowed:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail={
                     "code": "ADMIN_NOT_ALLOWED",
-                    "message": f"Admin registration is restricted. Email '{user_email}' is not authorized. Allowed: {', '.join(allowed) if allowed else 'NONE (env var not set)'}",
+                    "message": "Admin registration is restricted to authorized email addresses.",
                 },
             )
 
-    user_status = UserStatus.active
-
-    from datetime import datetime, timezone
     now = datetime.now(timezone.utc).isoformat()
 
-    # Auto-verify students and admins; owners need admin verification
     if payload.role in (UserRole.student, UserRole.admin):
         verification = VerificationState.verified
+    elif existing and existing.role == UserRole.owner:
+        verification = existing.verification_state
     else:
         verification = VerificationState.unverified
 
     profile = UserProfile(
         uid=user.uid,
         role=payload.role,
-        status=user_status,
+        status=UserStatus.active,
         name=payload.name,
         phone=payload.phone or user.phone,
         email=payload.email or user.email,
         college_id=payload.college_id,
         verification_state=verification,
-
-        created_at=now,
+        created_at=existing.created_at if existing and existing.created_at else now,
         updated_at=now,
     )
 
     user_repo.upsert(profile)
 
-    # Set Firebase custom claims so the role appears in ID tokens
     try:
         from firebase_admin import auth as firebase_auth
-        firebase_auth.set_custom_user_claims(user.uid, {
-            "role": payload.role.value,
-        })
+        firebase_auth.set_custom_user_claims(user.uid, {"role": payload.role.value})
     except Exception:
-        pass  # Firebase not configured or user doesn't exist in Firebase Auth
+        pass
 
     return RegisterResponse(
         uid=user.uid,

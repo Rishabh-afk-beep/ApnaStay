@@ -13,14 +13,22 @@ def get_optional_user(
     if not authorization:
         return None
 
-    token = authorization.replace("Bearer ", "")
+    token = authorization.replace("Bearer ", "").strip()
+    if not token:
+        return None
+
     payload = verify_firebase_token(token)
     uid = payload.get("uid", "")
 
-    # Check Firestore for the stored profile first — it has the real role
+    # Check Firestore for the stored profile first — it has the real role & status
     from app.repositories.user_repository import UserRepository
     stored = UserRepository().get_by_uid(uid)
     if stored:
+        if stored.status == UserStatus.blocked:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={"code": "USER_BLOCKED", "message": "Your account has been suspended by an administrator"},
+            )
         return stored
 
     # Fallback to token claims for unregistered users
@@ -44,6 +52,11 @@ def get_current_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail={"code": "AUTH_REQUIRED", "message": "Authentication required"},
+        )
+    if user.status == UserStatus.blocked:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"code": "USER_BLOCKED", "message": "Your account has been suspended by an administrator"},
         )
     return user
 

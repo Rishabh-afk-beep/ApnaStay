@@ -20,7 +20,10 @@ export function AlertsPage() {
         property_type: newAlert.property_type || undefined,
         budget_max: newAlert.budget_max || undefined,
       }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["alerts"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["alerts"] });
+      setNewAlert({ college_id: "", radius_km: 2, property_type: "", budget_max: 0 });
+    },
   });
 
   const deleteMutation = useMutation({
@@ -29,6 +32,8 @@ export function AlertsPage() {
   });
 
   const items = alertsQuery.data ?? [];
+  const colleges = collegesQuery.data ?? [];
+  const collegeNameById = new Map(colleges.map((c) => [c.college_id, c.short_name ? `${c.short_name} — ${c.name}` : c.name]));
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
@@ -48,7 +53,7 @@ export function AlertsPage() {
             >
               Stay Updated
             </p>
-            <h1 className="mt-2 text-3xl font-black" style={{ color: "var(--on-primary)" }}>
+            <h1 className="mt-2 text-3xl font-black text-white">
               Listing Alerts
             </h1>
             <p className="mt-2 text-sm" style={{ color: "rgba(255,255,255,0.75)" }}>
@@ -69,7 +74,7 @@ export function AlertsPage() {
               className="input-field"
             >
               <option value="">— Select a college —</option>
-              {(collegesQuery.data ?? []).map((c) => (
+              {colleges.map((c) => (
                 <option key={c.college_id} value={c.college_id}>{c.name}</option>
               ))}
             </select>
@@ -132,12 +137,12 @@ export function AlertsPage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="font-bold" style={{ color: "var(--on-surface)" }}>
-                      {alert.college_id.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                      {collegeNameById.get(alert.college_id) || alert.college_id}
                     </p>
                     <p className="mt-1 text-sm" style={{ color: "var(--outline)" }}>
                       Radius: {alert.radius_km} km
-                      {alert.property_type && ` · ${alert.property_type}`}
-                      {alert.budget_max ? ` · Max ₹${alert.budget_max}` : ""}
+                      {alert.property_type && ` · ${alert.property_type.replace(/_/g, " ")}`}
+                      {alert.budget_max ? ` · Max ₹${alert.budget_max.toLocaleString()}` : ""}
                     </p>
                   </div>
                   <button

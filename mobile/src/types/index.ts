@@ -92,9 +92,10 @@ export interface ReviewOut {
   review_id: string;
   property_id: string;
   user_uid: string;
-  user_name: string;
+  user_name?: string;
   rating: number;
-  comment: string;
+  title?: string;
+  comment?: string;
   created_at: string;
 }
 
@@ -103,14 +104,17 @@ export interface ReviewOut {
 export interface InquiryOut {
   inquiry_id: string;
   property_id: string;
+  owner_uid?: string;
+  student_uid?: string;
   name: string;
   phone: string;
-  message: string;
+  message?: string;
+  source?: string;
   created_at: string;
 }
 
 export interface ShortlistOut {
-  shortlist_id: string;
+  shortlist_id?: string;
   property_id: string;
   user_uid: string;
   created_at: string;

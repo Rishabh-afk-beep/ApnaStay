@@ -25,7 +25,8 @@ class EngagementRepository:
         return datetime.now(timezone.utc).isoformat()
 
     def add_shortlist(self, user_uid: str, property_id: str) -> ShortlistOut:
-        item = ShortlistOut(user_uid=user_uid, property_id=property_id, created_at=self._now())
+        doc_id = f"{user_uid}_{property_id}"
+        item = ShortlistOut(shortlist_id=doc_id, user_uid=user_uid, property_id=property_id, created_at=self._now())
         key = (user_uid, property_id)
 
         client = get_firestore_client()
@@ -33,7 +34,6 @@ class EngagementRepository:
             _FALLBACK_SHORTLISTS[key] = item
             return item
 
-        doc_id = f"{user_uid}_{property_id}"
         client.collection("shortlists").document(doc_id).set(item.model_dump())
         return item
 
@@ -57,10 +57,16 @@ class EngagementRepository:
             return [value for (uid, _), value in _FALLBACK_SHORTLISTS.items() if uid == user_uid]
 
         docs = client.collection("shortlists").where("user_uid", "==", user_uid).stream()
-        return [ShortlistOut(**doc.to_dict()) for doc in docs]
+        items: List[ShortlistOut] = []
+        for doc in docs:
+            data = doc.to_dict()
+            data.setdefault("shortlist_id", doc.id)
+            items.append(ShortlistOut(**data))
+        return items
 
     def add_recent_view(self, user_uid: str, property_id: str) -> RecentViewOut:
-        item = RecentViewOut(user_uid=user_uid, property_id=property_id, viewed_at=self._now())
+        doc_id = f"{user_uid}_{property_id}"
+        item = RecentViewOut(view_id=doc_id, user_uid=user_uid, property_id=property_id, viewed_at=self._now())
         key = (user_uid, property_id)
 
         client = get_firestore_client()
@@ -68,7 +74,6 @@ class EngagementRepository:
             _FALLBACK_RECENT_VIEWS[key] = item
             return item
 
-        doc_id = f"{user_uid}_{property_id}"
         client.collection("recent_views").document(doc_id).set(item.model_dump())
         return item
 
@@ -79,7 +84,11 @@ class EngagementRepository:
             return sorted(items, key=lambda x: x.viewed_at, reverse=True)
 
         docs = client.collection("recent_views").where("user_uid", "==", user_uid).stream()
-        items = [RecentViewOut(**doc.to_dict()) for doc in docs]
+        items: List[RecentViewOut] = []
+        for doc in docs:
+            data = doc.to_dict()
+            data.setdefault("view_id", doc.id)
+            items.append(RecentViewOut(**data))
         return sorted(items, key=lambda x: x.viewed_at, reverse=True)
 
     def create_inquiry(
@@ -171,7 +180,9 @@ class EngagementRepository:
     def list_inquiries_for_property(self, property_id: str) -> List[InquiryOut]:
         client = get_firestore_client()
         if client is None:
-            return [i for i in _FALLBACK_INQUIRIES if i.property_id == property_id]
+            items = [i for i in _FALLBACK_INQUIRIES if i.property_id == property_id]
+            items.sort(key=lambda x: x.created_at, reverse=True)
+            return items
 
         docs = client.collection("inquiries").where("property_id", "==", property_id).stream()
         items = [InquiryOut(**doc.to_dict()) for doc in docs]
@@ -181,11 +192,9 @@ class EngagementRepository:
     def list_all_inquiries(self, skip: int = 0, limit: int = 50) -> List[InquiryOut]:
         client = get_firestore_client()
         if client is None:
-            items = _FALLBACK_INQUIRIES
-            items.sort(key=lambda x: x.created_at, reverse=True)
+            items = sorted(_FALLBACK_INQUIRIES, key=lambda x: x.created_at, reverse=True)
             return items[skip : skip + limit]
 
-        # Note: Ordering by created_at requires an index if combined with other filters
         docs = client.collection("inquiries").order_by("created_at", direction="DESCENDING").offset(skip).limit(limit).stream()
         return [InquiryOut(**doc.to_dict()) for doc in docs]
 

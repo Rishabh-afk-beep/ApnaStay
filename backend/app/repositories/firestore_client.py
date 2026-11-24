@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import Optional
 
 from google.cloud import firestore
@@ -10,6 +11,8 @@ _firestore_client: Optional[firestore.Client] = None
 
 
 def get_firestore_client() -> Optional[firestore.Client]:
+    if os.getenv("ENVIRONMENT") == "test":
+        return None
     global _firestore_client
     if _firestore_client is None:
         try:

@@ -7,25 +7,26 @@ from app.models.schemas.college import CollegeCreate, CollegeOut, CollegeUpdate
 from app.models.schemas.user import UserProfile
 from app.repositories.college_repository import CollegeRepository
 
+from app.services.cache_service import CacheService
+
 router = APIRouter()
 repo = CollegeRepository()
-
-
-# Local in-memory caching variables (100% free memory cache!)
-_active_colleges_cache = None
-
+cache = CacheService()
 
 def clear_colleges_cache():
-    global _active_colleges_cache
-    _active_colleges_cache = None
-
+    cache.delete("cache:colleges:all")
 
 @router.get("")
 def list_colleges() -> list[CollegeOut]:
-    global _active_colleges_cache
-    if _active_colleges_cache is None:
-        _active_colleges_cache = repo.list_active()
-    return _active_colleges_cache
+    cache_key = "cache:colleges:all"
+    cached_colleges = cache.get(cache_key)
+    if cached_colleges:
+        return [CollegeOut(**c) for c in cached_colleges]
+        
+    items = repo.list_active()
+    # Cache for 24 hours
+    cache.set(cache_key, [item.model_dump() for item in items], ttl=86400)
+    return items
 
 
 @router.get("/{college_id}")

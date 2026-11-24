@@ -3,7 +3,7 @@ import { Navigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
 import { useAuth } from "../lib/AuthContext";
-import { listColleges, getPublicStats } from "../lib/api";
+import { listColleges, getPublicStats, getApiErrorMessage } from "../lib/api";
 import { Reveal } from "../components/ui/Reveal";
 
 type RoleType = "student" | "owner" | "admin";
@@ -122,10 +122,8 @@ export function LoginPage({ forceRole }: LoginPageProps) {
           .then(() => {
             // Success — refreshProfile in register() will update profile, triggering redirect
           })
-          .catch((err: any) => {
-            const detail = err?.response?.data?.detail;
-            const msg = typeof detail === "object" ? detail.message : (err?.message || "Admin upgrade failed");
-            setError(msg);
+          .catch((err: unknown) => {
+            setError(getApiErrorMessage(err, "Admin upgrade failed"));
             setStep("register"); // Show form so user can see the error
           })
           .finally(() => setBusy(false));
@@ -133,7 +131,7 @@ export function LoginPage({ forceRole }: LoginPageProps) {
         setStep("register");
       }
     }
-  }, [loading, firebaseUser, profile, forceRole, step, autoUpgradeAttempted]);
+  }, [loading, firebaseUser, profile, forceRole, step, autoUpgradeAttempted, register]);
 
   // Redirect if already authenticated WITH THE CORRECT ROLE
   if (!loading && firebaseUser && profile) {
@@ -151,8 +149,8 @@ export function LoginPage({ forceRole }: LoginPageProps) {
     try {
       if (mode === "signup") { await signUpWithEmail(email, password); setStep("register"); }
       else { await loginWithEmail(email, password); }
-    } catch (err: any) {
-      const msg = err?.message || "Authentication failed";
+    } catch (err: unknown) {
+      const msg = getApiErrorMessage(err, "Authentication failed");
       if (msg.includes("auth/email-already-in-use")) setError("Email already registered. Try signing in.");
       else if (msg.includes("auth/wrong-password") || msg.includes("auth/invalid-credential")) setError("Incorrect email or password.");
       else if (msg.includes("auth/user-not-found")) setError("No account found. Try signing up.");
@@ -164,7 +162,7 @@ export function LoginPage({ forceRole }: LoginPageProps) {
   const handleGoogle = async () => {
     setError(""); setBusy(true);
     try { await loginWithGoogle(); }
-    catch (err: any) { setError(err?.message || "Google sign-in failed"); }
+    catch (err: unknown) { setError(getApiErrorMessage(err, "Google sign-in failed")); }
     finally { setBusy(false); }
   };
 
@@ -178,8 +176,8 @@ export function LoginPage({ forceRole }: LoginPageProps) {
     try {
       await resetPassword(email);
       setError("Password reset email sent. Please check your inbox.");
-    } catch (err: any) {
-      const msg = err?.message || "";
+    } catch (err: unknown) {
+      const msg = getApiErrorMessage(err, "");
       if (msg.includes("auth/user-not-found")) setError("No account found for this email.");
       else if (msg.includes("auth/invalid-email")) setError("Invalid email address format.");
       else setError("Failed to send reset email.");
@@ -203,10 +201,8 @@ export function LoginPage({ forceRole }: LoginPageProps) {
     setBusy(true);
     try {
       await register(role, name, { phone, email, college_id: role === "student" ? collegeId : undefined });
-    } catch (err: any) {
-      const detail = err?.response?.data?.detail;
-      const msg = typeof detail === "object" ? detail.message : (err?.message || "Registration failed");
-      setError(msg);
+    } catch (err: unknown) {
+      setError(getApiErrorMessage(err, "Registration failed"));
     } finally { setBusy(false); }
   };
 
@@ -275,7 +271,7 @@ export function LoginPage({ forceRole }: LoginPageProps) {
                   List your PG, hostel, or flat. Manage availability, receive inquiries,
                   and connect with students looking for accommodation.
                 </p>
-                <div className="mt-5 flex items-center gap-2 text-sm font-bold" style={{ color: "#065f46" }}>
+                <div className="mt-5 flex items-center gap-2 text-sm font-bold" style={{ color: "#10b981" }}>
                   Continue as Owner
                   <span className="transition-transform group-hover:translate-x-1">→</span>
                 </div>

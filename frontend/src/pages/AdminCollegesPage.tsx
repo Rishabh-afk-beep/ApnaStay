@@ -1,9 +1,16 @@
 import { FormEvent, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { adminListColleges, adminCreateCollege, adminUpdateCollege, adminDeleteCollege } from "../lib/api";
+import {
+  adminListColleges,
+  adminCreateCollege,
+  adminUpdateCollege,
+  adminDeleteCollege,
+  getApiErrorMessage,
+} from "../lib/api";
 import { Reveal } from "../components/ui/Reveal";
 import { AnimatedNumber } from "../components/ui/AnimatedNumber";
+import type { CollegeCreatePayload, CollegeOut } from "../types";
 
 export function AdminCollegesPage() {
   const queryClient = useQueryClient();
@@ -44,7 +51,7 @@ export function AdminCollegesPage() {
   });
 
   const bulkCreateMutation = useMutation({
-    mutationFn: async (colleges: any[]) => {
+    mutationFn: async (colleges: CollegeCreatePayload[]) => {
       for (const c of colleges) {
         await adminCreateCollege(c);
       }
@@ -56,8 +63,8 @@ export function AdminCollegesPage() {
       setActiveTab("single");
       alert("Bulk import completed successfully!");
     },
-    onError: (err: any) => {
-      setBulkError(err.message || "Failed during bulk import.");
+    onError: (err: unknown) => {
+      setBulkError(getApiErrorMessage(err, "Failed during bulk import."));
     },
   });
 
@@ -83,15 +90,15 @@ export function AdminCollegesPage() {
     e.preventDefault();
     setBulkError("");
     try {
-      const parsed = JSON.parse(bulkInput);
+      const parsed: unknown = JSON.parse(bulkInput);
       if (!Array.isArray(parsed)) throw new Error("Input must be a JSON array of colleges");
-      bulkCreateMutation.mutate(parsed);
-    } catch (err: any) {
-      setBulkError("Invalid JSON: " + err.message);
+      bulkCreateMutation.mutate(parsed as CollegeCreatePayload[]);
+    } catch (err: unknown) {
+      setBulkError("Invalid JSON: " + getApiErrorMessage(err, "Malformed JSON"));
     }
   };
 
-  const startEdit = (college: any) => {
+  const startEdit = (college: CollegeOut) => {
     setEditId(college.college_id);
     setEditForm({
       name: college.name,
@@ -145,15 +152,13 @@ export function AdminCollegesPage() {
               </button>
             </div>
           </div>
-          
+
           {activeTab === "single" ? (
             <>
               {createMutation.isError && (
                 <div className="mt-3 rounded-xl p-3 text-sm"
                   style={{ background: "rgba(186,26,26,0.08)", color: "var(--error)" }}>
-                  {(createMutation.error as any)?.response?.data?.detail?.message
-                    || (createMutation.error as any)?.message
-                    || "Failed to create college"}
+                  {getApiErrorMessage(createMutation.error, "Failed to create college")}
                 </div>
               )}
               {createMutation.isSuccess && (

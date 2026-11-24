@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import L from "leaflet";
@@ -29,7 +29,6 @@ import {
   getAdminLogs,
   listAdminPending,
   adminListInquiries,
-  setApiToken,
 } from "../lib/api";
 import type { PropertyCard, AdminInquiryOut } from "../types";
 import { useAuth } from "../lib/AuthContext";
@@ -37,19 +36,7 @@ import { useAuth } from "../lib/AuthContext";
 export function AdminDashboardPage() {
   const queryClient = useQueryClient();
   const { profile } = useAuth();
-  if (!profile || profile.role !== "admin") {
-    return (
-      <main className="mx-auto max-w-xl px-6 py-20 text-center">
-        <div className="rounded-3xl p-16" style={{ background: "var(--surface-container-low)" }}>
-          <p className="text-5xl">🔒</p>
-          <h1 className="mt-6 text-2xl font-black" style={{ color: "var(--on-surface)" }}>Admin Access Required</h1>
-          <p className="mt-4 text-sm" style={{ color: "var(--on-surface-variant)" }}>
-            Please log in with an Admin account to view the moderation queue.
-          </p>
-        </div>
-      </main>
-    );
-  }
+  const isAdmin = Boolean(profile && profile.role === "admin");
 
   const [activeTab, setActiveTab] = useState<"pending" | "all" | "inquiries" | "map">("pending");
   const [filterStatus, setFilterStatus] = useState<string>("");
@@ -61,35 +48,41 @@ export function AdminDashboardPage() {
   const pendingQuery = useQuery({
     queryKey: ["admin-pending"],
     queryFn: listAdminPending,
-    enabled: Boolean(profile),
+    enabled: isAdmin,
   });
 
   const allPropertiesQuery = useQuery({
     queryKey: ["admin-properties"],
     queryFn: adminListProperties,
-    enabled: Boolean(profile) && (activeTab === "all" || activeTab === "map"),
+    enabled: isAdmin && (activeTab === "all" || activeTab === "map"),
   });
 
   const analyticsQuery = useQuery({
     queryKey: ["admin-analytics"],
     queryFn: getAdminAnalytics,
-    enabled: Boolean(profile),
+    enabled: isAdmin,
   });
 
   const logsQuery = useQuery({
     queryKey: ["admin-logs"],
     queryFn: getAdminLogs,
-    enabled: Boolean(profile),
+    enabled: isAdmin,
   });
 
   const inquiriesQuery = useQuery({
     queryKey: ["admin-inquiries"],
     queryFn: adminListInquiries,
-    enabled: Boolean(profile) && activeTab === "inquiries",
+    enabled: isAdmin && activeTab === "inquiries",
   });
 
   const moderationMutation = useMutation({
-    mutationFn: async ({ action, propertyId }: { action: "approve" | "reject" | "hide" | "feature" | "unfeature" | "delete"; propertyId: string }) => {
+    mutationFn: async ({
+      action,
+      propertyId,
+    }: {
+      action: "approve" | "reject" | "hide" | "feature" | "unfeature" | "delete";
+      propertyId: string;
+    }) => {
       if (action === "approve") await adminApprove(propertyId);
       else if (action === "reject") await adminReject(propertyId);
       else if (action === "hide") await adminHide(propertyId);
@@ -98,15 +91,12 @@ export function AdminDashboardPage() {
       else await adminFeature(propertyId);
     },
     onMutate: async ({ action, propertyId }) => {
-      // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: ["admin-pending"] });
       await queryClient.cancelQueries({ queryKey: ["admin-properties"] });
 
-      // Snapshot the previous value
-      const previousPending = queryClient.getQueryData(["admin-pending"]);
-      const previousProperties = queryClient.getQueryData(["admin-properties"]);
+      const previousPending = queryClient.getQueryData<PropertyCard[]>(["admin-pending"]);
+      const previousProperties = queryClient.getQueryData<PropertyCard[]>(["admin-properties"]);
 
-      // Optimistically update to the new value
       const updateList = (old: PropertyCard[] | undefined) => {
         if (!old) return old;
         if (action === "delete") {
@@ -115,11 +105,23 @@ export function AdminDashboardPage() {
         return old.map((p) => {
           if (p.property_id === propertyId) {
             const updates: Partial<PropertyCard> = {};
-            if (action === "approve") { updates.approval_status = "approved"; updates.visibility_status = "live"; }
-            if (action === "reject") { updates.approval_status = "rejected"; updates.visibility_status = "hidden"; }
-            if (action === "hide") { updates.visibility_status = "hidden"; }
-            if (action === "feature") { updates.featured = true; }
-            if (action === "unfeature") { updates.featured = false; }
+            if (action === "approve") {
+              updates.approval_status = "approved";
+              updates.visibility_status = "live";
+            }
+            if (action === "reject") {
+              updates.approval_status = "rejected";
+              updates.visibility_status = "hidden";
+            }
+            if (action === "hide") {
+              updates.visibility_status = "hidden";
+            }
+            if (action === "feature") {
+              updates.featured = true;
+            }
+            if (action === "unfeature") {
+              updates.featured = false;
+            }
             return { ...p, ...updates };
           }
           return p;
@@ -131,7 +133,7 @@ export function AdminDashboardPage() {
 
       return { previousPending, previousProperties };
     },
-    onError: (err, newTodo, context) => {
+    onError: (_err, _vars, context) => {
       if (context?.previousPending) queryClient.setQueryData(["admin-pending"], context.previousPending);
       if (context?.previousProperties) queryClient.setQueryData(["admin-properties"], context.previousProperties);
     },
@@ -143,31 +145,30 @@ export function AdminDashboardPage() {
     },
   });
 
-  const totalProperties = analyticsQuery.data?.total_properties ?? 0;
-  const liveProperties = analyticsQuery.data?.live_properties ?? 0;
-  const liveRatio = totalProperties > 0 ? Math.round((liveProperties / totalProperties) * 100) : 0;
+  const filteredProperties = useMemo(() => {
+    return (allPropertiesQuery.data || []).filter((p: PropertyCard) => {
+      if (filterStatus && p.approval_status !== filterStatus && p.visibility_status !== filterStatus) {
+        if (filterStatus === "live" && p.visibility_status !== "live") return false;
+        if (filterStatus === "pending" && p.approval_status !== "pending") return false;
+        if (filterStatus === "rejected" && p.approval_status !== "rejected") return false;
+        if (filterStatus === "hidden" && p.visibility_status !== "hidden") return false;
+      }
+      if (filterSearch && !p.title.toLowerCase().includes(filterSearch.toLowerCase()) && !p.property_id.includes(filterSearch)) {
+        return false;
+      }
+      return true;
+    });
+  }, [allPropertiesQuery.data, filterStatus, filterSearch]);
 
-  const filteredProperties = (allPropertiesQuery.data || []).filter((p: PropertyCard) => {
-    if (filterStatus && p.approval_status !== filterStatus && p.visibility_status !== filterStatus) {
-      if (filterStatus === "live" && p.visibility_status !== "live") return false;
-      if (filterStatus === "pending" && p.approval_status !== "pending") return false;
-      if (filterStatus === "rejected" && p.approval_status !== "rejected") return false;
-      if (filterStatus === "hidden" && p.visibility_status !== "hidden") return false;
-    }
-    if (filterSearch && !p.title.toLowerCase().includes(filterSearch.toLowerCase()) && !p.property_id.includes(filterSearch)) return false;
-    return true;
-  });
-
-  // Map effect
   useEffect(() => {
-    if (activeTab !== "map" || !mapRef.current) return;
-    
+    if (!isAdmin || activeTab !== "map" || !mapRef.current) return;
+
     if (mapInstanceRef.current) {
       mapInstanceRef.current.remove();
       mapInstanceRef.current = null;
     }
 
-    const map = L.map(mapRef.current).setView([20.5937, 78.9629], 5); // Center of India default
+    const map = L.map(mapRef.current).setView([20.5937, 78.9629], 5);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "© OpenStreetMap contributors",
     }).addTo(map);
@@ -193,7 +194,25 @@ export function AdminDashboardPage() {
       map.remove();
       mapInstanceRef.current = null;
     };
-  }, [activeTab, filteredProperties]);
+  }, [isAdmin, activeTab, filteredProperties]);
+
+  if (!isAdmin) {
+    return (
+      <main className="mx-auto max-w-xl px-6 py-20 text-center">
+        <div className="rounded-3xl p-16" style={{ background: "var(--surface-container-low)" }}>
+          <p className="text-5xl">🔒</p>
+          <h1 className="mt-6 text-2xl font-black" style={{ color: "var(--on-surface)" }}>Admin Access Required</h1>
+          <p className="mt-4 text-sm" style={{ color: "var(--on-surface-variant)" }}>
+            Please log in with an Admin account to view the moderation queue.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  const totalProperties = analyticsQuery.data?.total_properties ?? 0;
+  const liveProperties = analyticsQuery.data?.live_properties ?? 0;
+  const liveRatio = totalProperties > 0 ? Math.round((liveProperties / totalProperties) * 100) : 0;
 
   const filteredPending = (pendingQuery.data || []).filter((p: PropertyCard) => {
     if (filterSearch && !p.title.toLowerCase().includes(filterSearch.toLowerCase()) && !p.property_id.includes(filterSearch)) return false;
@@ -221,13 +240,11 @@ export function AdminDashboardPage() {
           className="relative overflow-hidden rounded-3xl p-6 md:p-10"
           style={{ background: "var(--surface-container-high)", border: "1px solid var(--outline-variant)", boxShadow: "var(--shadow-ambient)" }}
         >
-          {/* Animated ambient glows */}
           <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full opacity-20 animate-float"
             style={{ background: "var(--primary)", filter: "blur(80px)" }} />
           <div className="pointer-events-none absolute -left-10 bottom-0 h-48 w-48 rounded-full opacity-15 animate-float"
             style={{ background: "#6366f1", filter: "blur(60px)", animationDelay: "2s" }} />
 
-          {/* Dot-grid overlay */}
           <div
             className="pointer-events-none absolute inset-0 opacity-[0.04]"
             style={{ backgroundImage: "radial-gradient(circle, #fff 1px, transparent 1px)", backgroundSize: "24px 24px" }}
@@ -245,7 +262,6 @@ export function AdminDashboardPage() {
                 Track supply health, approve owner inventory, and monitor trust signals across the marketplace.
               </p>
             </div>
-            {/* Admin identity pill */}
             <div
               className="flex items-center gap-3 rounded-2xl px-5 py-4 flex-shrink-0"
               style={{ background: "var(--surface-container)", border: "1px solid var(--outline-variant)", backdropFilter: "blur(12px)" }}
@@ -263,7 +279,6 @@ export function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Quick action buttons */}
           <div className="relative z-10 mt-6 flex flex-wrap gap-3">
             <Link
               to="/admin/colleges"
@@ -287,10 +302,10 @@ export function AdminDashboardPage() {
       <Reveal className="mt-6" delayMs={110}>
         <section className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
           {[
-            { label: "Total Properties", value: analyticsQuery.data?.total_properties ?? 0, icon: "🏠", color: "rgba(99,102,241,0.12)", iconBg: "rgba(99,102,241,0.2)", extra: false },
-            { label: "Live Properties",  value: analyticsQuery.data?.live_properties ?? 0,  icon: "✅", color: "rgba(16,185,129,0.12)", iconBg: "rgba(16,185,129,0.2)", extra: true },
-            { label: "Pending Review",   value: analyticsQuery.data?.pending_properties ?? 0, icon: "⏳", color: "rgba(245,158,11,0.12)", iconBg: "rgba(245,158,11,0.2)", extra: false },
-            { label: "Total Inquiries",  value: analyticsQuery.data?.total_inquiries ?? 0,   icon: "📩", color: "rgba(59,130,246,0.12)", iconBg: "rgba(59,130,246,0.2)", extra: false },
+            { label: "Total Properties", value: analyticsQuery.data?.total_properties ?? 0, icon: "🏠", iconBg: "rgba(99,102,241,0.2)", extra: false },
+            { label: "Live Properties",  value: analyticsQuery.data?.live_properties ?? 0,  icon: "✅", iconBg: "rgba(16,185,129,0.2)", extra: true },
+            { label: "Pending Review",   value: analyticsQuery.data?.pending_properties ?? 0, icon: "⏳", iconBg: "rgba(245,158,11,0.2)", extra: false },
+            { label: "Total Inquiries",  value: analyticsQuery.data?.total_inquiries ?? 0,   icon: "📩", iconBg: "rgba(59,130,246,0.2)", extra: false },
           ].map((stat) => (
             <article
               key={stat.label}
@@ -329,9 +344,9 @@ export function AdminDashboardPage() {
       <Reveal className="mt-4" delayMs={130}>
         <section className="grid gap-4 sm:grid-cols-3">
           {[
-            { label: "Total Shortlists", value: analyticsQuery.data?.total_shortlists ?? 0, icon: "❤️", color: "rgba(244,63,94,0.1)",   iconBg: "rgba(244,63,94,0.15)" },
-            { label: "Total Reviews",    value: analyticsQuery.data?.total_reviews ?? 0,    icon: "⭐", color: "rgba(234,179,8,0.1)",   iconBg: "rgba(234,179,8,0.15)" },
-            { label: "Active Alerts",    value: analyticsQuery.data?.total_alerts ?? 0,     icon: "🔔", color: "rgba(168,85,247,0.1)",  iconBg: "rgba(168,85,247,0.15)" },
+            { label: "Total Shortlists", value: analyticsQuery.data?.total_shortlists ?? 0, icon: "❤️", iconBg: "rgba(244,63,94,0.15)" },
+            { label: "Total Reviews",    value: analyticsQuery.data?.total_reviews ?? 0,    icon: "⭐", iconBg: "rgba(234,179,8,0.15)" },
+            { label: "Active Alerts",    value: analyticsQuery.data?.total_alerts ?? 0,     icon: "🔔", iconBg: "rgba(168,85,247,0.15)" },
           ].map((stat) => (
             <article
               key={stat.label}
@@ -358,7 +373,6 @@ export function AdminDashboardPage() {
       {/* Properties Management */}
       <Reveal className="mt-8" delayMs={160}>
         <section className="glass-card-static p-6 md:p-8 rounded-3xl" style={{ background: "var(--surface-container-lowest)", border: "1px solid var(--surface-container-high)" }}>
-          {/* Section Header & Switcher */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b pb-6" style={{ borderColor: "var(--surface-container-high)" }}>
             <div>
               <h2 className="text-2xl font-black tracking-tight" style={{ color: "var(--on-surface)" }}>
@@ -369,7 +383,6 @@ export function AdminDashboardPage() {
               </p>
             </div>
 
-            {/* Custom Segmented Control Switcher */}
             <div className="flex p-1 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 self-stretch lg:self-auto overflow-x-auto no-scrollbar whitespace-nowrap">
               <button
                 onClick={() => {
@@ -441,7 +454,6 @@ export function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Search and Filters Bar */}
           <div className="mt-6 flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
@@ -449,27 +461,27 @@ export function AdminDashboardPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </span>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder={
-                  activeTab === "all" 
-                    ? "Search by title, address, or ID..." 
+                  activeTab === "all"
+                    ? "Search by title, address, or ID..."
                     : activeTab === "inquiries"
                       ? "Search by student, owner, message, or PG..."
                       : "Search in pending queue..."
-                } 
-                value={filterSearch} 
-                onChange={e => setFilterSearch(e.target.value)} 
+                }
+                value={filterSearch}
+                onChange={(e) => setFilterSearch(e.target.value)}
                 className="input-field w-full !pl-12 pr-4 py-3 !rounded-2xl transition-shadow focus:ring-2 focus:ring-amber-500/20"
                 style={{ background: "var(--surface-container-low)" }}
               />
             </div>
-            
+
             {(activeTab === "all" || activeTab === "map") && (
               <div className="flex gap-2">
-                <select 
-                  value={filterStatus} 
-                  onChange={e => setFilterStatus(e.target.value)} 
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
                   className="input-field !rounded-2xl min-w-[180px] py-3 pr-8 font-bold"
                   style={{ background: "var(--surface-container-low)" }}
                 >
@@ -483,7 +495,6 @@ export function AdminDashboardPage() {
             )}
           </div>
 
-          {/* Pending Queue View */}
           {activeTab === "pending" && (
             <div className="mt-6">
               {pendingQuery.isLoading && (
@@ -546,7 +557,6 @@ export function AdminDashboardPage() {
             </div>
           )}
 
-          {/* All Properties View */}
           {activeTab === "all" && (
             <div className="mt-6">
               {allPropertiesQuery.isLoading && (
@@ -597,7 +607,7 @@ export function AdminDashboardPage() {
                         <span className="text-sm font-black" style={{ color: "var(--on-surface)" }}>
                           ₹{item.rent_min} - ₹{item.rent_max} <span className="text-xs font-normal" style={{ color: "var(--outline)" }}>/mo</span>
                         </span>
-                        
+
                         <div className="flex flex-wrap gap-2">
                           {isPending && (
                             <button
@@ -617,7 +627,7 @@ export function AdminDashboardPage() {
                               </button>
                               <button
                                 onClick={() => moderationMutation.mutate({ action: "hide", propertyId: item.property_id })}
-                                className="rounded-xl px-3 py-2 text-xs font-bold transition-all bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-850 dark:text-slate-300 dark:hover:bg-slate-800"
+                                className="rounded-xl px-3 py-2 text-xs font-bold transition-all bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                               >
                                 Hide Listing
                               </button>
@@ -650,7 +660,6 @@ export function AdminDashboardPage() {
             </div>
           )}
 
-          {/* Map View */}
           {activeTab === "map" && (
             <div className="mt-6">
               <div className="overflow-hidden rounded-2xl border" style={{ borderColor: "var(--surface-container-high)" }}>
@@ -659,7 +668,6 @@ export function AdminDashboardPage() {
             </div>
           )}
 
-          {/* Inquiries View */}
           {activeTab === "inquiries" && (
             <div className="mt-6">
               {inquiriesQuery.isLoading && (
@@ -685,7 +693,7 @@ export function AdminDashboardPage() {
               )}
               <div className="grid gap-4 md:grid-cols-2">
                 {filteredInquiries.map((inq) => (
-                  <article key={inq.inquiry_id} className="relative overflow-hidden rounded-3xl p-6 transition-all duration-300 hover:shadow-lg border border-slate-250/60 dark:border-slate-800/80 hover:border-slate-350 dark:hover:border-slate-750" style={{ background: "var(--surface-container-low)" }}>
+                  <article key={inq.inquiry_id} className="relative overflow-hidden rounded-3xl p-6 transition-all duration-300 hover:shadow-lg border border-slate-200/60 dark:border-slate-800/80" style={{ background: "var(--surface-container-low)" }}>
                     <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-2">
                       <div>
                         <span className="inline-block text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
@@ -697,12 +705,12 @@ export function AdminDashboardPage() {
                         </p>
                       </div>
                       <span className="text-[10px] font-bold text-slate-400">
-                        {new Date(inq.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        {new Date(inq.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                       </span>
                     </div>
 
                     <div className="mt-4 p-4 rounded-2xl text-sm italic" style={{ background: "var(--surface-container-lowest)", color: "var(--on-surface-variant)", border: "1px solid var(--surface-container-high)" }}>
-                      "{inq.message || "No message left"}"
+                      &ldquo;{inq.message || "No message left"}&rdquo;
                     </div>
 
                     <div className="mt-4 pt-4 border-t space-y-2 text-xs" style={{ borderColor: "var(--surface-container-high)" }}>
@@ -725,7 +733,6 @@ export function AdminDashboardPage() {
         </section>
       </Reveal>
 
-      {/* Audit logs */}
       <Reveal className="mt-8" delayMs={210}>
         <section className="glass-card-static p-7">
           <h2 className="text-lg font-black" style={{ color: "var(--on-surface)" }}>Audit Logs</h2>
@@ -742,7 +749,6 @@ export function AdminDashboardPage() {
                   <span className="font-mono text-xs" style={{ color: "var(--on-surface-variant)" }}>{log.target_id.slice(0, 16)}</span>
                 </div>
                 <span className="text-xs font-medium" style={{ color: "var(--on-surface-variant)" }}>{new Date(log.created_at).toLocaleDateString()}</span>
-
               </div>
             ))}
           </div>

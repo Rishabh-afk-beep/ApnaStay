@@ -11,10 +11,13 @@ from app.repositories.engagement_repository import EngagementRepository
 from app.repositories.property_repository import PropertyRepository
 from app.repositories.analytics_repository import AnalyticsRepository
 
+from app.services.cache_service import CacheService
+
 router = APIRouter()
 repo = PropertyRepository()
 engagement_repo = EngagementRepository()
 analytics_repo = AnalyticsRepository()
+cache = CacheService()
 
 
 @router.get("")
@@ -32,7 +35,9 @@ def create_property(
     payload: OwnerPropertyCreate,
     user: Annotated[UserProfile, Depends(require_owner)],
 ) -> PropertyDetail:
-    return repo.create_for_owner(user.uid, payload)
+    item = repo.create_for_owner(user.uid, payload)
+    cache.invalidate_pattern("cache:search:*")
+    return item
 
 
 @router.patch("/{property_id}")
@@ -52,6 +57,9 @@ def update_property(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"code": "PROPERTY_NOT_FOUND_OR_FORBIDDEN", "message": "Property not found or not owned by this user"},
         )
+        
+    cache.delete(f"cache:property:{property_id}")
+    cache.invalidate_pattern("cache:search:*")
     return updated
 
 
@@ -66,6 +74,10 @@ def delete_property(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"code": "PROPERTY_NOT_FOUND_OR_FORBIDDEN", "message": "Property not found or not owned by this user"},
         )
+        
+    cache.delete(f"cache:property:{property_id}")
+    cache.delete("cache:public:stats")
+    cache.invalidate_pattern("cache:search:*")
     return {"message": "Property deleted"}
 
 

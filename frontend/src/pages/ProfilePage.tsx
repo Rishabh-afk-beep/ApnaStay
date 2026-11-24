@@ -5,11 +5,12 @@ import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "../lib/AuthContext";
 import { completeProfile, updateMe } from "../lib/api";
 import { Reveal } from "../components/ui/Reveal";
+import { ShieldAlert, Home, BookOpen, CheckCircle, XCircle, Check, Clock, User, Phone, Mail, Save, LogOut } from "lucide-react";
 
 const ROLE_CONFIG = {
-  admin:   { label: "Administrator",    icon: "⚙️",  gradient: "linear-gradient(135deg, #1e1b4b 0%, #3730a3 60%, #4f46e5 100%)", badge: "bg-violet-500/20 text-violet-300", quickLinks: [{ label: "Admin Dashboard", to: "/admin" }, { label: "Manage Colleges", to: "/admin/colleges" }, { label: "Manage Users", to: "/admin/users" }] },
-  owner:   { label: "Property Owner",   icon: "🏠",  gradient: "linear-gradient(135deg, #431407 0%, #9a3412 60%, #c2410c 100%)", badge: "bg-orange-500/20 text-orange-300", quickLinks: [{ label: "Owner Dashboard", to: "/owner" }, { label: "My Listings", to: "/owner" }, { label: "Inquiries", to: "/owner" }] },
-  student: { label: "Student",          icon: "🎓",  gradient: "linear-gradient(135deg, #451a03 0%, #78350f 60%, #92400e 100%)", badge: "bg-amber-500/20 text-amber-200",   quickLinks: [{ label: "Discover PGs", to: "/discover" }, { label: "Saved Listings", to: "/shortlists" }, { label: "My Alerts", to: "/alerts" }] },
+  admin:   { label: "Administrator",    icon: ShieldAlert,  gradient: "linear-gradient(135deg, #1e1b4b 0%, #3730a3 60%, #4f46e5 100%)", badge: "bg-violet-500/20 text-violet-300", quickLinks: [{ label: "Admin Dashboard", to: "/admin" }, { label: "Manage Colleges", to: "/admin/colleges" }, { label: "Manage Users", to: "/admin/users" }] },
+  owner:   { label: "Property Owner",   icon: Home,  gradient: "linear-gradient(135deg, #431407 0%, #9a3412 60%, #c2410c 100%)", badge: "bg-orange-500/20 text-orange-300", quickLinks: [{ label: "Owner Dashboard", to: "/owner" }, { label: "My Listings", to: "/owner" }, { label: "Inquiries", to: "/owner" }] },
+  student: { label: "Student",          icon: BookOpen,  gradient: "linear-gradient(135deg, #451a03 0%, #78350f 60%, #92400e 100%)", badge: "bg-amber-500/20 text-amber-200",   quickLinks: [{ label: "Discover PGs", to: "/discover" }, { label: "Saved Listings", to: "/shortlists" }, { label: "My Alerts", to: "/alerts" }] },
 };
 
 export function ProfilePage() {
@@ -61,8 +62,8 @@ export function ProfilePage() {
             <div className="flex-1">
               <div className="flex flex-col sm:flex-row items-center gap-2 flex-wrap">
                 <h1 className="text-2xl font-black text-white">{profile?.name || "Set up your profile"}</h1>
-                <span className={`rounded-full px-3 py-1 text-xs font-bold ${cfg.badge}`}>
-                  {cfg.icon} {cfg.label}
+                <span className={`rounded-full px-3 py-1 text-xs font-bold flex items-center gap-1.5 ${cfg.badge}`}>
+                  <cfg.icon className="w-3.5 h-3.5" /> {cfg.label}
                 </span>
               </div>
               <p className="mt-1 text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
@@ -97,12 +98,12 @@ export function ProfilePage() {
           style={{ background: "var(--surface-container-low)", border: "1px solid var(--glass-border)" }}
         >
           {[
-            { label: "Role",         value: profile?.role || "student",                icon: cfg.icon },
-            { label: "Status",       value: profile?.status || "active",               icon: profile?.status === "active" ? "🟢" : "🔴" },
-            { label: "Verification", value: (profile?.role === "admin" || profile?.role === "student") ? "verified" : (profile?.verification_state || "unverified"), icon: (profile?.role === "admin" || profile?.role === "student" || profile?.verification_state === "verified") ? "✅" : "⏳" },
-          ].map(({ label, value, icon }) => (
-            <div key={label} className="text-center">
-              <p className="text-lg">{icon}</p>
+            { label: "Role",         value: profile?.role || "student",                IconComponent: cfg.icon },
+            { label: "Status",       value: profile?.status || "active",               IconComponent: profile?.status === "active" ? CheckCircle : XCircle },
+            { label: "Verification", value: (profile?.role === "admin" || profile?.role === "student") ? "verified" : (profile?.verification_state || "unverified"), IconComponent: (profile?.role === "admin" || profile?.role === "student" || profile?.verification_state === "verified") ? Check : Clock },
+          ].map(({ label, value, IconComponent }) => (
+            <div key={label} className="text-center flex flex-col items-center">
+              <IconComponent className="w-6 h-6 mb-1 text-slate-500" />
               <p className="mt-1 text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>{label}</p>
               <p className="mt-0.5 text-sm font-black capitalize" style={{ color: "var(--on-surface)" }}>{value}</p>
             </div>
@@ -127,14 +128,16 @@ export function ProfilePage() {
 
           <div className="space-y-4">
             {[
-              { label: "Full Name", value: name, setter: setName, type: "text",  icon: "👤", placeholder: "Your full name" },
-              { label: "Phone",     value: phone, setter: setPhone, type: "tel",  icon: "📱", placeholder: "+91 XXXXX XXXXX" },
-              { label: "Email",     value: email, setter: setEmail, type: "email", icon: "✉️", placeholder: "you@email.com" },
-            ].map(({ label, value, setter, type, icon, placeholder }) => (
+              { label: "Full Name", value: name, setter: setName, type: "text",  IconComponent: User, placeholder: "Your full name" },
+              { label: "Phone",     value: phone, setter: setPhone, type: "tel",  IconComponent: Phone, placeholder: "+91 XXXXX XXXXX" },
+              { label: "Email",     value: email, setter: setEmail, type: "email", IconComponent: Mail, placeholder: "you@email.com" },
+            ].map(({ label, value, setter, type, IconComponent, placeholder }) => (
               <label key={label} className="block">
                 <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--outline)" }}>{label}</span>
                 <div className="relative mt-1.5">
-                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-base">{icon}</span>
+                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                    <IconComponent className="w-5 h-5" />
+                  </span>
                   <input
                     type={type}
                     value={value}
@@ -151,16 +154,16 @@ export function ProfilePage() {
             <button
               onClick={() => saveMutation.mutate()}
               disabled={saveMutation.isPending}
-              className="btn-primary flex-1 disabled:opacity-50"
+              className="btn-primary flex-1 disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {saveMutation.isPending ? "Saving…" : "💾 Save Changes"}
+              {saveMutation.isPending ? "Saving…" : <><Save className="w-4 h-4" /> Save Changes</>}
             </button>
             <button
               onClick={logout}
-              className="rounded-full px-6 py-3 text-sm font-bold transition-all hover:scale-[1.02]"
+              className="rounded-full px-6 py-3 text-sm font-bold transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
               style={{ background: "rgba(186, 26, 26, 0.08)", color: "var(--error)", border: "1px solid rgba(186,26,26,0.15)" }}
             >
-              🚪 Sign Out
+              <LogOut className="w-4 h-4" /> Sign Out
             </button>
           </div>
         </section>

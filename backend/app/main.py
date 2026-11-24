@@ -38,6 +38,6 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    return {"status": "ApnaStay API is running smoothly!", "docs": "/docs"}
+    return {"status": "NearMyColleges API is running smoothly!", "docs": "/docs"}
 
 app.include_router(api_router, prefix="/api/v1")

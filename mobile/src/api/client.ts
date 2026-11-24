@@ -93,7 +93,7 @@ export async function listColleges(): Promise<CollegeOut[]> {
 // ── Properties ────────────────────────────────────────────────────
 
 export async function searchProperties(params: {
-  college_id: string;
+  college_id?: string;
   radius_km?: number;
   property_type?: string;
   gender?: string;
@@ -182,7 +182,7 @@ export async function uploadImage(
     name: fileName,
     type: "image/jpeg",
   } as any);
-  const res = await api.post<{ url: string }>("/upload/image", formData, {
+  const res = await api.post<{ url: string }>("/media/photo", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return res.data;

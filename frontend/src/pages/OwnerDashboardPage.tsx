@@ -12,9 +12,10 @@ import {
   getOwnerAnalytics,
   uploadImage,
   listColleges,
+  getApiErrorMessage,
 } from "../lib/api";
 import { useAuth } from "../lib/AuthContext";
-import type { InquiryOut } from "../types";
+import type { InquiryOut, OwnerPropertyCreatePayload, OwnerPropertyUpdatePayload, PropertyMetadata } from "../types";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { AnalyticsTab } from "../components/owner/AnalyticsTab";
@@ -188,11 +189,6 @@ export function OwnerDashboardPage() {
     }));
   }, [roomOptions]);
 
-  // Reset room options when property type changes
-  useEffect(() => {
-    setRoomOptions([]);
-  }, [form.property_type]);
-
   // ── Geolocation ──────────────────────────────────────────────────────────
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState("");
@@ -226,18 +222,21 @@ export function OwnerDashboardPage() {
   const mapPickerRef = useRef<HTMLDivElement | null>(null);
   const pickerInstanceRef = useRef<L.Map | null>(null);
   const pickerMarkerRef = useRef<L.Marker | null>(null);
+  const coordsSnapshotRef = useRef({ lat: "", lng: "" });
+  coordsSnapshotRef.current = { lat: form.latitude, lng: form.longitude };
 
   useEffect(() => {
     if (!showMapModal || !mapPickerRef.current) return;
-    
+
     if (pickerInstanceRef.current) {
       pickerInstanceRef.current.remove();
       pickerInstanceRef.current = null;
     }
 
-    const initialLat = Number(form.latitude) || 20.5937;
-    const initialLng = Number(form.longitude) || 78.9629;
-    const zoom = form.latitude ? 15 : 5;
+    const { lat: snapLat, lng: snapLng } = coordsSnapshotRef.current;
+    const initialLat = Number(snapLat) || 20.5937;
+    const initialLng = Number(snapLng) || 78.9629;
+    const zoom = snapLat ? 15 : 5;
 
     const map = L.map(mapPickerRef.current).setView([initialLat, initialLng], zoom);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -260,7 +259,6 @@ export function OwnerDashboardPage() {
 
     pickerInstanceRef.current = map;
 
-    // Fix map rendering issue in modal
     setTimeout(() => {
       map.invalidateSize();
     }, 100);
@@ -283,8 +281,8 @@ export function OwnerDashboardPage() {
       try {
         const result = await uploadImage(file);
         urls.push(result.url);
-      } catch (err: any) {
-        alert(`Failed to upload ${file.name}: ${err.message || "Unknown error"}`);
+      } catch (err: unknown) {
+        alert(`Failed to upload ${file.name}: ${getApiErrorMessage(err, "Unknown error")}`);
       }
     }
     setImageUrls(urls);
@@ -327,7 +325,7 @@ export function OwnerDashboardPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ propertyId, data }: { propertyId: string; data: unknown }) =>
+    mutationFn: ({ propertyId, data }: { propertyId: string; data: OwnerPropertyUpdatePayload }) =>
       updateOwnerProperty(propertyId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["owner-properties"] });
@@ -354,6 +352,7 @@ export function OwnerDashboardPage() {
     setSelectedAmenities(new Set());
     setRoomOptions([]);
     setImageUrls([]);
+    setCommissionAgreed(false);
     setEditingPropertyId(null);
   };
 
@@ -367,8 +366,8 @@ export function OwnerDashboardPage() {
     }
   };
 
-  const buildMetadata = () => {
-    const m: Record<string, unknown> = {};
+  const buildMetadata = (): PropertyMetadata | undefined => {
+    const m: PropertyMetadata = {};
     const pt = form.property_type;
     if (pt === "pg" || pt === "hostel") {
       if (meta.mess_timing)    m.mess_timing    = meta.mess_timing;
@@ -419,14 +418,18 @@ export function OwnerDashboardPage() {
         status:          o.status,
       }));
 
-    const payload = {
+    const selectedCollege = collegesQuery.data?.find((c) => c.college_id === form.primary_college_id);
+    const resolvedLat = Number(form.latitude) || selectedCollege?.latitude || 0;
+    const resolvedLng = Number(form.longitude) || selectedCollege?.longitude || 0;
+
+    const payload: OwnerPropertyCreatePayload = {
       title:               form.title,
       property_type:       form.property_type,
       primary_college_id:  form.primary_college_id,
       description:         form.description,
       address_text:        form.address_text,
-      latitude:            Number(form.latitude)  || 0,
-      longitude:           Number(form.longitude) || 0,
+      latitude:            resolvedLat,
+      longitude:           resolvedLng,
       rent_min:            Number(form.rent_min)  || 0,
       rent_max:            Number(form.rent_max)  || 0,
       security_deposit:    Number(form.security_deposit) || 0,
@@ -453,7 +456,7 @@ export function OwnerDashboardPage() {
     if (editingPropertyId) {
       updateMutation.mutate({ propertyId: editingPropertyId, data: payload });
     } else {
-      createMutation.mutate(payload as Parameters<typeof createOwnerProperty>[0]);
+      createMutation.mutate(payload);
     }
   };
 
@@ -557,7 +560,12 @@ export function OwnerDashboardPage() {
                     <button
                       key={pt.value}
                       type="button"
-                      onClick={() => setForm({ ...form, property_type: pt.value })}
+                      onClick={() => {
+                        if (form.property_type !== pt.value && !editingPropertyId) {
+                          setRoomOptions([]);
+                        }
+                        setForm({ ...form, property_type: pt.value });
+                      }}
                       className="flex flex-col items-center gap-1 rounded-2xl p-4 text-center transition-all duration-200 hover:scale-105"
                       style={{
                         background: active ? "var(--primary-container)" : "var(--surface-container)",
@@ -1272,14 +1280,15 @@ export function OwnerDashboardPage() {
                     <button
                       onClick={() => {
                         setEditingPropertyId(item.property_id);
+                        setCommissionAgreed(true);
                         setForm({
                           title:              item.title,
                           property_type:      item.property_type,
                           primary_college_id: item.primary_college_id || "",
                           description:        item.description || "",
                           address_text:       item.address_text || "",
-                          latitude:           String(item.latitude),
-                          longitude:          String(item.longitude),
+                          latitude:           String(item.latitude ?? ""),
+                          longitude:          String(item.longitude ?? ""),
                           rent_min:           String(item.rent_min),
                           rent_max:           String(item.rent_max),
                           security_deposit:   String(item.security_deposit),
@@ -1287,15 +1296,49 @@ export function OwnerDashboardPage() {
                           food_available:     item.food_available,
                           food_menu:          item.food_menu || "",
                           rules:              item.rules || "",
-                          owner_contact:      "",
-                          owner_whatsapp:     "",
-                          available_from:     "",
-                          video_tour_url:     "",
-                          nearby_landmarks:   "",
-                          maintenance_charge: "",
-                          notice_period_days: "",
-                          preferred_tenant:   "any",
+                          owner_contact:      item.owner_contact || "",
+                          owner_whatsapp:     item.owner_whatsapp || "",
+                          available_from:     item.available_from || "",
+                          video_tour_url:     item.video_tour_url || "",
+                          nearby_landmarks:   item.nearby_landmarks || "",
+                          maintenance_charge: item.maintenance_charge != null ? String(item.maintenance_charge) : "",
+                          notice_period_days: item.notice_period_days != null ? String(item.notice_period_days) : "",
+                          preferred_tenant:   item.preferred_tenant || "any",
                         });
+                        const m = item.metadata;
+                        setMeta({
+                          mess_timing:       m?.mess_timing || "",
+                          gate_timing:       m?.gate_timing || "",
+                          warden_contact:    m?.warden_contact || "",
+                          curfew_time:       m?.curfew_time || "",
+                          warden_on_site:    Boolean(m?.warden_on_site),
+                          total_capacity:    m?.total_capacity != null ? String(m.total_capacity) : "",
+                          study_hall:        Boolean(m?.study_hall),
+                          furnishing:        m?.furnishing || "",
+                          floor:             m?.floor != null ? String(m.floor) : "",
+                          total_floors:      m?.total_floors != null ? String(m.total_floors) : "",
+                          lift:              Boolean(m?.lift),
+                          society_name:      m?.society_name || "",
+                          bathroom_type:     m?.bathroom_type || "",
+                          num_bathrooms:     m?.num_bathrooms != null ? String(m.num_bathrooms) : "",
+                          kitchen_access:    Boolean(m?.kitchen_access),
+                          min_stay_duration: m?.min_stay_duration || "",
+                          community_events:  Boolean(m?.community_events),
+                          coworking:         Boolean(m?.coworking),
+                          size_sqft:         m?.size_sqft != null ? String(m.size_sqft) : "",
+                          parking_type:      m?.parking_type || "",
+                          water_supply:      m?.water_supply || "",
+                        });
+                        setRoomOptions(
+                          (item.room_options || []).map((ro, idx) => ({
+                            id: ro.option_id || `opt-${idx}`,
+                            label: ro.label,
+                            price: String(ro.price),
+                            deposit: ro.deposit != null ? String(ro.deposit) : "",
+                            available_count: String(ro.available_count ?? 0),
+                            status: ro.status || "available",
+                          }))
+                        );
                         setSelectedAmenities(new Set(item.amenities));
                         setImageUrls(item.image_urls);
                         document.getElementById("listing-form")?.scrollIntoView({ behavior: "smooth" });

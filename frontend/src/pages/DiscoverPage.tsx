@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
 import L from "leaflet";
@@ -21,12 +21,9 @@ import { ListingCard } from "../components/listings/ListingCard";
 import { Reveal } from "../components/ui/Reveal";
 import { AnimatedNumber } from "../components/ui/AnimatedNumber";
 import { searchProperties, listColleges } from "../lib/api";
+import { Icon } from "../lib/icons";
 
 const AMENITY_OPTIONS = ["wifi", "food", "ac", "parking", "laundry", "gym", "cctv", "geyser", "power_backup", "study_room"];
-const AMENITY_ICONS: Record<string, string> = {
-  wifi: "📶", food: "🍽️", ac: "❄️", parking: "🅿️", laundry: "🧺",
-  gym: "💪", cctv: "📹", geyser: "🚿", power_backup: "⚡", study_room: "📚",
-};
 
 type FilterState = {
   college_id: string;
@@ -85,7 +82,7 @@ export function DiscoverPage() {
     staleTime: 30000,
   });
 
-  const items = propertiesQuery.data?.items ?? [];
+  const items = useMemo(() => propertiesQuery.data?.items ?? [], [propertiesQuery.data]);
   const total = propertiesQuery.data?.total ?? 0;
   const totalPages = Math.ceil(total / 12);
 
@@ -181,8 +178,8 @@ export function DiscoverPage() {
 
         <div className="relative mx-auto max-w-6xl">
           <Reveal>
-            <p className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: "var(--tertiary)" }}>
-              🏠 Student Housing
+            <p className="text-xs font-bold uppercase tracking-[0.18em] flex items-center gap-1.5" style={{ color: "var(--tertiary)" }}>
+              <Icon name="home" className="w-4 h-4" /> Student Housing
             </p>
             <h1 className="mt-2 text-4xl font-black md:text-5xl" style={{ letterSpacing: "-0.03em", color: "var(--on-surface)" }}>
               Discover Your<br />
@@ -215,7 +212,7 @@ export function DiscoverPage() {
             <div className="flex items-center justify-between px-5 py-4"
               style={{ borderBottom: "1px solid var(--glass-border)" }}>
               <div className="flex items-center gap-3">
-                <span className="text-lg">🔍</span>
+                <Icon name="search" className="w-5 h-5" />
                 <div>
                   <p className="text-sm font-black" style={{ color: "var(--on-surface)" }}>Filter & Search</p>
                   <p className="text-xs" style={{ color: "var(--outline)" }}>
@@ -255,7 +252,7 @@ export function DiscoverPage() {
 
             {/* Always-visible quick filters */}
             <div className="px-5 py-4">
-              <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
+              <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
                 {/* City */}
                 <label className="block">
                   <span className="mb-1.5 block text-[10px] font-black uppercase tracking-[0.1em]"
@@ -287,6 +284,25 @@ export function DiscoverPage() {
                     ))}
                   </select>
                 </label>
+
+                {/* Distance (Only if college selected) */}
+                {filters.college_id && (
+                  <label className="block">
+                    <span className="mb-1.5 block text-[10px] font-black uppercase tracking-[0.1em]"
+                      style={{ color: "var(--outline)" }}>Max Distance</span>
+                    <select
+                      value={filters.radius_km}
+                      onChange={(e) => handleFilterChange("radius_km", Number(e.target.value))}
+                      className="input-field !py-2.5 !text-sm"
+                    >
+                      <option value={2}>&lt; 2 km</option>
+                      <option value={5}>&lt; 5 km</option>
+                      <option value={10}>&lt; 10 km</option>
+                      <option value={15}>&lt; 15 km</option>
+                      <option value={9999}>Any Distance</option>
+                    </select>
+                  </label>
+                )}
 
                 {/* Property Type */}
                 <label className="block">
@@ -432,7 +448,7 @@ export function DiscoverPage() {
                             border: active ? "none" : "1px solid var(--glass-border)",
                           }}
                         >
-                          <span>{AMENITY_ICONS[a]}</span>
+                          <Icon name={a} className="w-3.5 h-3.5" />
                           <span className="capitalize">{a.replace(/_/g, " ")}</span>
                         </button>
                       );
