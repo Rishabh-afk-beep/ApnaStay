@@ -119,13 +119,13 @@ export function AdminCollegesPage() {
             style={{ background: "var(--primary-fixed-dim)", filter: "blur(60px)" }} />
           <div className="relative z-10">
             <p className="text-xs font-bold uppercase tracking-widest"
-              style={{ color: "var(--primary-fixed-dim)", letterSpacing: "0.15em" }}>
+              style={{ color: "var(--primary)", letterSpacing: "0.15em" }}>
               Admin
             </p>
-            <h1 className="mt-2 text-3xl font-black text-white">
+            <h1 className="mt-2 text-3xl font-black" style={{ color: "var(--on-surface)" }}>
               College Management
             </h1>
-            <p className="mt-2 text-sm text-slate-300">
+            <p className="mt-2 text-sm" style={{ color: "var(--on-surface-variant)" }}>
               <AnimatedNumber value={colleges.length} /> colleges registered
             </p>
           </div>

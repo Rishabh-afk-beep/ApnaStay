@@ -493,13 +493,13 @@ export function OwnerDashboardPage() {
           <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full opacity-20"
             style={{ background: "var(--on-primary)", filter: "blur(40px)" }} />
           <div className="relative z-10">
-            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.60)", letterSpacing: "0.15em" }}>
+            <p className="text-xs font-bold uppercase tracking-widest opacity-80" style={{ color: "var(--on-primary)", letterSpacing: "0.15em" }}>
               Owner Console
             </p>
             <h1 className="mt-2 text-3xl font-black" style={{ color: "var(--on-primary)" }}>
               {editingPropertyId ? "Edit your listing" : "List your property"}
             </h1>
-            <p className="mt-2 max-w-2xl text-sm" style={{ color: "rgba(255,255,255,0.75)" }}>
+            <p className="mt-2 max-w-2xl text-sm opacity-90" style={{ color: "var(--on-primary)" }}>
               Publish PGs, flats, hostels, single rooms, or co-living spaces. Track approvals, inquiries, and availability — all in one place.
             </p>
           </div>

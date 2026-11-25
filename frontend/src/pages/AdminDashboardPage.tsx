@@ -16,6 +16,7 @@ const DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 import { Reveal } from "../components/ui/Reveal";
+import { bindHoverPopup, escapePopupHtml } from "../lib/leafletHoverPopup";
 import { AnimatedNumber } from "../components/ui/AnimatedNumber";
 import {
   adminApprove,
@@ -174,23 +175,29 @@ export function AdminDashboardPage() {
     }).addTo(map);
 
     const bounds = L.latLngBounds([]);
+    const cleanups: Array<() => void> = [];
 
     filteredProperties.forEach((p) => {
       if (p.latitude && p.longitude) {
         bounds.extend([p.latitude, p.longitude]);
-        L.marker([p.latitude, p.longitude])
-          .addTo(map)
-          .bindPopup(`<b>${p.title}</b><br/>${p.property_type.replace("_", " ")}<br/>${p.visibility_status}`);
+        const marker = L.marker([p.latitude, p.longitude]).addTo(map);
+        cleanups.push(
+          bindHoverPopup(
+            marker,
+            `<b>${escapePopupHtml(p.title)}</b><br/>${escapePopupHtml(p.property_type.replace("_", " "))}<br/>${escapePopupHtml(p.visibility_status)}`
+          )
+        );
       }
     });
 
     if (bounds.isValid()) {
-      map.fitBounds(bounds, { padding: [50, 50] });
+      map.fitBounds(bounds, { padding: [80, 60], maxZoom: 16 });
     }
 
     mapInstanceRef.current = map;
 
     return () => {
+      cleanups.forEach((fn) => fn());
       map.remove();
       mapInstanceRef.current = null;
     };

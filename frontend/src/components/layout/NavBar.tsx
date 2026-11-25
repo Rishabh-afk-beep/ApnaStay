@@ -8,7 +8,7 @@ function navLinkClass(isActive: boolean) {
   return [
     "rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200",
     isActive
-      ? "text-white"
+      ? "shadow-sm"
       : "hover:opacity-80",
   ].join(" ");
 }
@@ -47,7 +47,7 @@ export function NavBar() {
     <header
       className="sticky top-0 z-40"
       style={{
-        background: "var(--glass-bg)",
+        background: "var(--nav-bg)",
         backdropFilter: "blur(24px)",
         WebkitBackdropFilter: "blur(24px)",
         borderBottom: "1px solid var(--glass-border)",

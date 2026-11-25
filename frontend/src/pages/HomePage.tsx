@@ -47,13 +47,13 @@ export function HomePage() {
             style={{ background: "var(--primary-fixed-dim)", filter: "blur(60px)" }} />
           <div className="relative z-10">
             <p className="text-xs font-bold uppercase tracking-widest"
-              style={{ color: "var(--primary-fixed-dim)", letterSpacing: "0.15em" }}>
+              style={{ color: "var(--primary)", letterSpacing: "0.15em" }}>
               Discover
             </p>
-            <h1 className="mt-2 text-3xl font-black md:text-4xl text-white">
+            <h1 className="mt-2 text-3xl font-black md:text-4xl" style={{ color: "var(--on-surface)" }}>
               Find nearby rentals around your college
             </h1>
-            <p className="mt-3 max-w-2xl text-sm md:text-base text-slate-300">
+            <p className="mt-3 max-w-2xl text-sm md:text-base" style={{ color: "var(--on-surface-variant)" }}>
               Filter by radius, property type, and budget to find rooms that match your student lifestyle.
             </p>
           </div>

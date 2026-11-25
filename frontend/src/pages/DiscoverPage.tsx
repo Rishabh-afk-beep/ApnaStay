@@ -21,6 +21,7 @@ import { ListingCard } from "../components/listings/ListingCard";
 import { Reveal } from "../components/ui/Reveal";
 import { AnimatedNumber } from "../components/ui/AnimatedNumber";
 import { searchProperties, listColleges } from "../lib/api";
+import { bindHoverPopup, escapePopupHtml } from "../lib/leafletHoverPopup";
 import { Icon } from "../lib/icons";
 
 const AMENITY_OPTIONS = ["wifi", "food", "ac", "parking", "laundry", "gym", "cctv", "geyser", "power_backup", "study_room"];
@@ -139,23 +140,36 @@ export function DiscoverPage() {
       attribution: "© OpenStreetMap contributors",
     }).addTo(map);
     const bounds = L.latLngBounds([]);
+    const cleanups: Array<() => void> = [];
     items.forEach((p) => {
       if (p.latitude && p.longitude) {
         bounds.extend([p.latitude, p.longitude]);
         const marker = L.marker([p.latitude, p.longitude]).addTo(map);
-        marker.bindPopup(`
+        const safeType = escapePopupHtml(p.property_type.replace(/_/g, " "));
+        const safeTitle = escapePopupHtml(p.title);
+        const safeId = encodeURIComponent(p.property_id);
+        cleanups.push(
+          bindHoverPopup(
+            marker,
+            `
           <div class="text-xs p-1">
-            <span class="font-black text-amber-600 block mb-1">${p.property_type.replace(/_/g, " ")}</span>
-            <b class="text-sm">${p.title}</b><br/>
+            <span class="font-black text-amber-600 block mb-1">${safeType}</span>
+            <b class="text-sm">${safeTitle}</b><br/>
             <span class="font-bold">₹${p.rent_min.toLocaleString()}</span>/mo<br/>
-            <a href="/properties/${p.property_id}" target="_blank" class="mt-2 inline-block font-bold text-blue-600">View Details →</a>
+            <a href="/properties/${safeId}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-block font-bold text-blue-600 hover:underline">View Details →</a>
           </div>
-        `);
+        `
+          )
+        );
       }
     });
-    if (bounds.isValid()) map.fitBounds(bounds, { padding: [50, 50] });
+    if (bounds.isValid()) map.fitBounds(bounds, { padding: [80, 60], maxZoom: 16 });
     mapInstanceRef.current = map;
-    return () => { map.remove(); mapInstanceRef.current = null; };
+    return () => {
+      cleanups.forEach((fn) => fn());
+      map.remove();
+      mapInstanceRef.current = null;
+    };
   }, [viewMode, items]);
 
   const isLoading = propertiesQuery.isFetching;
