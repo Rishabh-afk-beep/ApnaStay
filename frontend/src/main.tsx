@@ -5,24 +5,30 @@ import { HelmetProvider } from "react-helmet-async";
 import "leaflet/dist/leaflet.css";
 
 import App from "./App";
+import { getPublicStats, listColleges } from "./lib/api";
 import "./index.css";
-
-// ── Render keep-alive: silently wake the backend on app load ──────────────────
-// Render free tier spins down after 15 min of inactivity (~30s cold start).
-// This fire-and-forget ping is sent immediately so the backend is warm before
-// the user's first real API call.
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api/v1";
-fetch(`${API_BASE}/health/stats`, { method: "GET" }).catch(() => {/* ignore — warm-up only */});
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
       retry: 1,
+      retryDelay: 1000,
       refetchOnWindowFocus: false,
     },
   },
+});
+
+// Pre-warm key queries through React Query so concurrent callers deduplicate into one request
+void queryClient.prefetchQuery({
+  queryKey: ["public-stats"],
+  queryFn: getPublicStats,
+});
+void queryClient.prefetchQuery({
+  queryKey: ["colleges"],
+  queryFn: listColleges,
+  staleTime: 10 * 60 * 1000,
 });
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

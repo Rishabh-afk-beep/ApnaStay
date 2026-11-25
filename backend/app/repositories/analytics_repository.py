@@ -1,4 +1,5 @@
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
 from google.cloud import firestore_v1
@@ -67,33 +68,48 @@ class AnalyticsRepository:
             )
 
         try:
-            verified_listings = _count_query(
-                client.collection("properties").where(
-                    filter=firestore_v1.FieldFilter("visibility_status", "==", "live")
+            def _count_live_listings() -> int:
+                return _count_query(
+                    client.collection("properties").where(
+                        filter=firestore_v1.FieldFilter("visibility_status", "==", "live")
+                    )
                 )
-            )
-            students_active = _count_query(
-                client.collection("users").where(
-                    filter=firestore_v1.FieldFilter("role", "==", "student")
+
+            def _count_students() -> int:
+                return _count_query(
+                    client.collection("users").where(
+                        filter=firestore_v1.FieldFilter("role", "==", "student")
+                    )
                 )
-            )
-            colleges = list(
-                client.collection("colleges")
-                .where(filter=firestore_v1.FieldFilter("status", "==", "active"))
-                .select(["city"])
-                .stream()
-            )
-            cities: set[str] = set()
-            for doc in colleges:
-                city = (doc.to_dict().get("city") or "").strip()
-                if city:
-                    cities.add(city.lower())
+
+            def _fetch_college_cities() -> tuple[int, int]:
+                colleges = list(
+                    client.collection("colleges")
+                    .where(filter=firestore_v1.FieldFilter("status", "==", "active"))
+                    .select(["city"])
+                    .stream()
+                )
+                cities: set[str] = set()
+                for doc in colleges:
+                    city = (doc.to_dict().get("city") or "").strip()
+                    if city:
+                        cities.add(city.lower())
+                return len(colleges), (len(cities) if cities else 1)
+
+            with ThreadPoolExecutor(max_workers=3) as pool:
+                fut_listings = pool.submit(_count_live_listings)
+                fut_students = pool.submit(_count_students)
+                fut_colleges = pool.submit(_fetch_college_cities)
+
+                verified_listings = fut_listings.result()
+                students_active = fut_students.result()
+                colleges_covered, cities_active = fut_colleges.result()
 
             return PublicStatsOut(
                 verified_listings=verified_listings,
-                colleges_covered=len(colleges),
+                colleges_covered=colleges_covered,
                 students_active=students_active,
-                cities_active=len(cities) if cities else 1,
+                cities_active=cities_active,
             )
         except Exception as exc:
             logger.warning("[Analytics] Failed to load public stats: %s", exc)

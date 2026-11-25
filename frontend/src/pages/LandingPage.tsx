@@ -4,7 +4,30 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../lib/AuthContext";
 import { Reveal } from "../components/ui/Reveal";
-import { getPublicStats, listColleges } from "../lib/api";
+import { getPublicStats, listColleges, type PublicStatsOut } from "../lib/api";
+import type { CollegeOut } from "../types";
+
+function readLocalCache<T>(key: string, maxAgeMs: number): T | undefined {
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return undefined;
+    const parsed = JSON.parse(raw) as { ts?: number; data?: T };
+    if (!parsed || typeof parsed.ts !== "number" || Date.now() - parsed.ts > maxAgeMs) {
+      return undefined;
+    }
+    return parsed.data;
+  } catch {
+    return undefined;
+  }
+}
+
+function writeLocalCache<T>(key: string, data: T): void {
+  try {
+    window.localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data }));
+  } catch {
+    // Ignore storage quota or private-mode errors
+  }
+}
 
 // ── Custom City Dropdown ────────────────────────────────────────────────────
 function CityDropdown({
@@ -205,12 +228,26 @@ export function LandingPage() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ["public-stats"],
     queryFn: getPublicStats,
+    placeholderData: () => readLocalCache<PublicStatsOut>("nmc_stats_v1", 24 * 60 * 60 * 1000),
   });
 
   const { data: colleges } = useQuery({
     queryKey: ["colleges"],
     queryFn: listColleges,
+    placeholderData: () => readLocalCache<CollegeOut[]>("nmc_colleges_v1", 24 * 60 * 60 * 1000),
   });
+
+  useEffect(() => {
+    if (stats && (stats.colleges_covered > 0 || stats.verified_listings > 0)) {
+      writeLocalCache("nmc_stats_v1", stats);
+    }
+  }, [stats]);
+
+  useEffect(() => {
+    if (colleges && colleges.length > 0) {
+      writeLocalCache("nmc_colleges_v1", colleges);
+    }
+  }, [colleges]);
 
   const uniqueCities = Array.from(new Set((colleges || []).map((c) => c.city))).sort();
   const filteredColleges = (colleges || []).filter((c) => !selectedCity || c.city === selectedCity);
@@ -223,19 +260,19 @@ export function LandingPage() {
   const [isWaking, setIsWaking] = useState(false);
 
   useEffect(() => {
-    if (isLoading) {
-      const timer = setTimeout(() => setIsWaking(true), 3000);
+    if (!stats && isLoading) {
+      const timer = setTimeout(() => setIsWaking(true), 5000);
       return () => clearTimeout(timer);
-    } else {
-      setIsWaking(false);
     }
-  }, [isLoading]);
+    setIsWaking(false);
+  }, [stats, isLoading]);
 
+  const showStatsSkeleton = isLoading && !stats;
   const liveStats = [
-    { label: "Verified Listings", value: isLoading ? null : `${stats?.verified_listings ?? 500}+`, icon: "🏠" },
-    { label: "Colleges Covered", value: isLoading ? null : `${stats?.colleges_covered ?? 50}+`, icon: "🎓" },
-    { label: "Students Trust Us", value: isLoading ? null : `${(stats?.students_active ?? 10000).toLocaleString()}+`, icon: "💛" },
-    { label: "Cities Active", value: isLoading ? null : `${stats?.cities_active ?? 12}+`, icon: "📍" },
+    { label: "Verified Listings", value: showStatsSkeleton ? null : `${stats?.verified_listings ?? 0}+`, icon: "🏠" },
+    { label: "Colleges Covered", value: showStatsSkeleton ? null : `${stats?.colleges_covered ?? 0}+`, icon: "🎓" },
+    { label: "Students Trust Us", value: showStatsSkeleton ? null : `${(stats?.students_active ?? 0).toLocaleString()}+`, icon: "💛" },
+    { label: "Cities Active", value: showStatsSkeleton ? null : `${stats?.cities_active ?? 0}+`, icon: "📍" },
   ];
 
   return (
@@ -360,7 +397,7 @@ export function LandingPage() {
             </div>
             {isWaking && (
               <p className="mt-4 text-xs font-bold text-center animate-pulse" style={{ color: "var(--primary)" }}>
-                ⏳ Waking up secure servers (takes ~30s on first load)
+                ⏳ Connecting to campus directory — first cold boot can take a few seconds
               </p>
             )}
           </div>

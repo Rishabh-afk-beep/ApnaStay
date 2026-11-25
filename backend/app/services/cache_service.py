@@ -3,13 +3,14 @@ import json
 import logging
 import threading
 import time
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, Optional, Set, Tuple, TypeVar
 
 import redis
 
 from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
+T = TypeVar("T")
 
 
 class CacheService:
@@ -29,6 +30,9 @@ class CacheService:
         self.redis_enabled = False
         self._memory_lock = threading.Lock()
         self._memory_cache: Dict[str, Tuple[float, str]] = {}
+        self._swr_meta_lock = threading.Lock()
+        self._key_locks: Dict[str, threading.Lock] = {}
+        self._refreshing_keys: Set[str] = set()
 
         if settings.redis_url:
             try:
@@ -45,6 +49,16 @@ class CacheService:
                 logger.warning("Failed to connect to Redis, using in-memory TTL cache: %s", e)
                 self.redis_client = None
                 self.redis_enabled = False
+
+    def _get_key_lock(self, key: str) -> threading.Lock:
+        with self._swr_meta_lock:
+            lock = self._key_locks.get(key)
+            if lock is None:
+                if len(self._key_locks) > 500:
+                    self._key_locks.clear()
+                lock = threading.Lock()
+                self._key_locks[key] = lock
+            return lock
 
     def get(self, key: str) -> Optional[Any]:
         if self.redis_enabled and self.redis_client:
@@ -90,6 +104,80 @@ class CacheService:
                     self._memory_cache.pop(oldest_key, None)
             self._memory_cache[key] = (expires_at, serialized_val)
         return True
+
+    def get_swr(
+        self,
+        key: str,
+        loader: Callable[[], T],
+        fresh_ttl: int = 300,
+        stale_ttl: int = 86400,
+        cache_if: Optional[Callable[[T], bool]] = None,
+        background_refresh: bool = True,
+    ) -> T:
+        """Stale-While-Revalidate cache with per-key singleflight stampede protection."""
+        now = time.time()
+        entry = self.get(key)
+        if isinstance(entry, dict) and entry.get("__swr__") is True:
+            val = entry.get("v")
+            if now < float(entry.get("fresh_until", 0)):
+                return val
+            if background_refresh:
+                self._trigger_background_refresh(key, loader, fresh_ttl, stale_ttl, cache_if)
+            return val
+
+        key_lock = self._get_key_lock(key)
+        with key_lock:
+            # Double-check after acquiring lock so concurrent callers coalesce
+            entry = self.get(key)
+            if isinstance(entry, dict) and entry.get("__swr__") is True:
+                return entry.get("v")
+
+            fresh_val = loader()
+            if cache_if is None or cache_if(fresh_val):
+                self.set(
+                    key,
+                    {
+                        "__swr__": True,
+                        "fresh_until": time.time() + max(1, fresh_ttl),
+                        "v": fresh_val,
+                    },
+                    ttl=max(fresh_ttl, stale_ttl),
+                )
+            return fresh_val
+
+    def _trigger_background_refresh(
+        self,
+        key: str,
+        loader: Callable[[], T],
+        fresh_ttl: int,
+        stale_ttl: int,
+        cache_if: Optional[Callable[[T], bool]],
+    ) -> None:
+        with self._swr_meta_lock:
+            if key in self._refreshing_keys:
+                return
+            self._refreshing_keys.add(key)
+
+        def _worker() -> None:
+            try:
+                fresh_val = loader()
+                if cache_if is None or cache_if(fresh_val):
+                    self.set(
+                        key,
+                        {
+                            "__swr__": True,
+                            "fresh_until": time.time() + max(1, fresh_ttl),
+                            "v": fresh_val,
+                        },
+                        ttl=max(fresh_ttl, stale_ttl),
+                    )
+            except Exception as exc:
+                logger.warning("Background SWR refresh failed for %s: %s", key, exc)
+            finally:
+                with self._swr_meta_lock:
+                    self._refreshing_keys.discard(key)
+
+        threading.Thread(target=_worker, name=f"swr-{key[:24]}", daemon=True).start()
 
     def delete(self, key: str) -> bool:
         if self.redis_enabled and self.redis_client:

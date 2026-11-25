@@ -1,4 +1,6 @@
 from contextlib import asynccontextmanager
+import os
+import threading
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,11 +8,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.api import api_router
 from app.core.config import get_settings
 from app.core.firebase import initialize_firebase
+from app.services.warmup_service import warm_public_caches
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     initialize_firebase()
+    if os.getenv("ENVIRONMENT") != "test":
+        threading.Thread(target=warm_public_caches, name="startup-warmup", daemon=True).start()
     yield
 
 

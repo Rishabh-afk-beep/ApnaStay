@@ -1,8 +1,6 @@
-import hashlib
-import json
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 
 from app.api.deps import get_optional_user
 from app.models.schemas.common import PaginatedResponse
@@ -10,16 +8,16 @@ from app.models.schemas.property import PropertyCard, PropertyDetail, PropertySe
 from app.models.schemas.user import UserProfile, UserRole
 from app.repositories.property_repository import PropertyRepository
 from app.services.cache_service import CacheService
-from app.services.property_service import PropertyService
+from app.services.warmup_service import get_cached_search
 
 router = APIRouter()
-service = PropertyService()
 repo = PropertyRepository()
 cache = CacheService()
 
 
 @router.get("/search")
 def search_properties(
+    response: Response,
     college_id: str | None = None,
     radius_km: float = 2.0,
     property_type: str | None = None,
@@ -45,19 +43,8 @@ def search_properties(
         page=page,
         limit=limit,
     )
-
-    query_json = json.dumps(query.model_dump(), sort_keys=True)
-    query_hash = hashlib.md5(query_json.encode()).hexdigest()
-    cache_key = f"cache:search:{query_hash}"
-
-    cached_result = cache.get(cache_key)
-    if cached_result:
-        return PaginatedResponse[PropertyCard](**cached_result)
-
-    items, total = service.search(query)
-    response = PaginatedResponse[PropertyCard](items=items, page=page, limit=limit, total=total)
-    cache.set(cache_key, response.model_dump(), ttl=300)
-    return response
+    response.headers["Cache-Control"] = "public, max-age=60, stale-while-revalidate=300"
+    return get_cached_search(query)
 
 
 @router.get("/{property_id}")

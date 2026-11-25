@@ -174,3 +174,41 @@ def test_blocked_user_is_rejected(client: TestClient):
         headers={"Authorization": f"Bearer {admin_token}"},
         json={"status": "active"},
     )
+
+
+def test_warm_endpoint_and_swr_cache(client: TestClient):
+    warm_res = client.get("/api/v1/health/warm")
+    assert warm_res.status_code == 200
+    warm_data = warm_res.json()
+    assert warm_data["status"] == "ok"
+    assert warm_data["warmed"]["stats"] is True
+    assert warm_data["warmed"]["colleges"] is True
+    assert warm_data["warmed"]["search"] is True
+
+    stats_res = client.get("/api/v1/health/stats")
+    assert stats_res.status_code == 200
+    assert "stale-while-revalidate" in stats_res.headers.get("cache-control", "")
+
+    from app.services.cache_service import CacheService
+
+    calls = 0
+
+    def _loader():
+        nonlocal calls
+        calls += 1
+        return {"count": calls}
+
+    cache = CacheService()
+    cache.delete("test:swr:key")
+    first = cache.get_swr("test:swr:key", _loader, fresh_ttl=60, stale_ttl=300)
+    second = cache.get_swr("test:swr:key", _loader, fresh_ttl=60, stale_ttl=300)
+    assert first == {"count": 1}
+    assert second == {"count": 1}
+    assert calls == 1
+
+    # Inject stale wrapper (fresh_until in the past) — must return stale immediately without blocking
+    cache.set("test:swr:key", {"__swr__": True, "fresh_until": 0, "v": {"count": 99}}, ttl=300)
+    stale_val = cache.get_swr("test:swr:key", _loader, fresh_ttl=60, stale_ttl=300, background_refresh=False)
+    assert stale_val == {"count": 99}
+    assert calls == 1
+    cache.delete("test:swr:key")
